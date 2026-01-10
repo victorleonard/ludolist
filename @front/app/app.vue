@@ -59,7 +59,7 @@ useSeoMeta({
       <NuxtPage />
     </UMain>
 
-    <USeparator icon="i-simple-icons-nuxtdotjs" />
+    <USeparator class="mt-8" />
 
     <UFooter>
       <template #left>
@@ -68,16 +68,7 @@ useSeoMeta({
         </p>
       </template>
 
-      <template #right>
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
-        />
-      </template>
+      <template #right />
     </UFooter>
   </UApp>
 </template>
