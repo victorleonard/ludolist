@@ -6,6 +6,7 @@ FROM node:20-alpine AS base
 # - vips-dev : pour sharp (traitement d'images)
 # - python3, make, g++ : pour better-sqlite3 et autres modules natifs
 # - bash, git : utilitaires
+# - su-exec : pour changer d'utilisateur de manière sécurisée
 RUN apk update && apk add --no-cache \
     build-base \
     gcc \
@@ -19,7 +20,8 @@ RUN apk update && apk add --no-cache \
     git \
     python3 \
     make \
-    g++
+    g++ \
+    su-exec
 
 # Étape de dépendances (toutes pour le build)
 FROM base AS deps
@@ -89,11 +91,16 @@ COPY --from=builder --chown=strapi:nodejs /app/src ./src
 COPY --from=builder --chown=strapi:nodejs /app/types ./types
 
 # Créer les répertoires nécessaires
-RUN mkdir -p .tmp public/uploads && \
-    chown -R strapi:nodejs .tmp public/uploads
+RUN mkdir -p .tmp public/uploads /data/db
 
-USER strapi
+# Copier le script d'initialisation depuis le contexte de build
+# Le contexte est .. donc @docker/docker-entrypoint.sh est accessible
+COPY @docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 1337
 
+# Utiliser le script d'initialisation comme entrypoint
+# Le script s'exécute en root pour ajuster les permissions, puis passe à l'utilisateur strapi
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["npm", "start"]
