@@ -47,8 +47,10 @@ COPY @back ./
 
 # Build de l'application (le build inclut l'admin panel)
 RUN npm run build
-# Vérifier que le dossier dist/build existe (admin panel)
-RUN test -d /app/dist/build || (echo "❌ Erreur: le build de l'admin panel a échoué" && exit 1)
+# S'assurer que le dossier dist existe (peut être vide dans Strapi 5)
+RUN mkdir -p /app/dist
+# Vérifier que l'admin panel a été construit dans node_modules/@strapi/admin/dist/server/server/build/
+RUN test -d /app/node_modules/@strapi/admin/dist/server/server/build || (echo "❌ Erreur: le build de l'admin panel a échoué" && exit 1)
 
 # Étape de production
 FROM base AS runner
@@ -66,9 +68,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder --chown=strapi:nodejs /app/node_modules ./node_modules
 
 # Copier les fichiers nécessaires
-# Créer d'abord le dossier dist
+# Créer le dossier dist (peut être vide dans Strapi 5, l'admin est dans node_modules)
 RUN mkdir -p ./dist
-# Copier le contenu de dist depuis builder (le dossier existe toujours grâce à mkdir -p dans builder)
+# Copier le contenu de dist depuis builder s'il existe
 COPY --from=builder --chown=strapi:nodejs /app/dist ./dist
 COPY --from=builder --chown=strapi:nodejs /app/package*.json ./
 COPY --from=builder --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
