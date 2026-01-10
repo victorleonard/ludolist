@@ -51,18 +51,8 @@ WORKDIR /app
 COPY @back ./
 
 # Construire l'application (le build inclut l'admin panel)
-# Dans Strapi 5, le build crée les fichiers dans node_modules/@strapi/admin/dist/server/server/build/
-# Note: Dans certaines configurations, l'admin panel peut être construit au runtime
+# Dans Strapi 5, le build crée les fichiers dans ./dist/build (pas dans node_modules)
 RUN npm run build
-
-# Vérifier si l'admin panel a été construit (avertissement si absent, mais ne pas faire échouer le build)
-RUN if [ -d /app/node_modules/@strapi/admin/dist/server/server/build ]; then \
-      echo "✅ Admin panel construit avec succès dans node_modules/@strapi/admin/dist/server/server/build/"; \
-    else \
-      echo "⚠️  Admin panel non construit dans le build, sera construit au runtime lors du premier accès à /admin"; \
-      echo "Structure de @strapi/admin/dist/server:" && \
-      ls -laR /app/node_modules/@strapi/admin/dist/server 2>/dev/null | head -20 || echo "Dossier server non trouvé"; \
-    fi
 
 RUN npm cache clean --force
 
@@ -78,7 +68,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 # Copier tout le projet depuis l'étape build (selon l'exemple officiel Strapi)
 # IMPORTANT: Copier tout le projet pour s'assurer que l'admin panel construit est inclus
-# Dans Strapi 5, l'admin panel est construit dans node_modules/@strapi/admin/dist/server/server/build/
+# Dans Strapi 5, l'admin panel est construit dans ./dist/build (pas dans node_modules)
 COPY --from=build --chown=strapi:nodejs /app ./
 
 # Créer les répertoires nécessaires
