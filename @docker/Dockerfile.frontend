@@ -1,0 +1,47 @@
+# Dockerfile pour le frontend Nuxt
+FROM node:20-alpine AS base
+
+# Installer pnpm
+RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
+
+# Étape de dépendances
+FROM base AS deps
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY @front/package.json @front/pnpm-lock.yaml @front/pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Étape de build
+FROM base AS builder
+WORKDIR /app
+
+# Copier les dépendances
+COPY --from=deps /app/node_modules ./node_modules
+COPY @front ./
+
+# Build de l'application
+RUN pnpm run build
+
+# Étape de production
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NUXT_HOST=0.0.0.0
+ENV NUXT_PORT=3000
+
+# Créer un utilisateur non-root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nuxt
+
+# Copier les fichiers nécessaires
+COPY --from=builder --chown=nuxt:nodejs /app/.output ./.output
+COPY --from=builder --chown=nuxt:nodejs /app/package.json ./
+COPY --from=builder --chown=nuxt:nodejs /app/public ./public
+
+USER nuxt
+
+EXPOSE 3000
+
+CMD ["node", ".output/server/index.mjs"]

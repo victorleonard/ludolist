@@ -44,7 +44,14 @@ module.exports = ({ env }) => {
     },
     sqlite: {
       connection: {
-        filename: path.join(__dirname, '..', env('DATABASE_FILENAME', '.tmp/data.db')),
+        filename: (() => {
+          const dbFilename = env('DATABASE_FILENAME', '.tmp/data.db');
+          // Si le chemin est absolu (commence par /), l'utiliser directement
+          // Sinon, le construire relativement au répertoire du projet
+          return dbFilename.startsWith('/') 
+            ? dbFilename 
+            : path.join(__dirname, '..', dbFilename);
+        })(),
       },
       useNullAsDefault: true,
     },

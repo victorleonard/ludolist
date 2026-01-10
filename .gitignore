@@ -1,0 +1,29 @@
+# Fichiers d'environnement
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Dossier Docker - fichiers sensibles
+@docker/.env
+
+# Fichiers de sauvegarde
+*.bak
+*.swp
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Dossiers de dépendances (déjà gérés par les sous-projets)
+# @back/node_modules/
+# @front/node_modules/

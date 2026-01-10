@@ -1,0 +1,64 @@
+# Dockerfile pour le backend Strapi
+FROM node:20-alpine AS base
+
+# Installer les dépendances système nécessaires pour better-sqlite3
+RUN apk add --no-cache python3 make g++
+
+# Étape de dépendances (toutes pour le build)
+FROM base AS deps
+WORKDIR /app
+
+# Copier les fichiers de dépendances
+COPY @back/package*.json ./
+RUN npm ci && npm cache clean --force
+
+# Étape de build
+FROM base AS builder
+WORKDIR /app
+
+# Copier les dépendances
+COPY --from=deps /app/node_modules ./node_modules
+COPY @back ./
+
+# Build de l'application
+RUN npm run build
+
+# Étape de dépendances de production
+FROM base AS prod-deps
+WORKDIR /app
+
+COPY @back/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+# Étape de production
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Créer un utilisateur non-root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 strapi
+
+# Copier les dépendances de production
+COPY --from=prod-deps --chown=strapi:nodejs /app/node_modules ./node_modules
+
+# Copier les fichiers nécessaires
+COPY --from=builder --chown=strapi:nodejs /app/dist ./dist
+COPY --from=builder --chown=strapi:nodejs /app/package*.json ./
+COPY --from=builder --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
+COPY --from=builder --chown=strapi:nodejs /app/config ./config
+COPY --from=builder --chown=strapi:nodejs /app/database ./database
+COPY --from=builder --chown=strapi:nodejs /app/public ./public
+COPY --from=builder --chown=strapi:nodejs /app/src ./src
+COPY --from=builder --chown=strapi:nodejs /app/types ./types
+
+# Créer les répertoires nécessaires
+RUN mkdir -p .tmp public/uploads && \
+    chown -R strapi:nodejs .tmp public/uploads
+
+USER strapi
+
+EXPOSE 1337
+
+CMD ["npm", "start"]

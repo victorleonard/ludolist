@@ -1,0 +1,13 @@
+# Fichiers d'environnement
+.env
+.env.local
+.env.*.local
+
+# Fichiers de sauvegarde
+*.bak
+*.swp
+*~
+
+# Fichiers système
+.DS_Store
+Thumbs.db
