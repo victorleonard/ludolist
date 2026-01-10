@@ -26,8 +26,8 @@ services:
       - ADMIN_JWT_SECRET=${ADMIN_JWT_SECRET:-}
       - TRANSFER_TOKEN_SALT=${TRANSFER_TOKEN_SALT:-}
       - JWT_SECRET=${JWT_SECRET:-}
-      - CORS_ORIGIN=${CORS_ORIGIN:-http://vps-5dd72bcc.vps.ovh.net,http://vps-5dd72bcc.vps.ovh.net:1338,http://vps-5dd72bcc.vps.ovh.net:3001}
-      - PUBLIC_URL=${PUBLIC_URL:-http://vps-5dd72bcc.vps.ovh.net:1338}
+      - CORS_ORIGIN=${CORS_ORIGIN}
+      - PUBLIC_URL=${PUBLIC_URL}
     volumes:
       - ../@data/ludolist/db:/data/db:rw
       - ../@data/ludolist/uploads:/app/public/uploads:rw
@@ -52,7 +52,7 @@ services:
       - NODE_ENV=production
       - NUXT_HOST=0.0.0.0
       - NUXT_PORT=3000
-      - NUXT_PUBLIC_API_URL=${NUXT_PUBLIC_API_URL:-http://vps-5dd72bcc.vps.ovh.net:1338}
+      - NUXT_PUBLIC_API_URL=${NUXT_PUBLIC_API_URL}
     depends_on:
       backend:
         condition: service_healthy
