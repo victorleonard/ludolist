@@ -45,24 +45,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY @back ./
 
-# Build de l'application
-RUN npm run build || echo "⚠️  Le build a échoué ou n'a rien produit"
-# S'assurer que le dossier dist existe (créer s'il n'existe pas)
-RUN mkdir -p /app/dist
-
-# Étape de dépendances de production
-FROM base AS prod-deps
-WORKDIR /app
-
-# Copier les fichiers de dépendances
-# IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
-COPY @back/package.json @back/package-lock.json ./
-# Installer node-gyp globalement et configurer npm
-RUN npm install -g node-gyp
-RUN npm config set fetch-retry-maxtimeout 600000 -g
-# Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
-RUN npm ci --omit=dev || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install --omit=dev && npm cache clean --force)
-RUN npm cache clean --force
+# Build de l'application (le build inclut l'admin panel)
+RUN npm run build
+# Vérifier que le dossier dist/build existe (admin panel)
+RUN test -d /app/dist/build || (echo "❌ Erreur: le build de l'admin panel a échoué" && exit 1)
 
 # Étape de production
 FROM base AS runner
@@ -74,8 +60,10 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 strapi
 
-# Copier les dépendances de production
-COPY --from=prod-deps --chown=strapi:nodejs /app/node_modules ./node_modules
+# Copier les node_modules depuis builder (qui contient l'admin panel construit)
+# IMPORTANT: Dans Strapi 5, l'admin panel est construit dans node_modules/@strapi/admin/dist/server/server/build/
+# Il faut donc copier les node_modules complets depuis l'étape builder qui a fait le build
+COPY --from=builder --chown=strapi:nodejs /app/node_modules ./node_modules
 
 # Copier les fichiers nécessaires
 # Créer d'abord le dossier dist
@@ -87,6 +75,8 @@ COPY --from=builder --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
 COPY --from=builder --chown=strapi:nodejs /app/config ./config
 COPY --from=builder --chown=strapi:nodejs /app/database ./database
 COPY --from=builder --chown=strapi:nodejs /app/public ./public
+# Copier le favicon.png s'il existe à la racine (utiliser un pattern pour éviter l'erreur si absent)
+COPY --from=builder --chown=strapi:nodejs /app/favicon.png ./favicon.png
 COPY --from=builder --chown=strapi:nodejs /app/src ./src
 COPY --from=builder --chown=strapi:nodejs /app/types ./types
 
