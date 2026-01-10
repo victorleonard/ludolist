@@ -36,7 +36,7 @@ useSeoMeta({
       <template #left>
         <NuxtLink
           to="/"
-          class="text-xl font-bold text-secondary-600 dark:text-secondary-400"
+          class="text-xl font-bold"
           style="font-family: 'Audiowide', cursive;"
         >
           LudoList
