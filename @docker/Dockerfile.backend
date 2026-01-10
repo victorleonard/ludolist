@@ -8,8 +8,8 @@ RUN apk add --no-cache python3 make g++
 FROM base AS deps
 WORKDIR /app
 
-# Copier les fichiers de dépendances
-COPY @back/package*.json ./
+# Copier les fichiers de dépendances (package.json et package-lock.json sont nécessaires pour npm ci)
+COPY @back/package.json @back/package-lock.json ./
 RUN npm ci && npm cache clean --force
 
 # Étape de build
@@ -27,8 +27,9 @@ RUN npm run build
 FROM base AS prod-deps
 WORKDIR /app
 
-COPY @back/package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+# Copier les fichiers de dépendances (package.json et package-lock.json sont nécessaires pour npm ci)
+COPY @back/package.json @back/package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Étape de production
 FROM base AS runner
