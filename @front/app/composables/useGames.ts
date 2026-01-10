@@ -148,10 +148,105 @@ export const useGames = () => {
     }
   )
 
+  // Interface pour les données de création d'un jeu
+  interface CreateGameData {
+    name: string
+    description: string
+    age: number
+    playing_time: string
+    player_min: number
+    player_max: number | null
+    image?: File | null
+  }
+
+  // Fonction pour créer un nouveau jeu
+  const createGame = async (gameData: CreateGameData): Promise<Game> => {
+    try {
+      let imageId: number | null = null
+
+      // Si une image est fournie, l'uploader d'abord
+      if (gameData.image) {
+        const formData = new FormData()
+        formData.append('files', gameData.image)
+
+        const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
+          method: 'POST',
+          body: formData
+        })
+
+        if (uploadResponse && uploadResponse.length > 0) {
+          imageId = uploadResponse[0].id
+        }
+      }
+
+      // Créer le jeu avec les données
+      const createPayload: any = {
+        data: {
+          name: gameData.name,
+          description: gameData.description,
+          age: gameData.age,
+          playing_time: gameData.playing_time,
+          player_min: gameData.player_min,
+          player_max: gameData.player_max
+        }
+      }
+
+      // Ajouter l'image si elle a été uploadée
+      if (imageId) {
+        createPayload.data.image = imageId
+      }
+
+      const response = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: createPayload
+      })
+
+      // Publier le jeu
+      if (response.data.id) {
+        await $fetch(`${apiUrl}/api/games/${response.data.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: {
+            data: {
+              publishedAt: new Date().toISOString()
+            }
+          }
+        })
+      }
+
+      // Récupérer le jeu créé avec l'image
+      const createdGameResponse = await $fetch<{ data: StrapiGame }>(
+        `${apiUrl}/api/games/${response.data.id}?populate=image`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      // Transformer et retourner le jeu créé
+      const createdGame = transformGame(createdGameResponse.data, apiUrl)
+
+      // Rafraîchir la liste des jeux
+      await refresh()
+
+      return createdGame
+    } catch (err) {
+      console.error('Erreur lors de la création du jeu:', err)
+      throw err
+    }
+  }
+
   return {
     games: computed(() => games.value || []),
     loading,
     error: computed(() => error.value ? (error.value as Error).message : null),
-    refresh
+    refresh,
+    createGame
   }
 }

@@ -3,6 +3,20 @@
     <div>
       <div class="mt-12">
         <div class="mb-8">
+          <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-bold">
+              Ma collection de jeux
+            </h1>
+            <UButton
+              color="primary"
+              icon="i-lucide-plus"
+              :disabled="false"
+              @click="openModal"
+            >
+              Ajouter un jeu
+            </UButton>
+          </div>
+
           <div class="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
@@ -124,6 +138,11 @@
         </div>
       </div>
     </div>
+
+    <AddGameModal
+      v-model="isModalOpen"
+      @success="handleGameAdded"
+    />
   </UContainer>
 </template>
 
@@ -134,6 +153,17 @@ import { useGames } from '../composables/useGames'
 
 const { recherche } = useRecherche()
 const { games, loading, error, refresh } = useGames()
+
+const isModalOpen = ref(false)
+
+const openModal = () => {
+  isModalOpen.value = true
+}
+
+const handleGameAdded = () => {
+  // Le refresh est déjà géré dans createGame, mais on peut ajouter une notification ici si besoin
+  refresh()
+}
 
 const durees = [
   { label: '< 30 min', value: 'court' },
