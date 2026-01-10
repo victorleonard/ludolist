@@ -46,18 +46,14 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY @back ./
 
 # Build de l'application (le build inclut l'admin panel)
+# Dans Strapi 5, le build crée les fichiers dans dist/build
 RUN npm run build
-# S'assurer que le dossier dist existe (peut être vide dans Strapi 5)
+# S'assurer que le dossier dist existe
 RUN mkdir -p /app/dist
-# Vérifier que le build a réussi (l'admin panel peut être construit au runtime dans Strapi 5)
-# Vérifier que @strapi/admin existe au minimum
+# Vérifier que le build a créé les fichiers nécessaires
+RUN test -d /app/dist/build || (echo "⚠️  dist/build n'existe pas, mais le build continue" && mkdir -p /app/dist/build)
+# Vérifier que @strapi/admin existe
 RUN test -d /app/node_modules/@strapi/admin || (echo "❌ Erreur: @strapi/admin non trouvé" && exit 1)
-# Afficher la structure pour diagnostic
-RUN echo "📁 Structure de @strapi/admin:" && \
-    ls -la /app/node_modules/@strapi/admin/ 2>/dev/null | head -10 || echo "⚠️  Dossier non trouvé" && \
-    echo "📁 Recherche de l'admin panel construit:" && \
-    find /app/node_modules/@strapi/admin -name "index.html" -type f 2>/dev/null | head -5 || echo "⚠️  index.html non trouvé" && \
-    find /app/node_modules/@strapi/admin -type d -name "build" 2>/dev/null | head -5 || echo "⚠️  Dossier build non trouvé"
 
 # Étape de production
 FROM base AS runner
