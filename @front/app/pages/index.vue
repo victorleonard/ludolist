@@ -6,24 +6,6 @@
           <div class="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
             <div class="flex items-center gap-2">
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                Catégorie :
-              </span>
-              <div class="flex flex-wrap gap-2">
-                <UButton
-                  v-for="categorie in categories"
-                  :key="categorie"
-                  :variant="filtreCategorie === categorie ? 'solid' : 'outline'"
-                  :color="filtreCategorie === categorie ? 'primary' : 'neutral'"
-                  size="sm"
-                  @click="filtreCategorie = filtreCategorie === categorie ? null : categorie"
-                >
-                  {{ categorie }}
-                </UButton>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 Durée :
               </span>
               <div class="flex flex-wrap gap-2">
@@ -44,7 +26,7 @@
               <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                 Âge :
               </span>
-              <div class="flex flex-wrap gap-2">
+              <div class="flex flex-nowrap gap-2">
                 <UButton
                   v-for="age in ages"
                   :key="age.label"
@@ -103,13 +85,14 @@
             :key="jeu.id"
           >
             <template #header>
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold">
+              <div class="flex items-center justify-between flex-nowrap gap-2">
+                <h2 class="text-xl font-bold truncate min-w-0">
                   {{ jeu.titre }}
                 </h2>
                 <UBadge
                   color="primary"
                   variant="solid"
+                  class="shrink-0 whitespace-nowrap"
                 >
                   {{ jeu.age }}+ ans
                 </UBadge>
@@ -121,7 +104,7 @@
                 v-if="jeu && jeu.image"
                 :src="jeu.image"
                 :alt="jeu.titre || 'Image du jeu'"
-                class="w-full h-48 rounded-lg object-cover"
+                class="w-full h-48 rounded-lg object-contain"
               >
               <p class="text-gray-600 dark:text-gray-400 text-sm">
                 {{ jeu.description }}
@@ -152,12 +135,6 @@ import { useGames } from '../composables/useGames'
 const { recherche } = useRecherche()
 const { games, loading, error, refresh } = useGames()
 
-// Extraire les catégories uniques depuis les jeux
-const categories = computed(() => {
-  const uniqueCategories = new Set<string>(games.value.map(jeu => jeu.categorie))
-  return Array.from<string>(uniqueCategories).sort()
-})
-
 const durees = [
   { label: '< 30 min', value: 'court' },
   { label: '30-60 min', value: 'moyen' },
@@ -170,7 +147,6 @@ const ages = [
   { label: '13+ ans', value: 13 }
 ]
 
-const filtreCategorie = ref<string | null>(null)
 const filtreDuree = ref<string | null>(null)
 const filtreAge = ref<number | null>(null)
 
@@ -189,10 +165,6 @@ const jeuxFiltres = computed(() => {
       const descriptionMatch = jeu.description.toLowerCase().includes(termeRecherche)
       return titreMatch || descriptionMatch
     })
-  }
-
-  if (filtreCategorie.value) {
-    result = result.filter(jeu => jeu.categorie === filtreCategorie.value)
   }
 
   if (filtreDuree.value) {
