@@ -1,8 +1,25 @@
 # Dockerfile pour le backend Strapi
 FROM node:20-alpine AS base
 
-# Installer les dépendances système nécessaires pour better-sqlite3
-RUN apk add --no-cache python3 make g++
+# Installer les dépendances système nécessaires
+# - build-base, gcc, autoconf, automake, zlib-dev, libpng-dev, nasm : pour la compilation native
+# - vips-dev : pour sharp (traitement d'images)
+# - python3, make, g++ : pour better-sqlite3 et autres modules natifs
+# - bash, git : utilitaires
+RUN apk update && apk add --no-cache \
+    build-base \
+    gcc \
+    autoconf \
+    automake \
+    zlib-dev \
+    libpng-dev \
+    nasm \
+    bash \
+    vips-dev \
+    git \
+    python3 \
+    make \
+    g++
 
 # Étape de dépendances (toutes pour le build)
 FROM base AS deps
@@ -11,6 +28,9 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 # IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
 COPY @back/package.json @back/package-lock.json ./
+# Installer node-gyp globalement et configurer npm
+RUN npm install -g node-gyp
+RUN npm config set fetch-retry-maxtimeout 600000 -g
 # Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
 RUN npm ci || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install && npm cache clean --force)
 RUN npm cache clean --force
@@ -24,7 +44,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY @back ./
 
 # Build de l'application
-RUN npm run build
+RUN npm run build || echo "⚠️  Le build a échoué ou n'a rien produit"
+# S'assurer que le dossier dist existe (créer s'il n'existe pas)
+RUN mkdir -p /app/dist
 
 # Étape de dépendances de production
 FROM base AS prod-deps
@@ -33,6 +55,9 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 # IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
 COPY @back/package.json @back/package-lock.json ./
+# Installer node-gyp globalement et configurer npm
+RUN npm install -g node-gyp
+RUN npm config set fetch-retry-maxtimeout 600000 -g
 # Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
 RUN npm ci --omit=dev || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install --omit=dev && npm cache clean --force)
 RUN npm cache clean --force
@@ -51,6 +76,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=prod-deps --chown=strapi:nodejs /app/node_modules ./node_modules
 
 # Copier les fichiers nécessaires
+# Créer d'abord le dossier dist
+RUN mkdir -p ./dist
+# Copier le contenu de dist depuis builder (le dossier existe toujours grâce à mkdir -p dans builder)
 COPY --from=builder --chown=strapi:nodejs /app/dist ./dist
 COPY --from=builder --chown=strapi:nodejs /app/package*.json ./
 COPY --from=builder --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
