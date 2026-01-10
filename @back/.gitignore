@@ -113,7 +113,7 @@ node_modules
 !.yarn/versions
 .pnp.*
 yarn-error.log
-package-lock.json
+# package-lock.json retiré du .gitignore pour permettre npm ci dans Docker
 pnpm-lock.yaml
 
 ############################
