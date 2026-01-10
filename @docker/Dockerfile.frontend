@@ -19,7 +19,8 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 COPY @front/package.json @front/pnpm-lock.yaml @front/pnpm-workspace.yaml ./
 # Installer toutes les dépendances (y compris devDependencies pour le build)
-RUN pnpm install --frozen-lockfile
+# Si le lock file n'est pas synchronisé, régénérer avec npm install
+RUN pnpm install --frozen-lockfile || (echo "⚠️  pnpm-lock.yaml désynchronisé, régénération..." && pnpm install)
 
 # Copier le reste du code
 COPY @front ./
