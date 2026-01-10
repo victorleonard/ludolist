@@ -1,18 +1,23 @@
 <script setup>
+const { recherche } = useRecherche()
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
   ],
   link: [
-    { rel: 'icon', href: '/favicon.ico' }
+    { rel: 'icon', href: '/favicon.ico' },
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+    { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Audiowide&display=swap' }
   ],
   htmlAttrs: {
     lang: 'en'
   }
 })
 
-const title = 'Nuxt Starter Template'
-const description = 'A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.'
+const title = 'LudoList'
+const description = 'Gérez votre collection de jeux de société'
 
 useSeoMeta({
   title,
@@ -29,24 +34,24 @@ useSeoMeta({
   <UApp>
     <UHeader>
       <template #left>
-        <NuxtLink to="/">
-          <AppLogo class="w-auto h-6 shrink-0" />
+        <NuxtLink
+          to="/"
+          class="text-xl font-bold text-secondary-600 dark:text-secondary-400"
+          style="font-family: 'Audiowide', cursive;"
+        >
+          LudoList
         </NuxtLink>
-
-        <TemplateMenu />
       </template>
 
       <template #right>
-        <UColorModeButton />
-
-        <UButton
-          to="https://github.com/nuxt-ui-templates/starter"
-          target="_blank"
-          icon="i-simple-icons-github"
-          aria-label="GitHub"
-          color="neutral"
-          variant="ghost"
+        <UInput
+          v-model="recherche"
+          placeholder="Rechercher un jeu..."
+          icon="i-lucide-search"
+          size="sm"
+          class="w-64 hidden md:block"
         />
+        <UColorModeButton />
       </template>
     </UHeader>
 
