@@ -60,10 +60,47 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          v-if="loading"
+          class="flex justify-center items-center py-12"
+        >
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500"
+          />
+        </div>
+
+        <div
+          v-else-if="error"
+          class="flex flex-col items-center justify-center py-12"
+        >
+          <p class="text-red-500 mb-4">
+            {{ error }}
+          </p>
+          <UButton
+            color="primary"
+            @click="refresh()"
+          >
+            Réessayer
+          </UButton>
+        </div>
+
+        <div
+          v-else-if="jeuxFiltres.length === 0"
+          class="flex justify-center items-center py-12"
+        >
+          <p class="text-gray-500 dark:text-gray-400">
+            Aucun jeu trouvé
+          </p>
+        </div>
+
+        <div
+          v-else
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           <UCard
             v-for="jeu in jeuxFiltres"
-            :key="jeu.titre"
+            :key="jeu.id"
           >
             <template #header>
               <div class="flex items-center justify-between">
@@ -81,8 +118,9 @@
 
             <div class="flex flex-col gap-4">
               <img
+                v-if="jeu && jeu.image"
                 :src="jeu.image"
-                :alt="jeu.titre"
+                :alt="jeu.titre || 'Image du jeu'"
                 class="w-full h-48 rounded-lg object-cover"
               >
               <p class="text-gray-600 dark:text-gray-400 text-sm">
@@ -108,67 +146,17 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRecherche } from '../composables/useRecherche'
+import { useGames } from '../composables/useGames'
 
 const { recherche } = useRecherche()
+const { games, loading, error, refresh } = useGames()
 
-const jeux = [
-  {
-    titre: 'Catan',
-    description: 'Catan est un jeu de stratégie où les joueurs colonisent une île en construisant des routes, des colonies et des villes.',
-    image: 'https://images.unsplash.com/photo-1667118398887-63cb59112b57?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-    tags: ['Stratégie', '2-4 joueurs', '60 min'],
-    categorie: 'Stratégie',
-    duree: 60,
-    age: 10
-  },
-  {
-    titre: 'Les Aventuriers du Rail',
-    description: 'Parcourez l\'Europe en train et connectez les villes pour remporter la victoire dans ce classique des jeux de société.',
-    image: 'https://images.unsplash.com/photo-1606166183089-1c18e13b0c0e?w=400&h=400&fit=crop',
-    tags: ['Famille', '2-5 joueurs', '45 min'],
-    categorie: 'Famille',
-    duree: 45,
-    age: 8
-  },
-  {
-    titre: '7 Wonders',
-    description: 'Construisez une merveille du monde antique en développant votre civilisation et en gérant vos ressources.',
-    image: 'https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop',
-    tags: ['Stratégie', '3-7 joueurs', '30 min'],
-    categorie: 'Stratégie',
-    duree: 30,
-    age: 10
-  },
-  {
-    titre: 'Pandemic',
-    description: 'Coopérez avec vos partenaires pour sauver le monde de quatre maladies mortelles qui se propagent rapidement.',
-    image: 'https://images.unsplash.com/photo-1606166183089-1c18e13b0c0e?w=400&h=400&fit=crop',
-    tags: ['Coopératif', '2-4 joueurs', '45 min'],
-    categorie: 'Coopératif',
-    duree: 45,
-    age: 13
-  },
-  {
-    titre: 'Wingspan',
-    description: 'Observez et attirez les plus beaux oiseaux dans votre réserve naturelle dans ce jeu magnifiquement illustré.',
-    image: 'https://images.unsplash.com/photo-1611262588024-d12430b98920?w=400&h=400&fit=crop',
-    tags: ['Famille', '1-5 joueurs', '60 min'],
-    categorie: 'Famille',
-    duree: 60,
-    age: 10
-  },
-  {
-    titre: 'Azul',
-    description: 'Créez la plus belle façade de palais en plaçant stratégiquement des tuiles colorées dans ce jeu abstrait élégant.',
-    image: 'https://images.unsplash.com/photo-1667118398887-63cb59112b57?q=80&w=400&h=400&fit=crop',
-    tags: ['Abstrait', '2-4 joueurs', '30 min'],
-    categorie: 'Abstrait',
-    duree: 30,
-    age: 8
-  }
-]
-
-const categories = ['Stratégie', 'Famille', 'Coopératif', 'Abstrait']
+// Extraire les catégories uniques depuis les jeux
+const categories = computed(() => {
+  const uniqueCategories = new Set<string>(games.value.map(jeu => jeu.categorie))
+  return Array.from<string>(uniqueCategories).sort()
+})
 
 const durees = [
   { label: '< 30 min', value: 'court' },
@@ -187,7 +175,12 @@ const filtreDuree = ref<string | null>(null)
 const filtreAge = ref<number | null>(null)
 
 const jeuxFiltres = computed(() => {
-  let result = jeux
+  // S'assurer que games.value est un tableau
+  if (!games.value || !Array.isArray(games.value)) {
+    return []
+  }
+
+  let result = games.value
 
   if (recherche.value.trim()) {
     const termeRecherche = recherche.value.toLowerCase().trim()

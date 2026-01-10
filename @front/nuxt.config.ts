@@ -11,10 +11,16 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:1337'
+    }
+  },
+
   routeRules: {
-    // Désactiver le prerendering pour éviter les erreurs lors du build
-    // La page sera rendue à la demande
-    '/': { prerender: false }
+    // Désactiver le SSR pour éviter les problèmes d'hydratation
+    // La page sera rendue uniquement côté client
+    '/': { ssr: false }
   },
 
   compatibilityDate: '2025-01-15',
