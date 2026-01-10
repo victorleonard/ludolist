@@ -54,13 +54,17 @@ COPY @back ./
 # Dans Strapi 5, le build crée les fichiers dans node_modules/@strapi/admin/dist/server/server/build/
 RUN npm run build
 
-# S'assurer que le dossier dist existe (même s'il est vide)
-RUN mkdir -p /app/dist
-
-# Vérifier que l'admin panel a été construit
-RUN test -d /app/node_modules/@strapi/admin/dist/server/server/build || \
-    (echo "⚠️  Admin panel non construit dans node_modules, vérification de dist/build..." && \
-     test -d /app/dist/build || echo "⚠️  Admin panel non construit, sera construit au runtime")
+# Vérifier que l'admin panel a été construit (échouer explicitement si absent)
+RUN if [ ! -d /app/node_modules/@strapi/admin/dist/server/server/build ]; then \
+      echo "❌ ERREUR: Admin panel non construit!" && \
+      echo "Structure de @strapi/admin/dist/server:" && \
+      ls -laR /app/node_modules/@strapi/admin/dist/server 2>/dev/null | head -30 || echo "Dossier server non trouvé" && \
+      echo "Recherche de index.html:" && \
+      find /app/node_modules/@strapi/admin -name "index.html" -type f 2>/dev/null | head -5 || echo "index.html non trouvé" && \
+      exit 1; \
+    else \
+      echo "✅ Admin panel construit avec succès dans node_modules/@strapi/admin/dist/server/server/build/"; \
+    fi
 
 RUN npm cache clean --force
 
@@ -74,25 +78,10 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 strapi
 
-# Copier les node_modules depuis build (qui contient l'admin panel construit)
-# IMPORTANT: Dans Strapi 5, l'admin panel est construit dans node_modules/@strapi/admin/dist/server/server/build/
-# Il faut donc copier les node_modules complets depuis l'étape build qui a fait le build
-COPY --from=build --chown=strapi:nodejs /app/node_modules ./node_modules
-
-# Copier les fichiers nécessaires depuis l'étape build
-# Créer le dossier dist (peut être vide dans Strapi 5, l'admin est dans node_modules)
-RUN mkdir -p ./dist
-# Copier le contenu de dist depuis build (le dossier existe toujours grâce à mkdir -p dans build)
-COPY --from=build --chown=strapi:nodejs /app/dist ./dist
-COPY --from=build --chown=strapi:nodejs /app/package*.json ./
-COPY --from=build --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
-COPY --from=build --chown=strapi:nodejs /app/config ./config
-COPY --from=build --chown=strapi:nodejs /app/database ./database
-COPY --from=build --chown=strapi:nodejs /app/public ./public
-# Copier le favicon.png s'il existe à la racine
-COPY --from=build --chown=strapi:nodejs /app/favicon.png ./favicon.png
-COPY --from=build --chown=strapi:nodejs /app/src ./src
-COPY --from=build --chown=strapi:nodejs /app/types ./types
+# Copier tout le projet depuis l'étape build (selon l'exemple officiel Strapi)
+# IMPORTANT: Copier tout le projet pour s'assurer que l'admin panel construit est inclus
+# Dans Strapi 5, l'admin panel est construit dans node_modules/@strapi/admin/dist/server/server/build/
+COPY --from=build --chown=strapi:nodejs /app ./
 
 # Créer les répertoires nécessaires
 RUN mkdir -p .tmp public/uploads /data/db
