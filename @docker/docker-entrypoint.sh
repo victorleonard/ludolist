@@ -23,15 +23,9 @@ chmod -R 755 /app/.tmp 2>/dev/null || true
 chmod -R 755 /app/dist 2>/dev/null || true
 chmod -R 755 /app/node_modules 2>/dev/null || true
 
-# Si la commande est "npm start" et que dist/build est vide, construire l'admin panel
-if [ "$1" = "npm" ] && [ "$2" = "start" ]; then
-  # Vérifier si l'admin panel est construit
-  if [ ! -f /app/dist/build/index.html ] && [ ! -f /app/node_modules/@strapi/admin/dist/server/server/build/index.html ]; then
-    echo "⚠️  Admin panel non construit, construction au démarrage..."
-    # Passer à l'utilisateur strapi pour construire
-    su-exec strapi npm run build || echo "⚠️  Le build a échoué, Strapi construira l'admin au runtime"
-  fi
-fi
+# Note: Le build de l'admin panel doit être fait dans le Dockerfile
+# Si l'admin panel n'est pas construit, Strapi le construira au runtime lors du premier accès à /admin
+# Cela peut prendre quelques minutes
 
 # Passer à l'utilisateur strapi et exécuter la commande
 exec su-exec strapi "$@"

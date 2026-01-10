@@ -47,11 +47,13 @@ COPY @back ./
 
 # Build de l'application (le build inclut l'admin panel)
 # Dans Strapi 5, le build crée les fichiers dans dist/build
-RUN npm run build
+# Utiliser NODE_ENV=production pour forcer le build de production
+RUN NODE_ENV=production npm run build || (echo "⚠️  Le build a échoué, voir les détails ci-dessus" && exit 1)
 # S'assurer que le dossier dist existe
 RUN mkdir -p /app/dist
 # Vérifier que le build a créé les fichiers nécessaires
-RUN test -d /app/dist/build || (echo "⚠️  dist/build n'existe pas, mais le build continue" && mkdir -p /app/dist/build)
+# Dans Strapi 5, l'admin panel peut être dans dist/build ou construit au runtime
+RUN test -d /app/dist/build || echo "⚠️  dist/build n'existe pas, l'admin sera construit au runtime"
 # Vérifier que @strapi/admin existe
 RUN test -d /app/node_modules/@strapi/admin || (echo "❌ Erreur: @strapi/admin non trouvé" && exit 1)
 
