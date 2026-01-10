@@ -11,7 +11,9 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 # IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
 COPY @back/package.json @back/package-lock.json ./
-RUN npm ci && npm cache clean --force
+# Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
+RUN npm ci || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install && npm cache clean --force)
+RUN npm cache clean --force
 
 # Étape de build
 FROM base AS builder
@@ -31,7 +33,9 @@ WORKDIR /app
 # Copier les fichiers de dépendances
 # IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
 COPY @back/package.json @back/package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
+RUN npm ci --omit=dev || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install --omit=dev && npm cache clean --force)
+RUN npm cache clean --force
 
 # Étape de production
 FROM base AS runner
