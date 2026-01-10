@@ -23,41 +23,43 @@ RUN apk update && apk add --no-cache \
     g++ \
     su-exec
 
-# Étape de dépendances (toutes pour le build)
-FROM base AS deps
+# Étape de build (selon l'exemple officiel Strapi)
+FROM base AS build
 WORKDIR /app
 
-# Copier les fichiers de dépendances
-# IMPORTANT: package-lock.json doit être présent dans le repo (retiré du .gitignore)
-COPY @back/package.json @back/package-lock.json ./
 # Installer node-gyp globalement et configurer npm
 RUN npm install -g node-gyp
 RUN npm config set fetch-retry-maxtimeout 600000 -g
-# Si npm ci échoue (lock file désynchronisé), régénérer le lock file avec npm install
+
+# Variables d'environnement pour le build
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+ENV STRAPI_DISABLE_UPDATE_NOTIFICATION=true
+
+# Copier les fichiers de dépendances
+COPY @back/package.json @back/package-lock.json ./
+
+# Installer toutes les dépendances (nécessaires pour le build de l'admin panel)
+# IMPORTANT: On installe toutes les dépendances pour pouvoir construire l'admin panel
 RUN npm ci || (echo "⚠️  package-lock.json désynchronisé, régénération..." && npm install && npm cache clean --force)
-RUN npm cache clean --force
 
-# Étape de build
-FROM base AS builder
+# Configurer le PATH pour utiliser les binaires locaux
+ENV PATH=/app/node_modules/.bin:$PATH
+
+# Copier le reste du code
 WORKDIR /app
-
-# Copier les dépendances
-COPY --from=deps /app/node_modules ./node_modules
 COPY @back ./
 
-# Build de l'application (le build inclut l'admin panel)
+# Construire l'application (le build inclut l'admin panel)
 # Dans Strapi 5, le build crée les fichiers dans node_modules/@strapi/admin/dist/server/server/build/
-# Le build nécessite certaines variables d'environnement minimales
-ENV NODE_ENV=production
-ENV STRAPI_DISABLE_UPDATE_NOTIFICATION=true
-# Construire l'admin panel
 RUN npm run build
-# Vérifier que l'admin panel a été construit dans node_modules/@strapi/admin/dist/server/server/build/
+
+# Vérifier que l'admin panel a été construit
 RUN test -d /app/node_modules/@strapi/admin/dist/server/server/build || \
     (echo "⚠️  Admin panel non construit dans node_modules, vérification de dist/build..." && \
      test -d /app/dist/build || echo "⚠️  Admin panel non construit, sera construit au runtime")
-# Vérifier que @strapi/admin existe
-RUN test -d /app/node_modules/@strapi/admin || (echo "❌ Erreur: @strapi/admin non trouvé" && exit 1)
+
+RUN npm cache clean --force
 
 # Étape de production
 FROM base AS runner
@@ -69,25 +71,25 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 strapi
 
-# Copier les node_modules depuis builder (qui contient l'admin panel construit)
+# Copier les node_modules depuis build (qui contient l'admin panel construit)
 # IMPORTANT: Dans Strapi 5, l'admin panel est construit dans node_modules/@strapi/admin/dist/server/server/build/
-# Il faut donc copier les node_modules complets depuis l'étape builder qui a fait le build
-COPY --from=builder --chown=strapi:nodejs /app/node_modules ./node_modules
+# Il faut donc copier les node_modules complets depuis l'étape build qui a fait le build
+COPY --from=build --chown=strapi:nodejs /app/node_modules ./node_modules
 
-# Copier les fichiers nécessaires
+# Copier les fichiers nécessaires depuis l'étape build
 # Créer le dossier dist (peut être vide dans Strapi 5, l'admin est dans node_modules)
 RUN mkdir -p ./dist
-# Copier le contenu de dist depuis builder s'il existe
-COPY --from=builder --chown=strapi:nodejs /app/dist ./dist
-COPY --from=builder --chown=strapi:nodejs /app/package*.json ./
-COPY --from=builder --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
-COPY --from=builder --chown=strapi:nodejs /app/config ./config
-COPY --from=builder --chown=strapi:nodejs /app/database ./database
-COPY --from=builder --chown=strapi:nodejs /app/public ./public
-# Copier le favicon.png s'il existe à la racine (utiliser un pattern pour éviter l'erreur si absent)
-COPY --from=builder --chown=strapi:nodejs /app/favicon.png ./favicon.png
-COPY --from=builder --chown=strapi:nodejs /app/src ./src
-COPY --from=builder --chown=strapi:nodejs /app/types ./types
+# Copier le contenu de dist depuis build s'il existe
+COPY --from=build --chown=strapi:nodejs /app/dist ./dist
+COPY --from=build --chown=strapi:nodejs /app/package*.json ./
+COPY --from=build --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
+COPY --from=build --chown=strapi:nodejs /app/config ./config
+COPY --from=build --chown=strapi:nodejs /app/database ./database
+COPY --from=build --chown=strapi:nodejs /app/public ./public
+# Copier le favicon.png s'il existe à la racine
+COPY --from=build --chown=strapi:nodejs /app/favicon.png ./favicon.png
+COPY --from=build --chown=strapi:nodejs /app/src ./src
+COPY --from=build --chown=strapi:nodejs /app/types ./types
 
 # Créer les répertoires nécessaires
 RUN mkdir -p .tmp public/uploads /data/db
