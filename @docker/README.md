@@ -90,6 +90,20 @@ docker-compose up -d --build
 
 **Note sur les ports** : Les ports par défaut ont été choisis pour éviter les conflits avec d'autres applications (3001 pour le frontend, 1338 pour le backend). Vous pouvez les modifier dans le fichier `.env` si nécessaire.
 
+## Configuration pour la production
+
+L'application est configurée pour fonctionner sur `http://vps-5dd72bcc.vps.ovh.net/` :
+- **Frontend** : `http://vps-5dd72bcc.vps.ovh.net:3001`
+- **Backend (API)** : `http://vps-5dd72bcc.vps.ovh.net:1338`
+- **Backend (Admin)** : `http://vps-5dd72bcc.vps.ovh.net:1338/admin`
+
+Les variables d'environnement suivantes doivent être configurées dans le fichier `.env` :
+- `NUXT_PUBLIC_API_URL` : URL de l'API backend (accessible depuis le navigateur)
+- `CORS_ORIGIN` : Origines autorisées pour les requêtes CORS
+- `PUBLIC_URL` : URL publique du backend
+
+Ces valeurs sont déjà configurées dans `env.template` pour la production.
+
 ## Scripts de gestion
 
 Plusieurs scripts sont disponibles pour faciliter la gestion de l'application :

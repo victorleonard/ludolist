@@ -3,6 +3,8 @@ module.exports = ({ env }) => ({
   port: env.int('PORT', 1337),
   app: {
     keys: env.array('APP_KEYS'),
+    // URL publique du serveur (pour les webhooks, emails, etc.)
+    url: env('PUBLIC_URL', `http://${env('HOST', 'localhost')}:${env.int('PORT', 1337)}`),
   },
   webhooks: {
     populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
