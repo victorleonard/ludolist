@@ -53,7 +53,11 @@ RUN mkdir -p /app/dist
 # Vérifier que @strapi/admin existe au minimum
 RUN test -d /app/node_modules/@strapi/admin || (echo "❌ Erreur: @strapi/admin non trouvé" && exit 1)
 # Afficher la structure pour diagnostic
-RUN echo "📁 Structure de @strapi/admin:" && ls -la /app/node_modules/@strapi/admin/ 2>/dev/null | head -10 || echo "⚠️  Dossier non trouvé"
+RUN echo "📁 Structure de @strapi/admin:" && \
+    ls -la /app/node_modules/@strapi/admin/ 2>/dev/null | head -10 || echo "⚠️  Dossier non trouvé" && \
+    echo "📁 Recherche de l'admin panel construit:" && \
+    find /app/node_modules/@strapi/admin -name "index.html" -type f 2>/dev/null | head -5 || echo "⚠️  index.html non trouvé" && \
+    find /app/node_modules/@strapi/admin -type d -name "build" 2>/dev/null | head -5 || echo "⚠️  Dossier build non trouvé"
 
 # Étape de production
 FROM base AS runner
