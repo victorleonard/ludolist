@@ -54,6 +54,9 @@ COPY @back ./
 # Dans Strapi 5, le build crée les fichiers dans node_modules/@strapi/admin/dist/server/server/build/
 RUN npm run build
 
+# S'assurer que le dossier dist existe (même s'il est vide)
+RUN mkdir -p /app/dist
+
 # Vérifier que l'admin panel a été construit
 RUN test -d /app/node_modules/@strapi/admin/dist/server/server/build || \
     (echo "⚠️  Admin panel non construit dans node_modules, vérification de dist/build..." && \
@@ -79,7 +82,7 @@ COPY --from=build --chown=strapi:nodejs /app/node_modules ./node_modules
 # Copier les fichiers nécessaires depuis l'étape build
 # Créer le dossier dist (peut être vide dans Strapi 5, l'admin est dans node_modules)
 RUN mkdir -p ./dist
-# Copier le contenu de dist depuis build s'il existe
+# Copier le contenu de dist depuis build (le dossier existe toujours grâce à mkdir -p dans build)
 COPY --from=build --chown=strapi:nodejs /app/dist ./dist
 COPY --from=build --chown=strapi:nodejs /app/package*.json ./
 COPY --from=build --chown=strapi:nodejs /app/jsconfig.json ./jsconfig.json
