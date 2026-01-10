@@ -12,7 +12,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   routeRules: {
-    '/': { prerender: true }
+    // Désactiver le prerendering pour éviter les erreurs lors du build
+    // La page sera rendue à la demande
+    '/': { prerender: false }
   },
 
   compatibilityDate: '2025-01-15',
