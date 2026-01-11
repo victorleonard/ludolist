@@ -146,14 +146,15 @@
                 name="i-lucide-clock"
                 class="w-4 h-4"
               />
-              Durée de jeu <span class="text-red-500">*</span>
+              Durée de jeu (en minutes) <span class="text-red-500">*</span>
             </label>
-            <USelect
+            <UInput
               id="playing_time"
-              v-model="state.playing_time"
-              :items="dureeOptions"
-              option-attribute="label"
-              value-attribute="value"
+              v-model.number="state.playing_time"
+              type="number"
+              min="1"
+              step="1"
+              placeholder="Ex: 30, 45, 60..."
               :disabled="submitting"
               :error="!!errors.playing_time"
               class="w-full"
@@ -307,13 +308,7 @@ const ageOptions = Array.from({ length: 19 }, (_, i) => ({
   value: i
 }))
 
-const dureeOptions = [
-  { label: '< 30 min', value: '< 30 min' },
-  { label: '30-60 min', value: '30-60 min' },
-  { label: '60-90 min', value: '60-90 min' },
-  { label: '90-120 min', value: '90-120 min' },
-  { label: '> 120 min', value: '> 120 min' }
-]
+// Les options de durée ne sont plus utilisées car on utilise un champ libre
 
 const playerMinOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1} joueur${i > 0 ? 's' : ''}`,
@@ -332,7 +327,7 @@ const state = reactive({
   name: '',
   age_min: null as number | null,
   age_max: null as number | null,
-  playing_time: '',
+  playing_time: null as number | null,
   player_min: 2,
   player_max: null as number | null
 })
@@ -377,18 +372,11 @@ const loadGameData = () => {
     state.age_min = props.game.age_min
     state.age_max = props.game.age_max
 
-    // Convertir la durée en valeur correspondant aux options du menu déroulant
-    const duree = props.game.duree
-    if (duree < 30) {
-      state.playing_time = '< 30 min'
-    } else if (duree >= 30 && duree <= 60) {
-      state.playing_time = '30-60 min'
-    } else if (duree > 60 && duree <= 90) {
-      state.playing_time = '60-90 min'
-    } else if (duree > 90 && duree <= 120) {
-      state.playing_time = '90-120 min'
+    // Charger la durée directement comme nombre (en minutes)
+    if (props.game.duree !== undefined && props.game.duree !== null) {
+      state.playing_time = props.game.duree
     } else {
-      state.playing_time = '> 120 min'
+      state.playing_time = null
     }
 
     state.player_min = props.game.player_min
@@ -401,7 +389,7 @@ const resetForm = () => {
   state.name = ''
   state.age_min = null
   state.age_max = null
-  state.playing_time = ''
+  state.playing_time = null
   state.player_min = 2
   state.player_max = null
   imageFile.value = null
@@ -457,8 +445,8 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  if (!state.playing_time.trim()) {
-    errors.playing_time = 'La durée de jeu est requise'
+  if (state.playing_time === null || state.playing_time === undefined || state.playing_time < 1) {
+    errors.playing_time = 'La durée de jeu doit être un nombre positif (en minutes)'
     isValid = false
   }
 
@@ -489,12 +477,17 @@ async function handleSubmit() {
   submitError.value = null
 
   try {
+    // La validation garantit que playing_time n'est pas null, mais TypeScript ne le sait pas
+    if (state.playing_time === null) {
+      return
+    }
+
     const gameData = {
       name: state.name.trim(),
       description: props.game?.description || '',
       age_min: state.age_min,
       age_max: state.age_max,
-      playing_time: state.playing_time.trim(),
+      playing_time: String(state.playing_time),
       player_min: state.player_min,
       player_max: state.player_max,
       image: imageFile.value
