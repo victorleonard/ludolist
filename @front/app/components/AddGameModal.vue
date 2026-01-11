@@ -78,61 +78,63 @@
           </div>
 
           <div>
-            <label
-              for="age_min"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <UIcon
                 name="i-lucide-calendar"
                 class="w-4 h-4"
               />
-              Âge minimum <span class="text-red-500">*</span>
+              Âge
             </label>
-            <USelect
-              id="age_min"
-              v-model="state.age_min"
-              :items="ageOptions"
-              option-attribute="label"
-              value-attribute="value"
-              :disabled="submitting"
-              :error="!!errors.age_min"
-              class="w-full"
-            />
-            <p
-              v-if="errors.age_min"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.age_min }}
-            </p>
-          </div>
-
-          <div>
-            <label
-              for="age_max"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              <UIcon
-                name="i-lucide-calendar"
-                class="w-4 h-4"
-              />
-              Âge maximum
-            </label>
-            <USelect
-              id="age_max"
-              v-model="state.age_max"
-              :items="filteredAgeMaxOptions"
-              option-attribute="label"
-              value-attribute="value"
-              :disabled="submitting"
-              :error="!!errors.age_max"
-              class="w-full"
-            />
-            <p
-              v-if="errors.age_max"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.age_max }}
-            </p>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="age_min"
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Âge minimum <span class="text-red-500">*</span>
+                </label>
+                <USelect
+                  id="age_min"
+                  v-model="state.age_min"
+                  :items="ageOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  :disabled="submitting"
+                  :error="!!errors.age_min"
+                  class="w-full"
+                />
+                <p
+                  v-if="errors.age_min"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.age_min }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="age_max"
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Âge maximum
+                </label>
+                <USelect
+                  id="age_max"
+                  v-model="state.age_max"
+                  :items="filteredAgeMaxOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  :disabled="submitting"
+                  :error="!!errors.age_max"
+                  class="w-full"
+                />
+                <p
+                  v-if="errors.age_max"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.age_max }}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -165,61 +167,63 @@
           </div>
 
           <div>
-            <label
-              for="player_min"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <UIcon
                 name="i-lucide-users"
                 class="w-4 h-4"
               />
-              Nombre minimum de joueurs <span class="text-red-500">*</span>
+              Nombre de joueurs
             </label>
-            <USelect
-              id="player_min"
-              v-model="state.player_min"
-              :items="playerMinOptions"
-              option-attribute="label"
-              value-attribute="value"
-              :disabled="submitting"
-              :error="!!errors.player_min"
-              class="w-full"
-            />
-            <p
-              v-if="errors.player_min"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.player_min }}
-            </p>
-          </div>
-
-          <div>
-            <label
-              for="player_max"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              <UIcon
-                name="i-lucide-users"
-                class="w-4 h-4"
-              />
-              Nombre maximum de joueurs
-            </label>
-            <USelect
-              id="player_max"
-              v-model="state.player_max"
-              :items="filteredPlayerMaxOptions"
-              option-attribute="label"
-              value-attribute="value"
-              :disabled="submitting"
-              :error="!!errors.player_max"
-              class="w-full"
-            />
-            <p
-              v-if="errors.player_max"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.player_max }}
-            </p>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="player_min"
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Nombre minimum <span class="text-red-500">*</span>
+                </label>
+                <USelect
+                  id="player_min"
+                  v-model="state.player_min"
+                  :items="playerMinOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  :disabled="submitting"
+                  :error="!!errors.player_min"
+                  class="w-full"
+                />
+                <p
+                  v-if="errors.player_min"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.player_min }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="player_max"
+                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                >
+                  Nombre maximum
+                </label>
+                <USelect
+                  id="player_max"
+                  v-model="state.player_max"
+                  :items="filteredPlayerMaxOptions"
+                  option-attribute="label"
+                  value-attribute="value"
+                  :disabled="submitting"
+                  :error="!!errors.player_max"
+                  class="w-full"
+                />
+                <p
+                  v-if="errors.player_max"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.player_max }}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div>

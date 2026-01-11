@@ -185,15 +185,25 @@ const handleGameAdded = () => {
 }
 
 const durees = [
-  { label: '< 30 min', value: 'court' },
-  { label: '30-60 min', value: 'moyen' },
-  { label: '> 60 min', value: 'long' }
+  { label: '< 15 min', value: 'tres-court' },
+  { label: '15-30 min', value: 'court' },
+  { label: '30-45 min', value: 'moyen-court' },
+  { label: '45-60 min', value: 'moyen' },
+  { label: '60-90 min', value: 'long' },
+  { label: '90-120 min', value: 'tres-long' },
+  { label: '> 120 min', value: 'extra-long' }
 ]
 
 const ages = [
+  { label: '3+ ans', value: 3 },
+  { label: '5+ ans', value: 5 },
+  { label: '6+ ans', value: 6 },
   { label: '8+ ans', value: 8 },
   { label: '10+ ans', value: 10 },
-  { label: '13+ ans', value: 13 }
+  { label: '12+ ans', value: 12 },
+  { label: '13+ ans', value: 13 },
+  { label: '16+ ans', value: 16 },
+  { label: '18+ ans', value: 18 }
 ]
 
 // Ajouter l'option "Tous" pour permettre de réinitialiser les filtres
@@ -229,14 +239,26 @@ const jeuxFiltres = computed(() => {
 
   if (filtreDuree.value) {
     result = result.filter((jeu) => {
+      if (filtreDuree.value === 'tres-court') {
+        return jeu.duree < 15
+      }
       if (filtreDuree.value === 'court') {
-        return jeu.duree < 30
+        return jeu.duree >= 15 && jeu.duree < 30
+      }
+      if (filtreDuree.value === 'moyen-court') {
+        return jeu.duree >= 30 && jeu.duree < 45
       }
       if (filtreDuree.value === 'moyen') {
-        return jeu.duree >= 30 && jeu.duree <= 60
+        return jeu.duree >= 45 && jeu.duree <= 60
       }
       if (filtreDuree.value === 'long') {
-        return jeu.duree > 60
+        return jeu.duree > 60 && jeu.duree <= 90
+      }
+      if (filtreDuree.value === 'tres-long') {
+        return jeu.duree > 90 && jeu.duree <= 120
+      }
+      if (filtreDuree.value === 'extra-long') {
+        return jeu.duree > 120
       }
       return true
     })
