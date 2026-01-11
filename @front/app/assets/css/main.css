@@ -16,3 +16,12 @@
   --color-green-900: #0A5331;
   --color-green-950: #052E16;
 }
+
+/* Masquer le menu burger dans la navigation */
+header button[aria-label*="menu"],
+header button[aria-label*="Menu"],
+header button[aria-label*="navigation"],
+header button[aria-expanded="true"],
+header button[aria-expanded="false"] {
+  display: none !important;
+}

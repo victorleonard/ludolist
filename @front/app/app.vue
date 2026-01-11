@@ -32,7 +32,7 @@ useSeoMeta({
 
 <template>
   <UApp>
-    <UHeader>
+    <UHeader :mobile="false">
       <template #left>
         <NuxtLink
           to="/"
