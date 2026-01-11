@@ -44,13 +44,29 @@ useSeoMeta({
       </template>
 
       <template #right>
-        <UInput
-          v-model="recherche"
-          placeholder="Rechercher un jeu..."
-          icon="i-lucide-search"
-          size="sm"
-          class="w-64 hidden md:block"
-        />
+        <div class="relative w-64 hidden md:block">
+          <UInput
+            v-model="recherche"
+            placeholder="Rechercher un jeu..."
+            icon="i-lucide-search"
+            size="sm"
+            class="w-full"
+          >
+            <template
+              v-if="recherche"
+              #trailing
+            >
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-lucide-x"
+                size="xs"
+                :padded="false"
+                @click="recherche = ''"
+              />
+            </template>
+          </UInput>
+        </div>
         <UColorModeButton />
       </template>
     </UHeader>
