@@ -93,13 +93,6 @@
                     size="sm"
                     @click="openEditModal(jeu)"
                   />
-                  <UBadge
-                    color="primary"
-                    variant="solid"
-                    class="whitespace-nowrap"
-                  >
-                    {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
-                  </UBadge>
                 </div>
               </div>
             </template>
@@ -134,6 +127,13 @@
                 </div>
               </div>
               <div class="flex flex-wrap gap-2">
+                <UBadge
+                  color="neutral"
+                  variant="subtle"
+                  class="whitespace-nowrap"
+                >
+                  {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+                </UBadge>
                 <UBadge
                   v-for="tag in jeu.tags"
                   :key="tag"
