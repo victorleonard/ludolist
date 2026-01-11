@@ -133,14 +133,11 @@
                   <span class="text-xs text-center">Aucune image</span>
                 </div>
               </div>
-              <p class="text-gray-600 dark:text-gray-400 text-sm">
-                {{ jeu.description }}
-              </p>
               <div class="flex flex-wrap gap-2">
                 <UBadge
                   v-for="tag in jeu.tags"
                   :key="tag"
-                  color="primary"
+                  :color="tag.includes('joueurs') ? 'info' : 'primary'"
                   variant="subtle"
                 >
                   {{ tag }}

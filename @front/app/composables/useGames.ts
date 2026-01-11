@@ -86,13 +86,28 @@ export const useGames = () => {
     const dureeMatch = playingTime.match(/(\d+)/)
     const duree = dureeMatch && dureeMatch[1] ? parseInt(dureeMatch[1], 10) : 30
 
+    // Formater la durée pour toujours afficher "X min" ou "X-Y min"
+    let dureeFormatee = `${duree} min`
+    if (playingTime) {
+      // Extraire tous les chiffres de la durée
+      const chiffres = playingTime.match(/\d+/g)
+      if (chiffres && chiffres.length > 0) {
+        if (chiffres.length === 1) {
+          dureeFormatee = `${chiffres[0]} min`
+        } else {
+          // Si plusieurs chiffres, prendre le premier et le dernier pour une plage
+          dureeFormatee = `${chiffres[0]}-${chiffres[chiffres.length - 1]} min`
+        }
+      }
+    }
+
     // Gérer player_max qui peut être null
     const playerMax = strapiGame.player_max || strapiGame.player_min
 
     // Créer les tags
     const tags = [
       `${strapiGame.player_min}-${playerMax} joueurs`,
-      playingTime || `${duree} min`
+      dureeFormatee
     ]
 
     // Déterminer la catégorie (pour l'instant, on utilise une valeur par défaut)
