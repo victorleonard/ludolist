@@ -98,7 +98,7 @@
                     variant="solid"
                     class="whitespace-nowrap"
                   >
-                    {{ jeu.age }}+ ans
+                    {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
                   </UBadge>
                 </div>
               </div>
@@ -246,7 +246,7 @@ const jeuxFiltres = computed(() => {
   }
 
   if (filtreAge.value) {
-    result = result.filter(jeu => jeu.age <= filtreAge.value!)
+    result = result.filter(jeu => jeu.age_min <= filtreAge.value!)
   }
 
   return result

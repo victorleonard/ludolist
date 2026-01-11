@@ -441,7 +441,8 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    age: Schema.Attribute.Integer;
+    age_max: Schema.Attribute.Integer;
+    age_min: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

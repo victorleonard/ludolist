@@ -79,7 +79,7 @@
 
           <div>
             <label
-              for="age"
+              for="age_min"
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
@@ -89,20 +89,49 @@
               Âge minimum <span class="text-red-500">*</span>
             </label>
             <USelect
-              id="age"
-              v-model="state.age"
+              id="age_min"
+              v-model="state.age_min"
               :items="ageOptions"
               option-attribute="label"
               value-attribute="value"
               :disabled="submitting"
-              :error="!!errors.age"
+              :error="!!errors.age_min"
               class="w-full"
             />
             <p
-              v-if="errors.age"
+              v-if="errors.age_min"
               class="mt-1 text-sm text-red-600 dark:text-red-400"
             >
-              {{ errors.age }}
+              {{ errors.age_min }}
+            </p>
+          </div>
+
+          <div>
+            <label
+              for="age_max"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-lucide-calendar"
+                class="w-4 h-4"
+              />
+              Âge maximum
+            </label>
+            <USelect
+              id="age_max"
+              v-model="state.age_max"
+              :items="filteredAgeMaxOptions"
+              option-attribute="label"
+              value-attribute="value"
+              :disabled="submitting"
+              :error="!!errors.age_max"
+              class="w-full"
+            />
+            <p
+              v-if="errors.age_max"
+              class="mt-1 text-sm text-red-600 dark:text-red-400"
+            >
+              {{ errors.age_max }}
             </p>
           </div>
 
@@ -297,7 +326,8 @@ const playerMaxOptions = [
 
 const state = reactive({
   name: '',
-  age: null as number | null,
+  age_min: null as number | null,
+  age_max: null as number | null,
   playing_time: '',
   player_min: 2,
   player_max: null as number | null
@@ -308,8 +338,12 @@ watch(() => state.name, () => {
   if (errors.name) errors.name = ''
 })
 
-watch(() => state.age, () => {
-  if (errors.age) errors.age = ''
+watch(() => state.age_min, () => {
+  if (errors.age_min) errors.age_min = ''
+})
+
+watch(() => state.age_max, () => {
+  if (errors.age_max) errors.age_max = ''
 })
 
 watch(() => state.playing_time, () => {
@@ -326,7 +360,8 @@ watch(() => state.player_max, () => {
 
 const errors = reactive({
   name: '',
-  age: '',
+  age_min: '',
+  age_max: '',
   playing_time: '',
   player_min: '',
   player_max: ''
@@ -335,7 +370,8 @@ const errors = reactive({
 const loadGameData = () => {
   if (props.game) {
     state.name = props.game.titre
-    state.age = props.game.age
+    state.age_min = props.game.age_min
+    state.age_max = props.game.age_max
 
     // Convertir la durée en valeur correspondant aux options du menu déroulant
     const duree = props.game.duree
@@ -359,7 +395,8 @@ const loadGameData = () => {
 
 const resetForm = () => {
   state.name = ''
-  state.age = null
+  state.age_min = null
+  state.age_max = null
   state.playing_time = ''
   state.player_min = 2
   state.player_max = null
@@ -380,6 +417,21 @@ const filteredPlayerMaxOptions = computed(() => {
   )
 })
 
+// Filtrer les options de age_max pour qu'elles soient >= age_min
+const filteredAgeMaxOptions = computed(() => {
+  const ageMaxOptions = [
+    { label: 'Aucun maximum', value: null },
+    ...ageOptions
+  ]
+  if (state.age_min === null) {
+    return ageMaxOptions
+  }
+  const ageMin = state.age_min
+  return ageMaxOptions.filter(option =>
+    option.value === null || option.value >= ageMin
+  )
+})
+
 const validateForm = (): boolean => {
   let isValid = true
   Object.keys(errors).forEach((key) => {
@@ -391,8 +443,13 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  if (!state.age || state.age < 0) {
-    errors.age = 'L\'âge doit être un nombre positif'
+  if (!state.age_min || state.age_min < 0) {
+    errors.age_min = 'L\'âge minimum doit être un nombre positif'
+    isValid = false
+  }
+
+  if (state.age_max !== null && state.age_min !== null && state.age_max < state.age_min) {
+    errors.age_max = 'L\'âge maximum doit être supérieur ou égal au minimum'
     isValid = false
   }
 
@@ -419,8 +476,8 @@ async function handleSubmit() {
     return
   }
 
-  // La validation garantit que age n'est pas null, mais TypeScript ne le sait pas
-  if (state.age === null) {
+  // La validation garantit que age_min n'est pas null, mais TypeScript ne le sait pas
+  if (state.age_min === null) {
     return
   }
 
@@ -431,7 +488,8 @@ async function handleSubmit() {
     const gameData = {
       name: state.name.trim(),
       description: props.game?.description || '',
-      age: state.age,
+      age_min: state.age_min,
+      age_max: state.age_max,
       playing_time: state.playing_time.trim(),
       player_min: state.player_min,
       player_max: state.player_max,

@@ -17,7 +17,7 @@
     "description": {
       "type": "text"
     },
-    "age": {
+    "age_min": {
       "type": "integer"
     },
     "playing_time": {
@@ -37,6 +37,9 @@
       "type": "integer"
     },
     "player_max": {
+      "type": "integer"
+    },
+    "age_max": {
       "type": "integer"
     }
   }

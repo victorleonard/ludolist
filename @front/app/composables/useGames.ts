@@ -13,7 +13,8 @@ interface StrapiGame {
   documentId?: string
   name: string
   description: string | null
-  age: number
+  age_min: number
+  age_max: number | null
   playing_time: string | null
   player_min: number
   player_max: number | null
@@ -44,7 +45,8 @@ export interface Game {
   tags: string[]
   categorie: string
   duree: number
-  age: number
+  age_min: number
+  age_max: number | null
   player_min: number
   player_max: number
   createdAt: string
@@ -106,7 +108,8 @@ export const useGames = () => {
       tags,
       categorie,
       duree,
-      age: strapiGame.age,
+      age_min: strapiGame.age_min,
+      age_max: strapiGame.age_max,
       player_min: strapiGame.player_min,
       player_max: playerMax,
       createdAt: strapiGame.createdAt
@@ -157,7 +160,8 @@ export const useGames = () => {
   interface CreateGameData {
     name: string
     description: string
-    age: number
+    age_min: number
+    age_max: number | null
     playing_time: string
     player_min: number
     player_max: number | null
@@ -195,7 +199,8 @@ export const useGames = () => {
         data: {
           name: gameData.name,
           description: gameData.description,
-          age: gameData.age,
+          age_min: gameData.age_min,
+          age_max: gameData.age_max,
           playing_time: gameData.playing_time,
           player_min: gameData.player_min,
           player_max: gameData.player_max,
@@ -275,7 +280,8 @@ export const useGames = () => {
         data: {
           name: gameData.name,
           description: gameData.description,
-          age: gameData.age,
+          age_min: gameData.age_min,
+          age_max: gameData.age_max,
           playing_time: gameData.playing_time,
           player_min: gameData.player_min,
           player_max: gameData.player_max
