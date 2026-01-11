@@ -36,12 +36,12 @@ useSeoMeta({
       <template #left>
         <NuxtLink
           to="/"
-          class="text-xl font-bold flex items-center gap-0.5"
+          class="text-xl font-bold flex items-center gap-0.5 text-blue-500 dark:text-blue-500"
           style="font-family: 'Audiowide', cursive;"
         >
           Lud<UIcon
             name="i-lucide-dice-6"
-            class="w-5 h-5 -mx-0.5"
+            class="w-5 h-5 -mx-0.5 rotate-12"
           />List
         </NuxtLink>
       </template>
