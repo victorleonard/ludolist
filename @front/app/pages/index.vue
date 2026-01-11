@@ -114,12 +114,34 @@
             </template>
 
             <div class="flex flex-col gap-4">
-              <img
-                v-if="jeu && jeu.image"
-                :src="jeu.image"
-                :alt="jeu.titre || 'Image du jeu'"
-                class="w-full h-48 rounded-lg object-contain"
-              >
+              <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                <img
+                  v-if="jeu && jeu.image"
+                  :src="jeu.image"
+                  :alt="jeu.titre || 'Image du jeu'"
+                  class="w-full h-full object-contain"
+                >
+                <div
+                  v-else
+                  class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-16 h-16 mb-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                  <span class="text-xs text-center">Aucune image</span>
+                </div>
+              </div>
               <p class="text-gray-600 dark:text-gray-400 text-sm">
                 {{ jeu.description }}
               </p>

@@ -39,13 +39,14 @@ interface Game {
   id: number
   titre: string
   description: string
-  image: string
+  image: string | null
   tags: string[]
   categorie: string
   duree: number
   age: number
   player_min: number
   player_max: number
+  createdAt: string
 }
 
 export const useGames = () => {
@@ -60,7 +61,7 @@ export const useGames = () => {
     }
 
     // Extraire l'URL de l'image
-    let imageUrl = 'https://images.unsplash.com/photo-1667118398887-63cb59112b57?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' // Image par défaut
+    let imageUrl: string | null = null
 
     // Gérer l'image (structure Strapi v5 : image est directement dans l'objet)
     const imageData = strapiGame.image
@@ -105,7 +106,8 @@ export const useGames = () => {
       duree,
       age: strapiGame.age,
       player_min: strapiGame.player_min,
-      player_max: playerMax
+      player_max: playerMax,
+      createdAt: strapiGame.createdAt
     }
   }
 
@@ -114,7 +116,8 @@ export const useGames = () => {
     'games',
     async () => {
       try {
-        const response = await $fetch<StrapiResponse>(`${apiUrl}/api/games?populate=image`, {
+        // Trier par date de création décroissante (les plus récents en premier)
+        const response = await $fetch<StrapiResponse>(`${apiUrl}/api/games?populate=image&sort=createdAt:desc`, {
           headers: {
             'Content-Type': 'application/json'
           }
@@ -179,7 +182,7 @@ export const useGames = () => {
         }
       }
 
-      // Créer le jeu avec les données
+      // Créer le jeu avec les données (inclure publishedAt pour publier directement)
       const createPayload: any = {
         data: {
           name: gameData.name,
@@ -187,7 +190,8 @@ export const useGames = () => {
           age: gameData.age,
           playing_time: gameData.playing_time,
           player_min: gameData.player_min,
-          player_max: gameData.player_max
+          player_max: gameData.player_max,
+          publishedAt: new Date().toISOString() // Publier directement lors de la création
         }
       }
 
@@ -204,24 +208,20 @@ export const useGames = () => {
         body: createPayload
       })
 
-      // Publier le jeu
-      if (response.data.id) {
-        await $fetch(`${apiUrl}/api/games/${response.data.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: {
-            data: {
-              publishedAt: new Date().toISOString()
-            }
-          }
-        })
+      // Vérifier que la réponse contient bien un ID
+      if (!response || !response.data) {
+        throw new Error('Réponse invalide lors de la création du jeu')
+      }
+
+      // Utiliser documentId si disponible (Strapi v5), sinon id
+      const gameId = response.data.documentId || response.data.id
+      if (!gameId) {
+        throw new Error('Impossible de récupérer l\'ID du jeu créé')
       }
 
       // Récupérer le jeu créé avec l'image
       const createdGameResponse = await $fetch<{ data: StrapiGame }>(
-        `${apiUrl}/api/games/${response.data.id}?populate=image`,
+        `${apiUrl}/api/games/${gameId}?populate=image`,
         {
           headers: {
             'Content-Type': 'application/json'

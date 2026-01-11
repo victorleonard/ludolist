@@ -4,31 +4,49 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <UCard class="w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <UCard
+        class="w-full max-w-2xl max-h-[90vh] flex flex-col"
+        :ui="{ body: 'p-4 sm:p-6 overflow-auto' }"
+      >
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">
               Ajouter un nouveau jeu
             </h3>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-x"
-              class="-my-1"
-              @click="closeModal"
-            />
+            <div class="flex items-center gap-2">
+              <UButton
+                type="submit"
+                form="game-form"
+                color="primary"
+                :loading="submitting"
+              >
+                Ajouter le jeu
+              </UButton>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                class="-my-1"
+                @click="closeModal"
+              />
+            </div>
           </div>
         </template>
 
         <form
+          id="game-form"
           class="space-y-4 overflow-y-auto flex-1"
           @submit.prevent="handleSubmit"
         >
           <div>
             <label
               for="name"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
+              <UIcon
+                name="i-lucide-gamepad-2"
+                class="w-4 h-4"
+              />
               Titre du jeu <span class="text-red-500">*</span>
             </label>
             <UInput
@@ -37,6 +55,7 @@
               placeholder="Ex: Catan"
               :disabled="submitting"
               :error="!!errors.name"
+              class="w-full"
             />
             <p
               v-if="errors.name"
@@ -48,142 +67,128 @@
 
           <div>
             <label
-              for="description"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              for="age"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Description
+              <UIcon
+                name="i-lucide-calendar"
+                class="w-4 h-4"
+              />
+              Âge minimum <span class="text-red-500">*</span>
             </label>
-            <UTextarea
-              id="description"
-              v-model="state.description"
-              placeholder="Décrivez le jeu..."
-              :rows="4"
+            <UInput
+              id="age"
+              v-model.number="state.age"
+              type="number"
+              min="0"
+              placeholder="8"
               :disabled="submitting"
-              :error="!!errors.description"
+              :error="!!errors.age"
+              class="w-full"
             />
             <p
-              v-if="errors.description"
+              v-if="errors.age"
               class="mt-1 text-sm text-red-600 dark:text-red-400"
             >
-              {{ errors.description }}
+              {{ errors.age }}
             </p>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="age"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Âge minimum <span class="text-red-500">*</span>
-              </label>
-              <UInput
-                id="age"
-                v-model.number="state.age"
-                type="number"
-                min="0"
-                placeholder="8"
-                :disabled="submitting"
-                :error="!!errors.age"
-              />
-              <p
-                v-if="errors.age"
-                class="mt-1 text-sm text-red-600 dark:text-red-400"
-              >
-                {{ errors.age }}
-              </p>
-            </div>
-
-            <div>
-              <label
-                for="playing_time"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Durée de jeu <span class="text-red-500">*</span>
-              </label>
-              <UInput
-                id="playing_time"
-                v-model="state.playing_time"
-                placeholder="Ex: 30-60 min"
-                :disabled="submitting"
-                :error="!!errors.playing_time"
-              />
-              <p
-                v-if="errors.playing_time"
-                class="mt-1 text-sm text-red-600 dark:text-red-400"
-              >
-                {{ errors.playing_time }}
-              </p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label
-                for="player_min"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Nombre minimum de joueurs <span class="text-red-500">*</span>
-              </label>
-              <UInput
-                id="player_min"
-                v-model.number="state.player_min"
-                type="number"
-                min="1"
-                placeholder="2"
-                :disabled="submitting"
-                :error="!!errors.player_min"
-              />
-              <p
-                v-if="errors.player_min"
-                class="mt-1 text-sm text-red-600 dark:text-red-400"
-              >
-                {{ errors.player_min }}
-              </p>
-            </div>
-
-            <div>
-              <label
-                for="player_max"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                Nombre maximum de joueurs
-              </label>
-              <UInput
-                id="player_max"
-                v-model.number="state.player_max"
-                type="number"
-                min="1"
-                placeholder="4"
-                :disabled="submitting"
-                :error="!!errors.player_max"
-              />
-              <p
-                v-if="errors.player_max"
-                class="mt-1 text-sm text-red-600 dark:text-red-400"
-              >
-                {{ errors.player_max }}
-              </p>
-            </div>
           </div>
 
           <div>
             <label
-              for="image"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              for="playing_time"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              Image du jeu
+              <UIcon
+                name="i-lucide-clock"
+                class="w-4 h-4"
+              />
+              Durée de jeu <span class="text-red-500">*</span>
             </label>
             <UInput
-              id="image"
-              type="file"
-              accept="image/*"
+              id="playing_time"
+              v-model="state.playing_time"
+              placeholder="Ex: 30-60 min"
               :disabled="submitting"
-              @change="handleImageChange"
+              :error="!!errors.playing_time"
+              class="w-full"
             />
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Format accepté : JPG, PNG, GIF
+            <p
+              v-if="errors.playing_time"
+              class="mt-1 text-sm text-red-600 dark:text-red-400"
+            >
+              {{ errors.playing_time }}
             </p>
+          </div>
+
+          <div>
+            <label
+              for="player_min"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-lucide-users"
+                class="w-4 h-4"
+              />
+              Nombre minimum de joueurs <span class="text-red-500">*</span>
+            </label>
+            <UInput
+              id="player_min"
+              v-model.number="state.player_min"
+              type="number"
+              min="1"
+              placeholder="Ex: 2"
+              :disabled="submitting"
+              :error="!!errors.player_min"
+              class="w-full"
+            />
+            <p
+              v-if="errors.player_min"
+              class="mt-1 text-sm text-red-600 dark:text-red-400"
+            >
+              {{ errors.player_min }}
+            </p>
+          </div>
+
+          <div>
+            <label
+              for="player_max"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-lucide-users"
+                class="w-4 h-4"
+              />
+              Nombre maximum de joueurs
+            </label>
+            <UInput
+              id="player_max"
+              v-model.number="state.player_max"
+              type="number"
+              min="1"
+              placeholder="4"
+              :disabled="submitting"
+              :error="!!errors.player_max"
+              class="w-full"
+            />
+            <p
+              v-if="errors.player_max"
+              class="mt-1 text-sm text-red-600 dark:text-red-400"
+            >
+              {{ errors.player_max }}
+            </p>
+          </div>
+
+          <div>
+            <UFileUpload
+              v-model="imageFile"
+              color="neutral"
+              highlight
+              label="Déposez votre image ici"
+              description="SVG, PNG, JPG ou GIF (max. 2MB)"
+              class="w-full min-h-48"
+              :disabled="submitting"
+            />
           </div>
 
           <div
@@ -193,24 +198,6 @@
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
             </p>
-          </div>
-
-          <div class="flex justify-end gap-3 pt-4">
-            <UButton
-              color="neutral"
-              variant="ghost"
-              :disabled="submitting"
-              @click="closeModal"
-            >
-              Annuler
-            </UButton>
-            <UButton
-              type="submit"
-              color="primary"
-              :loading="submitting"
-            >
-              Ajouter le jeu
-            </UButton>
           </div>
         </form>
       </UCard>
@@ -255,20 +242,15 @@ const imageFile = ref<File | null>(null)
 
 const state = reactive({
   name: '',
-  description: '',
-  age: 8,
+  age: null as number | null,
   playing_time: '',
-  player_min: 2,
+  player_min: null as number | null,
   player_max: null as number | null
 })
 
 // Réinitialiser les erreurs quand les champs sont modifiés
 watch(() => state.name, () => {
   if (errors.name) errors.name = ''
-})
-
-watch(() => state.description, () => {
-  if (errors.description) errors.description = ''
 })
 
 watch(() => state.age, () => {
@@ -289,7 +271,6 @@ watch(() => state.player_max, () => {
 
 const errors = reactive({
   name: '',
-  description: '',
   age: '',
   playing_time: '',
   player_min: '',
@@ -298,10 +279,9 @@ const errors = reactive({
 
 const resetForm = () => {
   state.name = ''
-  state.description = ''
-  state.age = 8
+  state.age = null
   state.playing_time = ''
-  state.player_min = 2
+  state.player_min = null
   state.player_max = null
   imageFile.value = null
   submitError.value = null
@@ -321,7 +301,7 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  if (!state.age || state.age < 0) {
+  if (state.age === null || state.age === undefined || state.age < 0) {
     errors.age = 'L\'âge doit être un nombre positif'
     isValid = false
   }
@@ -331,24 +311,17 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  if (!state.player_min || state.player_min < 1) {
+  if (state.player_min === null || state.player_min === undefined || state.player_min < 1) {
     errors.player_min = 'Le nombre minimum de joueurs doit être au moins 1'
     isValid = false
   }
 
-  if (state.player_max !== null && state.player_max < state.player_min) {
+  if (state.player_max !== null && state.player_max !== undefined && state.player_min !== null && state.player_max < state.player_min) {
     errors.player_max = 'Le nombre maximum doit être supérieur ou égal au minimum'
     isValid = false
   }
 
   return isValid
-}
-
-const handleImageChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    imageFile.value = target.files[0] || null
-  }
 }
 
 async function handleSubmit() {
@@ -362,10 +335,10 @@ async function handleSubmit() {
   try {
     await createGame({
       name: state.name.trim(),
-      description: state.description.trim(),
-      age: state.age,
+      description: '',
+      age: state.age!,
       playing_time: state.playing_time.trim(),
-      player_min: state.player_min,
+      player_min: state.player_min!,
       player_max: state.player_max,
       image: imageFile.value
     })
