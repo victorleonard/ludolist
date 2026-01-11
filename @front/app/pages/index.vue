@@ -103,13 +103,22 @@
                 <h2 class="text-xl font-bold truncate min-w-0">
                   {{ jeu.titre }}
                 </h2>
-                <UBadge
-                  color="primary"
-                  variant="solid"
-                  class="shrink-0 whitespace-nowrap"
-                >
-                  {{ jeu.age }}+ ans
-                </UBadge>
+                <div class="flex items-center gap-2 shrink-0">
+                  <UButton
+                    color="neutral"
+                    variant="ghost"
+                    icon="i-lucide-edit"
+                    size="sm"
+                    @click="openEditModal(jeu)"
+                  />
+                  <UBadge
+                    color="primary"
+                    variant="solid"
+                    class="whitespace-nowrap"
+                  >
+                    {{ jeu.age }}+ ans
+                  </UBadge>
+                </div>
               </div>
             </template>
 
@@ -163,6 +172,7 @@
 
     <AddGameModal
       v-model="isModalOpen"
+      :game="selectedGame"
       @success="handleGameAdded"
     />
   </UContainer>
@@ -171,19 +181,27 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRecherche } from '../composables/useRecherche'
-import { useGames } from '../composables/useGames'
+import { useGames, type Game } from '../composables/useGames'
 
 const { recherche } = useRecherche()
 const { games, loading, error, refresh } = useGames()
 
 const isModalOpen = ref(false)
+const selectedGame = ref<Game | null>(null)
 
 const openModal = () => {
+  selectedGame.value = null
+  isModalOpen.value = true
+}
+
+const openEditModal = (jeu: Game) => {
+  selectedGame.value = jeu
   isModalOpen.value = true
 }
 
 const handleGameAdded = () => {
-  // Le refresh est déjà géré dans createGame, mais on peut ajouter une notification ici si besoin
+  // Le refresh est déjà géré dans createGame/updateGame, mais on peut ajouter une notification ici si besoin
+  selectedGame.value = null
   refresh()
 }
 

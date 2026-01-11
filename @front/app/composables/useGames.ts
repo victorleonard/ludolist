@@ -35,8 +35,9 @@ interface StrapiResponse {
   }
 }
 
-interface Game {
+export interface Game {
   id: number
+  documentId?: string
   titre: string
   description: string
   image: string | null
@@ -98,6 +99,7 @@ export const useGames = () => {
 
     return {
       id: strapiGame.id,
+      documentId: strapiGame.documentId,
       titre: strapiGame.name,
       description: strapiGame.description || 'Aucune description disponible',
       image: imageUrl,
@@ -160,6 +162,12 @@ export const useGames = () => {
     player_min: number
     player_max: number | null
     image?: File | null
+  }
+
+  // Interface pour les données de mise à jour d'un jeu
+  interface UpdateGameData extends CreateGameData {
+    id: number
+    documentId?: string
   }
 
   // Fonction pour créer un nouveau jeu
@@ -242,11 +250,93 @@ export const useGames = () => {
     }
   }
 
+  // Fonction pour mettre à jour un jeu existant
+  const updateGame = async (gameData: UpdateGameData): Promise<Game> => {
+    try {
+      let imageId: number | null = null
+
+      // Si une nouvelle image est fournie, l'uploader d'abord
+      if (gameData.image) {
+        const formData = new FormData()
+        formData.append('files', gameData.image)
+
+        const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
+          method: 'POST',
+          body: formData
+        })
+
+        if (uploadResponse && uploadResponse.length > 0) {
+          imageId = uploadResponse[0].id
+        }
+      }
+
+      // Préparer le payload de mise à jour
+      const updatePayload: any = {
+        data: {
+          name: gameData.name,
+          description: gameData.description,
+          age: gameData.age,
+          playing_time: gameData.playing_time,
+          player_min: gameData.player_min,
+          player_max: gameData.player_max
+        }
+      }
+
+      // Ajouter l'image si une nouvelle a été uploadée
+      if (imageId) {
+        updatePayload.data.image = imageId
+      }
+
+      // Utiliser documentId si disponible (Strapi v5), sinon id
+      // Le documentId devrait être passé depuis le composant
+      const gameId = gameData.documentId || gameData.id
+      if (!gameId) {
+        throw new Error('ID du jeu manquant')
+      }
+
+      // Mettre à jour le jeu
+      const response = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: updatePayload
+      })
+
+      // Vérifier que la réponse contient bien des données
+      if (!response || !response.data) {
+        throw new Error('Réponse invalide lors de la mise à jour du jeu')
+      }
+
+      // Récupérer le jeu mis à jour avec l'image
+      const updatedGameResponse = await $fetch<{ data: StrapiGame }>(
+        `${apiUrl}/api/games/${gameId}?populate=image`,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      )
+
+      // Transformer et retourner le jeu mis à jour
+      const updatedGame = transformGame(updatedGameResponse.data, apiUrl)
+
+      // Rafraîchir la liste des jeux
+      await refresh()
+
+      return updatedGame
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour du jeu:', err)
+      throw err
+    }
+  }
+
   return {
     games: computed(() => games.value || []),
     loading,
     error: computed(() => error.value ? (error.value as Error).message : null),
     refresh,
-    createGame
+    createGame,
+    updateGame
   }
 }

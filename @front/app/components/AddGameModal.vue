@@ -11,7 +11,7 @@
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">
-              Ajouter un nouveau jeu
+              {{ editingGame ? 'Modifier le jeu' : 'Ajouter un nouveau jeu' }}
             </h3>
             <div class="flex items-center gap-2">
               <UButton
@@ -20,7 +20,7 @@
                 color="primary"
                 :loading="submitting"
               >
-                Ajouter le jeu
+                {{ editingGame ? 'Enregistrer' : 'Ajouter le jeu' }}
               </UButton>
               <UButton
                 color="neutral"
@@ -206,11 +206,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import { useGames } from '../composables/useGames'
+import { ref, reactive, watch, computed } from 'vue'
+import { useGames, type Game } from '../composables/useGames'
 
 interface Props {
   modelValue: boolean
+  game?: Game | null
 }
 
 interface Emits {
@@ -218,10 +219,15 @@ interface Emits {
   (e: 'success'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  game: null
+})
+
 const emit = defineEmits<Emits>()
 
-const { createGame } = useGames()
+const { createGame, updateGame } = useGames()
+
+const editingGame = computed(() => props.game !== null && props.game !== undefined)
 
 const isOpen = ref(props.modelValue)
 
@@ -233,6 +239,14 @@ watch(isOpen, (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
     resetForm()
+  } else if (newValue && editingGame.value) {
+    loadGameData()
+  }
+})
+
+watch(() => props.game, (newGame) => {
+  if (newGame && isOpen.value) {
+    loadGameData()
   }
 })
 
@@ -276,6 +290,25 @@ const errors = reactive({
   player_min: '',
   player_max: ''
 })
+
+const loadGameData = () => {
+  if (props.game) {
+    state.name = props.game.titre
+    state.age = props.game.age
+    // Extraire la durée depuis les tags ou utiliser la durée
+    // Les tags contiennent la durée, mais on peut aussi utiliser duree
+    // Pour simplifier, on va chercher dans les tags ou utiliser un format par défaut
+    const playingTimeTag = props.game.tags?.find(tag => tag.includes('min'))
+    if (playingTimeTag) {
+      state.playing_time = playingTimeTag
+    } else {
+      state.playing_time = `${props.game.duree} min`
+    }
+    state.player_min = props.game.player_min
+    state.player_max = props.game.player_max
+    imageFile.value = null // On ne charge pas l'image existante, l'utilisateur peut en uploader une nouvelle
+  }
+}
 
 const resetForm = () => {
   state.name = ''
@@ -333,22 +366,32 @@ async function handleSubmit() {
   submitError.value = null
 
   try {
-    await createGame({
+    const gameData = {
       name: state.name.trim(),
-      description: '',
+      description: props.game?.description || '',
       age: state.age!,
       playing_time: state.playing_time.trim(),
       player_min: state.player_min!,
       player_max: state.player_max,
       image: imageFile.value
-    })
+    }
+
+    if (editingGame.value && props.game) {
+      await updateGame({
+        ...gameData,
+        id: props.game.id,
+        documentId: props.game.documentId
+      })
+    } else {
+      await createGame(gameData)
+    }
 
     resetForm()
     emit('success')
     isOpen.value = false
   } catch (err: unknown) {
-    console.error('Erreur lors de la création du jeu:', err)
-    const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la création du jeu'
+    console.error(`Erreur lors de ${editingGame.value ? 'la mise à jour' : 'la création'} du jeu:`, err)
+    const errorMessage = err instanceof Error ? err.message : `Une erreur est survenue lors de ${editingGame.value ? 'la mise à jour' : 'la création'} du jeu`
     submitError.value = errorMessage
   } finally {
     submitting.value = false
