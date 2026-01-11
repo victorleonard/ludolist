@@ -10,49 +10,31 @@
             <UButton
               color="primary"
               icon="i-lucide-plus"
-              :disabled="false"
               @click="openModal"
             >
               Ajouter un jeu
             </UButton>
           </div>
 
-          <div class="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                Durée :
-              </span>
-              <div class="flex flex-wrap gap-2">
-                <UButton
-                  v-for="duree in durees"
-                  :key="duree.label"
-                  :variant="filtreDuree === duree.value ? 'solid' : 'outline'"
-                  :color="filtreDuree === duree.value ? 'primary' : 'neutral'"
-                  size="sm"
-                  @click="filtreDuree = filtreDuree === duree.value ? null : duree.value"
-                >
-                  {{ duree.label }}
-                </UButton>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                Âge :
-              </span>
-              <div class="flex flex-nowrap gap-2">
-                <UButton
-                  v-for="age in ages"
-                  :key="age.label"
-                  :variant="filtreAge === age.value ? 'solid' : 'outline'"
-                  :color="filtreAge === age.value ? 'primary' : 'neutral'"
-                  size="sm"
-                  @click="filtreAge = filtreAge === age.value ? null : age.value"
-                >
-                  {{ age.label }}
-                </UButton>
-              </div>
-            </div>
+          <div class="flex flex-wrap items-center gap-3">
+            <USelect
+              v-model="filtreDuree"
+              :items="dureesAvecTous"
+              option-attribute="label"
+              value-attribute="value"
+              placeholder="Toutes les durées"
+              size="sm"
+              class="min-w-[160px]"
+            />
+            <USelect
+              v-model="filtreAge"
+              :items="agesAvecTous"
+              option-attribute="label"
+              value-attribute="value"
+              placeholder="Tous les âges"
+              size="sm"
+              class="min-w-[160px]"
+            />
           </div>
         </div>
 
@@ -215,6 +197,17 @@ const ages = [
   { label: '8+ ans', value: 8 },
   { label: '10+ ans', value: 10 },
   { label: '13+ ans', value: 13 }
+]
+
+// Ajouter l'option "Tous" pour permettre de réinitialiser les filtres
+const dureesAvecTous = [
+  { label: 'Toutes les durées', value: null },
+  ...durees
+]
+
+const agesAvecTous = [
+  { label: 'Tous les âges', value: null },
+  ...ages
 ]
 
 const filtreDuree = ref<string | null>(null)

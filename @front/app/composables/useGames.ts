@@ -287,9 +287,21 @@ export const useGames = () => {
         updatePayload.data.image = imageId
       }
 
-      // Utiliser documentId si disponible (Strapi v5), sinon id
-      // Le documentId devrait être passé depuis le composant
-      const gameId = gameData.documentId || gameData.id
+      // Utiliser documentId si disponible (Strapi v5), sinon récupérer le documentId
+      // Dans Strapi v5, on doit utiliser documentId pour les requêtes PUT
+      let gameId = gameData.documentId
+      if (!gameId) {
+        // Si documentId n'est pas disponible, récupérer le jeu pour obtenir le documentId
+        const existingGame = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameData.id}?populate=image`, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        if (!existingGame?.data?.documentId) {
+          throw new Error('Impossible de récupérer le documentId du jeu')
+        }
+        gameId = existingGame.data.documentId
+      }
       if (!gameId) {
         throw new Error('ID du jeu manquant')
       }
@@ -331,12 +343,39 @@ export const useGames = () => {
     }
   }
 
+  // Fonction pour supprimer un jeu
+  const deleteGame = async (gameId: number, documentId?: string): Promise<void> => {
+    try {
+      // Utiliser documentId si disponible (Strapi v5), sinon convertir id en string
+      // Dans Strapi v5, on doit utiliser documentId pour les requêtes DELETE
+      const id = documentId || String(gameId)
+      if (!id) {
+        throw new Error('ID du jeu manquant')
+      }
+
+      // Supprimer le jeu
+      await $fetch(`${apiUrl}/api/games/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      // Rafraîchir la liste des jeux
+      await refresh()
+    } catch (err) {
+      console.error('Erreur lors de la suppression du jeu:', err)
+      throw err
+    }
+  }
+
   return {
     games: computed(() => games.value || []),
     loading,
     error: computed(() => error.value ? (error.value as Error).message : null),
     refresh,
     createGame,
-    updateGame
+    updateGame,
+    deleteGame
   }
 }
