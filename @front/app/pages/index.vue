@@ -194,6 +194,17 @@ const durees = [
   { label: '> 120 min', value: 'extra-long' }
 ]
 
+// Mapping des identifiants vers les plages de durée (en minutes)
+const dureeRanges: Record<string, { min: number, max: number }> = {
+  'tres-court': { min: 0, max: 14 },
+  'court': { min: 15, max: 30 },
+  'moyen-court': { min: 30, max: 45 },
+  'moyen': { min: 45, max: 60 },
+  'long': { min: 60, max: 90 },
+  'tres-long': { min: 90, max: 120 },
+  'extra-long': { min: 121, max: Infinity }
+}
+
 const ages = [
   { label: '3+ ans', value: 3 },
   { label: '5+ ans', value: 5 },
@@ -238,30 +249,13 @@ const jeuxFiltres = computed(() => {
   }
 
   if (filtreDuree.value) {
-    result = result.filter((jeu) => {
-      if (filtreDuree.value === 'tres-court') {
-        return jeu.duree < 15
-      }
-      if (filtreDuree.value === 'court') {
-        return jeu.duree >= 15 && jeu.duree < 30
-      }
-      if (filtreDuree.value === 'moyen-court') {
-        return jeu.duree >= 30 && jeu.duree < 45
-      }
-      if (filtreDuree.value === 'moyen') {
-        return jeu.duree >= 45 && jeu.duree <= 60
-      }
-      if (filtreDuree.value === 'long') {
-        return jeu.duree > 60 && jeu.duree <= 90
-      }
-      if (filtreDuree.value === 'tres-long') {
-        return jeu.duree > 90 && jeu.duree <= 120
-      }
-      if (filtreDuree.value === 'extra-long') {
-        return jeu.duree > 120
-      }
-      return true
-    })
+    const range = dureeRanges[filtreDuree.value]
+    if (range) {
+      result = result.filter((jeu) => {
+        const duree = jeu.duree
+        return duree >= range.min && duree <= range.max
+      })
+    }
   }
 
   if (filtreAge.value) {
