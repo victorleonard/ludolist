@@ -3,13 +3,15 @@
     <div>
       <div class="mt-6">
         <div class="mb-8">
-          <div class="flex items-center justify-between mb-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h1 class="text-2xl font-bold">
               Ma collection de jeux
             </h1>
             <UButton
               color="primary"
               icon="i-lucide-plus"
+              size="sm"
+              class="whitespace-nowrap shrink-0 self-start sm:self-auto"
               @click="openModal"
             >
               Ajouter un jeu
@@ -190,8 +192,9 @@
                         color="neutral"
                         variant="ghost"
                         icon="i-lucide-edit"
-                        size="sm"
+                        size="xs"
                         :padded="false"
+                        class="shrink-0"
                         @click.stop="openEditModal(jeu)"
                       />
                     </div>
