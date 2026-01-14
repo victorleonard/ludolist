@@ -72,80 +72,152 @@
           </p>
         </div>
 
-        <div
-          v-else
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <UCard
-            v-for="jeu in jeuxFiltres"
-            :key="jeu.id"
-          >
-            <template #header>
-              <div class="flex items-center justify-between flex-nowrap gap-2">
-                <h2 class="text-xl font-bold truncate min-w-0">
-                  {{ jeu.titre }}
-                </h2>
-                <div class="flex items-center gap-2 shrink-0">
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-lucide-edit"
-                    size="sm"
-                    @click="openEditModal(jeu)"
-                  />
-                </div>
-              </div>
-            </template>
-
-            <div class="flex flex-col gap-4">
-              <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                <img
-                  v-if="jeu && jeu.image"
-                  :src="jeu.image"
-                  :alt="jeu.titre || 'Image du jeu'"
-                  class="w-full h-full object-contain"
-                >
-                <div
-                  v-else
-                  class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-16 h-16 mb-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+        <template v-else>
+          <!-- Vue desktop : grille avec UCard -->
+          <div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <UCard
+              v-for="jeu in jeuxFiltres"
+              :key="jeu.id"
+            >
+              <template #header>
+                <div class="flex items-start justify-between gap-2">
+                  <h2 class="text-xl font-bold break-words min-w-0 flex-1">
+                    {{ jeu.titre }}
+                  </h2>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-edit"
+                      size="sm"
+                      @click="openEditModal(jeu)"
                     />
-                  </svg>
-                  <span class="text-xs text-center">Aucune image</span>
+                  </div>
+                </div>
+              </template>
+
+              <div class="flex flex-col gap-4">
+                <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  <img
+                    v-if="jeu && jeu.image"
+                    :src="jeu.image"
+                    :alt="jeu.titre || 'Image du jeu'"
+                    class="w-full h-full object-contain"
+                  >
+                  <div
+                    v-else
+                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-16 h-16 mb-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                    <span class="text-xs text-center">Aucune image</span>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <UBadge
+                    color="neutral"
+                    variant="subtle"
+                    class="whitespace-nowrap"
+                  >
+                    {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+                  </UBadge>
+                  <UBadge
+                    v-for="tag in jeu.tags"
+                    :key="tag"
+                    :color="tag.includes('joueurs') ? 'info' : 'primary'"
+                    variant="subtle"
+                  >
+                    {{ tag }}
+                  </UBadge>
                 </div>
               </div>
-              <div class="flex flex-wrap gap-2">
-                <UBadge
-                  color="neutral"
-                  variant="subtle"
-                  class="whitespace-nowrap"
-                >
-                  {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
-                </UBadge>
-                <UBadge
-                  v-for="tag in jeu.tags"
-                  :key="tag"
-                  :color="tag.includes('joueurs') ? 'info' : 'primary'"
-                  variant="subtle"
-                >
-                  {{ tag }}
-                </UBadge>
-              </div>
-            </div>
-          </UCard>
-        </div>
+            </UCard>
+          </div>
+
+          <!-- Vue mobile : liste avec UPageList -->
+          <UPageList class="md:hidden space-y-4">
+            <UPageCard
+              v-for="jeu in jeuxFiltres"
+              :key="jeu.id"
+              variant="ghost"
+              class="border border-gray-200 dark:border-gray-700 rounded-lg"
+            >
+              <template #body>
+                <div class="flex items-start gap-4 w-full">
+                  <div class="w-24 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      v-if="jeu && jeu.image"
+                      :src="jeu.image"
+                      :alt="jeu.titre || 'Image du jeu'"
+                      class="w-full h-full object-contain"
+                    >
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
+                    >
+                      <UIcon
+                        name="i-lucide-dice-6"
+                        class="w-8 h-8"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-semibold break-words">
+                          {{ jeu.titre }}
+                        </h3>
+                        <p
+                          v-if="jeu.description"
+                          class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2"
+                        >
+                          {{ jeu.description }}
+                        </p>
+                      </div>
+                      <UButton
+                        color="neutral"
+                        variant="ghost"
+                        icon="i-lucide-edit"
+                        size="sm"
+                        :padded="false"
+                        @click.stop="openEditModal(jeu)"
+                      />
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      <UBadge
+                        color="neutral"
+                        variant="subtle"
+                        class="whitespace-nowrap"
+                      >
+                        {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+                      </UBadge>
+                      <UBadge
+                        v-for="tag in jeu.tags"
+                        :key="tag"
+                        :color="tag.includes('joueurs') ? 'info' : 'primary'"
+                        variant="subtle"
+                      >
+                        {{ tag }}
+                      </UBadge>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </UPageCard>
+          </UPageList>
+        </template>
       </div>
     </div>
 
