@@ -1,15 +1,11 @@
 <template>
   <UModal
     :open="isOpen"
-    :ui="{ 
-      wrapper: 'items-stretch md:items-center',
-      container: 'h-full md:h-auto',
-      width: 'w-full md:w-auto'
-    }"
+    :fullscreen="isMobile"
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <UCard class="w-full h-full md:h-auto md:max-w-2xl md:max-h-[90vh] flex flex-col m-0 md:m-auto rounded-none md:rounded-lg">
+      <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">
@@ -260,7 +256,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import { useGames, type Game } from '../composables/useGames'
+
+const isMobile = useMediaQuery('(max-width: 767px)')
 
 interface Props {
   modelValue: boolean
