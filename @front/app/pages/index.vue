@@ -238,7 +238,14 @@ import { useRecherche } from '../composables/useRecherche'
 import { useGames, type Game } from '../composables/useGames'
 
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
+})
+
+// Charger le token au démarrage de la page
+const { loadToken } = useAuth()
+onMounted(() => {
+  loadToken()
 })
 
 const { recherche } = useRecherche()

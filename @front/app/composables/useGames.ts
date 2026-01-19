@@ -55,6 +55,18 @@ export interface Game {
 export const useGames = () => {
   const config = useRuntimeConfig()
   const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+  const { token } = useAuth()
+
+  // Fonction helper pour obtenir les headers avec authentification
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    }
+    if (token.value) {
+      headers.Authorization = `Bearer ${token.value}`
+    }
+    return headers
+  }
 
   // Fonction pour transformer les données Strapi en format Game
   const transformGame = (strapiGame: StrapiGame, baseUrl: string): Game => {
@@ -138,9 +150,7 @@ export const useGames = () => {
       try {
         // Trier par date de création décroissante (les plus récents en premier)
         const response = await $fetch<StrapiResponse>(`${apiUrl}/api/games?populate=image&sort=createdAt:desc`, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         })
 
         // Vérifier que response et response.data existent
@@ -199,8 +209,14 @@ export const useGames = () => {
         const formData = new FormData()
         formData.append('files', gameData.image)
 
+        const uploadHeaders: Record<string, string> = {}
+        if (token.value) {
+          uploadHeaders.Authorization = `Bearer ${token.value}`
+        }
+
         const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
           method: 'POST',
+          headers: uploadHeaders,
           body: formData
         })
 
@@ -230,9 +246,7 @@ export const useGames = () => {
 
       const response = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: createPayload
       })
 
@@ -251,9 +265,7 @@ export const useGames = () => {
       const createdGameResponse = await $fetch<{ data: StrapiGame }>(
         `${apiUrl}/api/games/${gameId}?populate=image`,
         {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         }
       )
 
@@ -280,8 +292,14 @@ export const useGames = () => {
         const formData = new FormData()
         formData.append('files', gameData.image)
 
+        const uploadHeaders: Record<string, string> = {}
+        if (token.value) {
+          uploadHeaders.Authorization = `Bearer ${token.value}`
+        }
+
         const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
           method: 'POST',
+          headers: uploadHeaders,
           body: formData
         })
 
@@ -314,9 +332,7 @@ export const useGames = () => {
       if (!gameId) {
         // Si documentId n'est pas disponible, récupérer le jeu pour obtenir le documentId
         const existingGame = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameData.id}?populate=image`, {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         })
         if (!existingGame?.data?.documentId) {
           throw new Error('Impossible de récupérer le documentId du jeu')
@@ -330,9 +346,7 @@ export const useGames = () => {
       // Mettre à jour le jeu
       const response = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: updatePayload
       })
 
@@ -345,9 +359,7 @@ export const useGames = () => {
       const updatedGameResponse = await $fetch<{ data: StrapiGame }>(
         `${apiUrl}/api/games/${gameId}?populate=image`,
         {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          headers: getAuthHeaders()
         }
       )
 
@@ -377,9 +389,7 @@ export const useGames = () => {
       // Supprimer le jeu
       await $fetch(`${apiUrl}/api/games/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: getAuthHeaders()
       })
 
       // Rafraîchir la liste des jeux

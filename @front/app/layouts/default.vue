@@ -1,5 +1,6 @@
 <script setup>
 const { recherche } = useRecherche()
+const { user, logout } = useAuth()
 </script>
 
 <template>
@@ -33,7 +34,20 @@ const { recherche } = useRecherche()
             </template>
           </UInput>
         </div>
-        <UColorModeButton />
+        <div class="flex items-center gap-3">
+          <div class="hidden md:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <UIcon name="i-lucide-user" />
+            <span>{{ user?.username }}</span>
+          </div>
+          <UColorModeButton />
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-log-out"
+            size="sm"
+            @click="logout"
+          />
+        </div>
       </template>
     </UHeader>
 
