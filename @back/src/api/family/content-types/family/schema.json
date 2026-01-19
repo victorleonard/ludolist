@@ -24,6 +24,12 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::member.member"
+    },
+    "games": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::game.game",
+      "inversedBy": "families"
     }
   }
 }

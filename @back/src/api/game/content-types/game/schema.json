@@ -41,6 +41,12 @@
     },
     "age_max": {
       "type": "integer"
+    },
+    "families": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::family.family",
+      "mappedBy": "games"
     }
   }
 }
