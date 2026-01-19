@@ -52,10 +52,14 @@ export interface Game {
   createdAt: string
 }
 
+import { useAuthStore } from '~/stores/auth'
+import { storeToRefs } from 'pinia'
+
 export const useGames = () => {
   const config = useRuntimeConfig()
   const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
-  const { token } = useAuth()
+  const authStore = useAuthStore()
+  const { token } = storeToRefs(authStore)
 
   // Fonction helper pour obtenir les headers avec authentification
   const getAuthHeaders = () => {

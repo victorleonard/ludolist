@@ -242,12 +242,6 @@ definePageMeta({
   middleware: 'auth'
 })
 
-// Charger le token au démarrage de la page
-const { loadToken } = useAuth()
-onMounted(() => {
-  loadToken()
-})
-
 const { recherche } = useRecherche()
 const { games, loading, error, refresh } = useGames()
 

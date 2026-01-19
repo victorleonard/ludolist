@@ -1,4 +1,12 @@
 <script setup>
+import { useAuthStore } from '~/stores/auth'
+
+// Charger les informations d'authentification et de famille au démarrage
+const authStore = useAuthStore()
+onMounted(() => {
+  authStore.loadToken()
+})
+
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }

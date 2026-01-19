@@ -1,6 +1,16 @@
 <script setup>
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from '~/stores/auth'
+import { useFamilyStore } from '~/stores/family'
+
 const { recherche } = useRecherche()
-const { user, logout } = useAuth()
+
+const authStore = useAuthStore()
+const familyStore = useFamilyStore()
+
+const { user } = storeToRefs(authStore)
+const { family } = storeToRefs(familyStore)
+const { logout } = authStore
 </script>
 
 <template>
@@ -38,6 +48,9 @@ const { user, logout } = useAuth()
           <div class="hidden md:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <UIcon name="i-lucide-user" />
             <span>{{ user?.username }}</span>
+            <span v-if="family" class="text-gray-400 dark:text-gray-500">•</span>
+            <UIcon v-if="family" name="i-lucide-users" />
+            <span v-if="family">{{ family.name }}</span>
           </div>
           <UColorModeButton />
           <UButton

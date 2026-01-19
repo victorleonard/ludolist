@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import type { FormSubmitEvent, AuthFormField } from '@nuxt/ui'
+import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({
   layout: 'auth'
 })
 
-const { login } = useAuth()
+const authStore = useAuthStore()
 const router = useRouter()
 const toast = useToast()
 const isLoading = ref(false)
@@ -40,7 +41,7 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
   isLoading.value = true
 
   try {
-    const result = await login(payload.data.email, payload.data.password)
+    const result = await authStore.login(payload.data.email, payload.data.password)
 
     if (result.success) {
       toast.add({
