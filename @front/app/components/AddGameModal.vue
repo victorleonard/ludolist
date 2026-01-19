@@ -257,7 +257,10 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
-import { useGames, type Game } from '../composables/useGames'
+import { type Game } from '../composables/useFamilyGames'
+import { useAuthStore } from '~/stores/auth'
+import { useFamilyStore } from '~/stores/family'
+import { storeToRefs } from 'pinia'
 
 const isMobile = useMediaQuery('(max-width: 767px)')
 
@@ -277,7 +280,200 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const { createGame, updateGame, deleteGame } = useGames()
+const config = useRuntimeConfig()
+const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+const authStore = useAuthStore()
+const { token } = storeToRefs(authStore)
+const familyStore = useFamilyStore()
+
+// Fonction helper pour obtenir les headers avec authentification
+const getAuthHeaders = () => {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  }
+  if (token.value) {
+    headers.Authorization = `Bearer ${token.value}`
+  }
+  return headers
+}
+
+interface StrapiImage {
+  id: number
+  url: string
+  formats?: {
+    thumbnail?: { url: string }
+    small?: { url: string }
+    medium?: { url: string }
+  }
+}
+
+interface StrapiGame {
+  id: number
+  documentId?: string
+  name: string
+  description?: string | null
+  age_min: number
+  age_max: number | null
+  playing_time: string | null
+  player_min: number
+  player_max: number | null
+  image?: StrapiImage | null
+  publishedAt?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+// Fonction pour créer un nouveau jeu
+const createGame = async (gameData: {
+  name: string
+  description: string
+  age_min: number
+  age_max: number | null
+  playing_time: string
+  player_min: number
+  player_max: number | null
+  image?: File | null
+}): Promise<number> => {
+  let imageId: number | null = null
+
+  // Si une image est fournie, l'uploader d'abord
+  if (gameData.image) {
+    const formData = new FormData()
+    formData.append('files', gameData.image)
+
+    const uploadHeaders: Record<string, string> = {}
+    if (token.value) {
+      uploadHeaders.Authorization = `Bearer ${token.value}`
+    }
+
+    const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
+      method: 'POST',
+      headers: uploadHeaders,
+      body: formData
+    })
+
+    if (uploadResponse && uploadResponse.length > 0) {
+      imageId = uploadResponse[0].id
+    }
+  }
+
+  // Créer le jeu
+  const createPayload: any = {
+    data: {
+      name: gameData.name,
+      description: gameData.description,
+      age_min: gameData.age_min,
+      age_max: gameData.age_max,
+      playing_time: gameData.playing_time,
+      player_min: gameData.player_min,
+      player_max: gameData.player_max,
+      publishedAt: new Date().toISOString()
+    }
+  }
+
+  if (imageId) {
+    createPayload.data.image = imageId
+  }
+
+  const response = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: createPayload
+  })
+
+  if (!response || !response.data) {
+    throw new Error('Réponse invalide lors de la création du jeu')
+  }
+
+  return response.data.id
+}
+
+// Fonction pour mettre à jour un jeu existant
+const updateGame = async (gameData: {
+  id: number
+  documentId?: string
+  name: string
+  description: string
+  age_min: number
+  age_max: number | null
+  playing_time: string
+  player_min: number
+  player_max: number | null
+  image?: File | null
+}): Promise<void> => {
+  let imageId: number | null = null
+
+  // Si une nouvelle image est fournie, l'uploader d'abord
+  if (gameData.image) {
+    const formData = new FormData()
+    formData.append('files', gameData.image)
+
+    const uploadHeaders: Record<string, string> = {}
+    if (token.value) {
+      uploadHeaders.Authorization = `Bearer ${token.value}`
+    }
+
+    const uploadResponse = await $fetch<StrapiImage[]>(`${apiUrl}/api/upload`, {
+      method: 'POST',
+      headers: uploadHeaders,
+      body: formData
+    })
+
+    if (uploadResponse && uploadResponse.length > 0) {
+      imageId = uploadResponse[0].id
+    }
+  }
+
+  // Préparer le payload de mise à jour
+  const updatePayload: any = {
+    data: {
+      name: gameData.name,
+      description: gameData.description,
+      age_min: gameData.age_min,
+      age_max: gameData.age_max,
+      playing_time: gameData.playing_time,
+      player_min: gameData.player_min,
+      player_max: gameData.player_max
+    }
+  }
+
+  if (imageId) {
+    updatePayload.data.image = imageId
+  }
+
+  let gameId = gameData.documentId
+  if (!gameId) {
+    const existingGame = await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameData.id}?populate=image`, {
+      headers: getAuthHeaders()
+    })
+    if (!existingGame?.data?.documentId) {
+      throw new Error('Impossible de récupérer le documentId du jeu')
+    }
+    gameId = existingGame.data.documentId
+  }
+  if (!gameId) {
+    throw new Error('ID du jeu manquant')
+  }
+
+  await $fetch<{ data: StrapiGame }>(`${apiUrl}/api/games/${gameId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: updatePayload
+  })
+}
+
+// Fonction pour supprimer un jeu
+const deleteGame = async (gameId: number, documentId?: string): Promise<void> => {
+  const id = documentId || String(gameId)
+  if (!id) {
+    throw new Error('ID du jeu manquant')
+  }
+
+  await $fetch(`${apiUrl}/api/games/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  })
+}
 
 const editingGame = computed(() => props.game !== null && props.game !== undefined)
 
@@ -504,9 +700,14 @@ async function handleSubmit() {
         documentId: props.game.documentId
       })
     } else {
-      await createGame(gameData)
+      const newGameId = await createGame(gameData)
+      // Ajouter le nouveau jeu à la famille
+      await familyStore.addGameToFamily(newGameId)
     }
 
+    // Rafraîchir la famille pour récupérer les jeux mis à jour
+    await familyStore.fetchFamily()
+    
     resetForm()
     emit('success')
     isOpen.value = false
@@ -528,7 +729,15 @@ async function handleDelete() {
   submitError.value = null
 
   try {
+    // Retirer le jeu de la famille d'abord
+    await familyStore.removeGameFromFamily(props.game.id)
+    
+    // Puis supprimer le jeu
     await deleteGame(props.game.id, props.game.documentId)
+    
+    // Rafraîchir la famille
+    await familyStore.fetchFamily()
+    
     resetForm()
     emit('success')
     isOpen.value = false

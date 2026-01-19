@@ -235,15 +235,23 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRecherche } from '../composables/useRecherche'
-import { useGames, type Game } from '../composables/useGames'
+import { useFamilyGames, type Game } from '../composables/useFamilyGames'
+import { useFamilyStore } from '~/stores/family'
 
 definePageMeta({
   layout: 'default',
   middleware: 'auth'
 })
 
+// Charger la famille au montage de la page
+const familyStore = useFamilyStore()
+onMounted(async () => {
+  // Recharger la famille depuis l'API pour avoir les données à jour
+  await familyStore.fetchFamily()
+})
+
 const { recherche } = useRecherche()
-const { games, loading, error, refresh } = useGames()
+const { games, loading, error, refresh } = useFamilyGames()
 
 const isModalOpen = ref(false)
 const selectedGame = ref<Game | null>(null)
