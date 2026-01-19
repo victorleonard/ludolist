@@ -257,7 +257,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
-import { type Game } from '../composables/useFamilyGames'
+import { type TransformedGame as Game } from '~/stores/family'
 import { useAuthStore } from '~/stores/auth'
 import { useFamilyStore } from '~/stores/family'
 import { storeToRefs } from 'pinia'

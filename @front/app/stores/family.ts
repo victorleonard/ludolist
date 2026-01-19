@@ -17,7 +17,8 @@ interface StrapiImage {
   }
 }
 
-interface Game {
+// Interface pour les jeux tels qu'ils arrivent de Strapi
+interface StrapiGame {
   id: number
   documentId?: string
   name: string
@@ -33,11 +34,28 @@ interface Game {
   updatedAt?: string
 }
 
+// Interface pour les jeux transformés pour l'interface
+export interface TransformedGame {
+  id: number
+  documentId?: string
+  titre: string
+  description: string
+  image: string | null
+  tags: string[]
+  categorie: string
+  duree: number
+  age_min: number
+  age_max: number | null
+  player_min: number
+  player_max: number
+  createdAt: string
+}
+
 interface Family {
   id: number
   name: string
   members?: Member[]
-  games?: Game[]
+  games?: StrapiGame[]
 }
 
 export const useFamilyStore = defineStore('family', {
@@ -52,7 +70,90 @@ export const useFamilyStore = defineStore('family', {
     familyGames: state => state.family?.games || [],
     familyGamesCount: state => state.family?.games?.length || 0,
     hasFamily: state => !!state.family,
-    hasFamilyGames: state => (state.family?.games?.length || 0) > 0
+    hasFamilyGames: state => (state.family?.games?.length || 0) > 0,
+
+    // Getter pour les jeux transformés
+    transformedGames(state): TransformedGame[] {
+      if (!state.family?.games || !Array.isArray(state.family.games)) {
+        return []
+      }
+
+      const config = useRuntimeConfig()
+      const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+
+      const result: TransformedGame[] = []
+
+      for (const strapiGame of state.family.games) {
+        try {
+          if (!strapiGame) {
+            continue
+          }
+
+          // Extraire l'URL de l'image
+          let imageUrl: string | null = null
+          const imageData = strapiGame.image
+
+          if (imageData && imageData !== null && typeof imageData === 'object') {
+            if (imageData.formats?.medium?.url) {
+              imageUrl = `${apiUrl}${imageData.formats.medium.url}`
+            } else if (imageData.formats?.small?.url) {
+              imageUrl = `${apiUrl}${imageData.formats.small.url}`
+            } else if (imageData.formats?.thumbnail?.url) {
+              imageUrl = `${apiUrl}${imageData.formats.thumbnail.url}`
+            } else if (imageData.url) {
+              imageUrl = `${apiUrl}${imageData.url}`
+            }
+          }
+
+          // Parser la durée
+          const playingTime = strapiGame.playing_time || ''
+          const dureeMatch = playingTime.match(/(\d+)/)
+          const duree = dureeMatch && dureeMatch[1] ? parseInt(dureeMatch[1], 10) : 30
+
+          // Formater la durée
+          let dureeFormatee = `${duree} min`
+          if (playingTime) {
+            const chiffres = playingTime.match(/\d+/g)
+            if (chiffres && chiffres.length > 0) {
+              if (chiffres.length === 1) {
+                dureeFormatee = `${chiffres[0]} min`
+              } else {
+                dureeFormatee = `${chiffres[0]}-${chiffres[chiffres.length - 1]} min`
+              }
+            }
+          }
+
+          // Gérer player_max
+          const playerMax = strapiGame.player_max || strapiGame.player_min
+
+          // Créer les tags
+          const tags = [
+            `${strapiGame.player_min}-${playerMax} joueurs`,
+            dureeFormatee
+          ]
+
+          result.push({
+            id: strapiGame.id,
+            documentId: strapiGame.documentId,
+            titre: strapiGame.name,
+            description: strapiGame.description || 'Aucune description disponible',
+            image: imageUrl,
+            tags,
+            categorie: 'Stratégie',
+            duree,
+            age_min: strapiGame.age_min,
+            age_max: strapiGame.age_max,
+            player_min: strapiGame.player_min,
+            player_max: playerMax,
+            createdAt: strapiGame.createdAt || new Date().toISOString()
+          })
+        } catch (err) {
+          console.error('Erreur lors de la transformation du jeu:', err, strapiGame)
+        }
+      }
+
+      return result
+    }
   },
 
   actions: {

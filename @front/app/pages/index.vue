@@ -234,9 +234,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRecherche } from '../composables/useRecherche'
-import { useFamilyGames, type Game } from '../composables/useFamilyGames'
-import { useFamilyStore } from '~/stores/family'
+import { useFamilyStore, type TransformedGame as Game } from '~/stores/family'
 
 definePageMeta({
   layout: 'default',
@@ -245,13 +245,19 @@ definePageMeta({
 
 // Charger la famille au montage de la page
 const familyStore = useFamilyStore()
+const { isLoading: loading } = storeToRefs(familyStore)
+
 onMounted(async () => {
   // Recharger la famille depuis l'API pour avoir les données à jour
   await familyStore.fetchFamily()
 })
 
 const { recherche } = useRecherche()
-const { games, loading, error, refresh } = useFamilyGames()
+
+// Utiliser directement le getter du store
+const games = computed(() => familyStore.transformedGames)
+const error = computed(() => null)
+const refresh = () => familyStore.fetchFamily()
 
 const isModalOpen = ref(false)
 const selectedGame = ref<Game | null>(null)
