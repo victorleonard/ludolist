@@ -237,6 +237,10 @@ import { ref, computed } from 'vue'
 import { useRecherche } from '../composables/useRecherche'
 import { useGames, type Game } from '../composables/useGames'
 
+definePageMeta({
+  layout: 'default'
+})
+
 const { recherche } = useRecherche()
 const { games, loading, error, refresh } = useGames()
 

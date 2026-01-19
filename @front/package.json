@@ -16,7 +16,8 @@
     "@nuxt/ui": "^4.3.0",
     "nuxt": "^4.2.2",
     "tailwindcss": "^4.1.18",
-    "valibot": "^1.0.0"
+    "valibot": "^1.0.0",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.12.1",

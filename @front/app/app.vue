@@ -1,6 +1,4 @@
 <script setup>
-const { recherche } = useRecherche()
-
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1' }
@@ -31,63 +29,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <UApp>
-    <UHeader :mobile="false">
-      <template #left>
-        <NuxtLink
-          to="/"
-          class="text-xl font-bold flex items-center gap-0.5 text-blue-500 dark:text-blue-500"
-          style="font-family: 'Audiowide', cursive;"
-        >
-          Lud<UIcon
-            name="i-lucide-dice-6"
-            class="w-5 h-5 -mx-0.5 rotate-12"
-          />List
-        </NuxtLink>
-      </template>
-
-      <template #right>
-        <div class="relative w-64 hidden md:block">
-          <UInput
-            v-model="recherche"
-            placeholder="Rechercher un jeu..."
-            icon="i-lucide-search"
-            size="sm"
-            class="w-full"
-          >
-            <template
-              v-if="recherche"
-              #trailing
-            >
-              <UButton
-                color="gray"
-                variant="ghost"
-                icon="i-lucide-x"
-                size="xs"
-                :padded="false"
-                @click="recherche = ''"
-              />
-            </template>
-          </UInput>
-        </div>
-        <UColorModeButton />
-      </template>
-    </UHeader>
-
-    <UMain>
-      <NuxtPage />
-    </UMain>
-
-    <USeparator class="mt-8" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
-        </p>
-      </template>
-
-      <template #right />
-    </UFooter>
-  </UApp>
+  <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
 </template>
