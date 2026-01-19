@@ -80,6 +80,8 @@
             <UCard
               v-for="jeu in jeuxFiltres"
               :key="jeu.id"
+              class="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+              @click="navigateTo(`/game/${jeu.id}`)"
             >
               <template #header>
                 <div class="flex items-start justify-between gap-2">
@@ -92,7 +94,7 @@
                       variant="ghost"
                       icon="i-lucide-edit"
                       size="sm"
-                      @click="openEditModal(jeu)"
+                      @click.stop="openEditModal(jeu)"
                     />
                   </div>
                 </div>
@@ -154,7 +156,8 @@
               v-for="jeu in jeuxFiltres"
               :key="jeu.id"
               variant="ghost"
-              class="border border-gray-200 dark:border-gray-700 rounded-lg"
+              class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer"
+              @click="navigateTo(`/game/${jeu.id}`)"
             >
               <template #body>
                 <div class="flex items-start gap-4 w-full">

@@ -1,10 +1,21 @@
 import { defineStore } from 'pinia'
 
-interface Member {
+export interface Member {
   id: number
-  name: string
-  birthdate: string
+  username: string
+  birthdate?: string
   avatar?: string
+}
+
+export interface Rating {
+  id: number
+  rating: number
+  member: {
+    id: number
+  }
+  game: {
+    id: number
+  }
 }
 
 interface StrapiImage {
@@ -29,6 +40,7 @@ interface StrapiGame {
   player_min: number
   player_max: number | null
   image?: StrapiImage | null
+  ratings?: Rating[]
   publishedAt?: string
   createdAt: string
   updatedAt?: string
@@ -48,6 +60,7 @@ export interface TransformedGame {
   age_max: number | null
   player_min: number
   player_max: number
+  ratings?: Rating[]
   createdAt: string
 }
 
@@ -145,6 +158,7 @@ export const useFamilyStore = defineStore('family', {
             age_max: strapiGame.age_max,
             player_min: strapiGame.player_min,
             player_max: playerMax,
+            ratings: strapiGame.ratings || [],
             createdAt: strapiGame.createdAt || new Date().toISOString()
           })
         } catch (err) {
@@ -339,6 +353,84 @@ export const useFamilyStore = defineStore('family', {
         return {
           success: false,
           error: (error as { data?: { error?: { message?: string } } }).data?.error?.message || 'Erreur lors du retrait'
+        }
+      }
+    },
+
+    // Récupérer les notes d'un jeu
+    async fetchGameRatings(gameId: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: 'Aucune famille trouvée' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: Rating[] }>(
+          `${config.public.apiUrl}/api/ratings/game/${gameId}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération des notes:', error)
+        return {
+          success: false,
+          error: (error as { data?: { error?: { message?: string } } }).data?.error?.message || 'Erreur lors de la récupération'
+        }
+      }
+    },
+
+    // Ajouter ou mettre à jour une note de manière sécurisée
+    async setRating(gameId: number, memberId: number, rating: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: 'Aucune famille trouvée' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        // Utiliser l'endpoint sécurisé qui gère à la fois la création et la mise à jour
+        const response = await $fetch<{ data: Rating }>(
+          `${config.public.apiUrl}/api/ratings/set`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            },
+            body: {
+              gameId,
+              memberId,
+              rating
+            }
+          }
+        )
+
+        // Recharger la famille pour avoir les notes à jour
+        await this.fetchFamily()
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de l\'enregistrement de la note:', error)
+
+        // Gestion des erreurs spécifiques
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de l\'enregistrement'
+
+        return {
+          success: false,
+          error: errorMessage
         }
       }
     }

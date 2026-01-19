@@ -13,6 +13,12 @@
   "attributes": {
     "username": {
       "type": "string"
+    },
+    "ratings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::rating.rating",
+      "mappedBy": "member"
     }
   }
 }
