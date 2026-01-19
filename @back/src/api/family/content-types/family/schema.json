@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "families",
+  "info": {
+    "singularName": "family",
+    "pluralName": "families",
+    "displayName": "Family"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "users_permissions_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "family"
+    },
+    "members": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::member.member"
+    }
+  }
+}
