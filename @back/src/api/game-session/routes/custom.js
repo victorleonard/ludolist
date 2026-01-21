@@ -18,5 +18,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'DELETE',
+      path: '/game-sessions/:id',
+      handler: 'game-session.deleteGameSession',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

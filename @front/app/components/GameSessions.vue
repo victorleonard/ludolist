@@ -58,14 +58,24 @@
               {{ formatDate(session.played_at) }}
             </span>
           </div>
-          <UBadge
-            v-if="session.notes"
-            color="gray"
-            variant="subtle"
-            icon="i-lucide-file-text"
-          >
-            Notes
-          </UBadge>
+          <div class="flex items-center gap-2">
+            <UBadge
+              v-if="session.notes"
+              color="gray"
+              variant="subtle"
+              icon="i-lucide-file-text"
+            >
+              Notes
+            </UBadge>
+            <UButton
+              color="red"
+              variant="ghost"
+              icon="i-lucide-trash-2"
+              size="xs"
+              :loading="deletingSessionId === session.id"
+              @click="handleDeleteSession(session.id)"
+            />
+          </div>
         </div>
 
         <div
@@ -281,6 +291,7 @@ const loading = ref(false)
 const isAddModalOpen = ref(false)
 const isSubmitting = ref(false)
 const submitError = ref<string | null>(null)
+const deletingSessionId = ref<number | null>(null)
 
 const newSession = ref({
   played_at: new Date().toISOString().slice(0, 16),
@@ -416,6 +427,29 @@ const loadSessions = async () => {
     console.error('Erreur lors du chargement des parties:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const handleDeleteSession = async (sessionId: number) => {
+  if (!confirm('Êtes-vous sûr de vouloir supprimer cette partie ?')) {
+    return
+  }
+
+  deletingSessionId.value = sessionId
+
+  try {
+    const result = await familyStore.deleteGameSession(sessionId)
+
+    if (result.success) {
+      await loadSessions()
+    } else {
+      alert(result.error || 'Erreur lors de la suppression de la partie')
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la partie:', error)
+    alert('Une erreur est survenue lors de la suppression de la partie')
+  } finally {
+    deletingSessionId.value = null
   }
 }
 

@@ -166,5 +166,70 @@ module.exports = createCoreController('api::game-session.game-session', ({ strap
       strapi.log.error('Erreur lors de la création de la partie:', err);
       ctx.throw(500, 'Erreur lors de la création de la partie');
     }
+  },
+
+  async deleteGameSession(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté pour supprimer une partie');
+    }
+
+    const { id } = ctx.params;
+
+    if (!id) {
+      return ctx.badRequest('id est requis');
+    }
+
+    try {
+      const userWithFamily = await strapi.entityService.findOne(
+        'plugin::users-permissions.user',
+        user.id,
+        {
+          populate: {
+            family: true
+          }
+        }
+      );
+
+      if (!userWithFamily.family) {
+        return ctx.forbidden('Vous devez appartenir à une famille');
+      }
+
+      const family = userWithFamily.family;
+
+      const session = await strapi.entityService.findOne(
+        'api::game-session.game-session',
+        id,
+        {
+          populate: {
+            family: true,
+            player_scores: true
+          }
+        }
+      );
+
+      if (!session) {
+        return ctx.notFound('Partie non trouvée');
+      }
+
+      if (session.family.id !== family.id) {
+        return ctx.forbidden('Cette partie n\'appartient pas à votre famille');
+      }
+
+      if (session.player_scores && session.player_scores.length > 0) {
+        const deleteScorePromises = session.player_scores.map(score =>
+          strapi.entityService.delete('api::player-score.player-score', score.id)
+        );
+        await Promise.all(deleteScorePromises);
+      }
+
+      await strapi.entityService.delete('api::game-session.game-session', id);
+
+      return { data: { id } };
+    } catch (err) {
+      strapi.log.error('Erreur lors de la suppression de la partie:', err);
+      ctx.throw(500, 'Erreur lors de la suppression de la partie');
+    }
   }
 }));

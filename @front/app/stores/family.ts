@@ -539,6 +539,41 @@ export const useFamilyStore = defineStore('family', {
           error: errorMessage
         }
       }
+    },
+
+    async deleteGameSession(sessionId: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        await $fetch<{ data: { id: number } }>(
+          `${config.public.apiUrl}/api/game-sessions/${sessionId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la suppression de la partie:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la suppression'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
     }
   }
 })
