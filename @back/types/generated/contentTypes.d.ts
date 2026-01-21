@@ -444,6 +444,10 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    game_sessions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::game-session.game-session'
+    >;
     games: Schema.Attribute.Relation<'manyToMany', 'api::game.game'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -461,6 +465,43 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
       'oneToOne',
       'plugin::users-permissions.user'
     >;
+  };
+}
+
+export interface ApiGameSessionGameSession extends Struct.CollectionTypeSchema {
+  collectionName: 'game_sessions';
+  info: {
+    displayName: 'Game Session';
+    pluralName: 'game-sessions';
+    singularName: 'game-session';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'> &
+      Schema.Attribute.Required;
+    game: Schema.Attribute.Relation<'manyToOne', 'api::game.game'> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::game-session.game-session'
+    > &
+      Schema.Attribute.Private;
+    notes: Schema.Attribute.Text;
+    played_at: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    player_scores: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player-score.player-score'
+    >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -482,6 +523,10 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
     families: Schema.Attribute.Relation<'manyToMany', 'api::family.family'>;
+    game_sessions: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::game-session.game-session'
+    >;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::game.game'> &
@@ -518,12 +563,53 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
       'api::member.member'
     > &
       Schema.Attribute.Private;
+    player_scores: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player-score.player-score'
+    >;
     publishedAt: Schema.Attribute.DateTime;
     ratings: Schema.Attribute.Relation<'oneToMany', 'api::rating.rating'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     username: Schema.Attribute.String;
+  };
+}
+
+export interface ApiPlayerScorePlayerScore extends Struct.CollectionTypeSchema {
+  collectionName: 'player_scores';
+  info: {
+    displayName: 'Player Score';
+    pluralName: 'player-scores';
+    singularName: 'player-score';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    game_session: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::game-session.game-session'
+    > &
+      Schema.Attribute.Required;
+    is_winner: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::player-score.player-score'
+    > &
+      Schema.Attribute.Private;
+    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'> &
+      Schema.Attribute.Required;
+    position: Schema.Attribute.Integer;
+    publishedAt: Schema.Attribute.DateTime;
+    score: Schema.Attribute.Decimal & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
   };
 }
 
@@ -1078,8 +1164,10 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::family.family': ApiFamilyFamily;
+      'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;
       'api::member.member': ApiMemberMember;
+      'api::player-score.player-score': ApiPlayerScorePlayerScore;
       'api::rating.rating': ApiRatingRating;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

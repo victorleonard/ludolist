@@ -30,6 +30,12 @@
       "relation": "manyToMany",
       "target": "api::game.game",
       "inversedBy": "families"
+    },
+    "game_sessions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::game-session.game-session",
+      "mappedBy": "family"
     }
   }
 }

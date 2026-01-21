@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "game_sessions",
+  "info": {
+    "singularName": "game-session",
+    "pluralName": "game-sessions",
+    "displayName": "Game Session"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "played_at": {
+      "type": "datetime",
+      "required": true
+    },
+    "game": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::game.game",
+      "required": true
+    },
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family",
+      "required": true
+    },
+    "player_scores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::player-score.player-score",
+      "mappedBy": "game_session"
+    },
+    "notes": {
+      "type": "text"
+    }
+  }
+}

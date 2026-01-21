@@ -19,6 +19,12 @@
       "relation": "oneToMany",
       "target": "api::rating.rating",
       "mappedBy": "member"
+    },
+    "player_scores": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::player-score.player-score",
+      "mappedBy": "member"
     }
   }
 }

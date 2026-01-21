@@ -53,6 +53,12 @@
       "relation": "oneToMany",
       "target": "api::rating.rating",
       "mappedBy": "game"
+    },
+    "game_sessions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::game-session.game-session",
+      "mappedBy": "game"
     }
   }
 }

@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "player_scores",
+  "info": {
+    "singularName": "player-score",
+    "pluralName": "player-scores",
+    "displayName": "Player Score"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "member": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member",
+      "required": true
+    },
+    "game_session": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::game-session.game-session",
+      "inversedBy": "player_scores",
+      "required": true
+    },
+    "score": {
+      "type": "decimal",
+      "required": true
+    },
+    "is_winner": {
+      "type": "boolean",
+      "default": false
+    },
+    "position": {
+      "type": "integer"
+    }
+  }
+}
