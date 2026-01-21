@@ -18,6 +18,34 @@ export interface Rating {
   }
 }
 
+export interface PlayerScore {
+  id: number
+  score: number
+  is_winner: boolean
+  position: number | null
+  member: {
+    id: number
+    username: string
+  }
+  game_session: {
+    id: number
+  }
+}
+
+export interface GameSession {
+  id: number
+  played_at: string
+  notes: string | null
+  game: {
+    id: number
+    name: string
+  }
+  family: {
+    id: number
+  }
+  player_scores?: PlayerScore[]
+}
+
 interface StrapiImage {
   id: number
   url: string
@@ -427,6 +455,84 @@ export const useFamilyStore = defineStore('family', {
         const errorMessage = err?.data?.error?.message
           || err?.message
           || 'Erreur lors de l\'enregistrement'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
+    },
+
+    async fetchGameSessions(gameId: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: GameSession[] }>(
+          `${config.public.apiUrl}/api/game-sessions/game/${gameId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération des parties:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la récupération'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
+    },
+
+    async createGameSession(gameId: number, playedAt: string, playerScores: Array<{ memberId: number, score: number }>, notes?: string) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: 'Aucune famille trouvée' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: GameSession }>(
+          `${config.public.apiUrl}/api/game-sessions/create`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            },
+            body: {
+              gameId,
+              played_at: playedAt,
+              notes: notes || null,
+              player_scores: playerScores.map(ps => ({
+                memberId: ps.memberId,
+                score: ps.score
+              }))
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la création de la partie:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la création'
 
         return {
           success: false,

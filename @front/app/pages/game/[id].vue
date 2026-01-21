@@ -228,6 +228,12 @@
               </div>
             </div>
           </div>
+
+          <!-- Parties jouées -->
+          <GameSessions
+            v-if="gameId"
+            :game-id="gameId"
+          />
         </div>
       </div>
     </div>
@@ -245,6 +251,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useFamilyStore, type Rating } from '~/stores/family'
 import StarRating from '~/components/StarRating.vue'
+import GameSessions from '~/components/GameSessions.vue'
 
 definePageMeta({
   layout: 'default',
