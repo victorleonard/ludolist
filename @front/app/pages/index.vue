@@ -129,6 +129,28 @@
                     <span class="text-xs text-center">Aucune image</span>
                   </div>
                 </div>
+                <div
+                  v-if="getAverageRating(jeu) > 0"
+                  class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
+                >
+                  <StarRating
+                    :model-value="getAverageRating(jeu)"
+                    size="sm"
+                    readonly
+                  />
+                </div>
+                <div
+                  v-if="topWinners[jeu.id] && topWinners[jeu.id]?.member"
+                  class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
+                >
+                  <UIcon
+                    name="i-lucide-crown"
+                    class="w-4 h-4 text-yellow-500"
+                  />
+                  <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                    {{ topWinners[jeu.id]?.member?.username }} ({{ topWinners[jeu.id]?.wins }} {{ (topWinners[jeu.id]?.wins || 0) > 1 ? 'victoires' : 'victoire' }})
+                  </span>
+                </div>
                 <div class="flex flex-wrap gap-2">
                   <UBadge
                     color="neutral"
@@ -184,12 +206,6 @@
                         <h3 class="text-lg font-semibold break-words">
                           {{ jeu.titre }}
                         </h3>
-                        <p
-                          v-if="jeu.description"
-                          class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2"
-                        >
-                          {{ jeu.description }}
-                        </p>
                       </div>
                       <UButton
                         color="neutral"
@@ -200,6 +216,28 @@
                         class="shrink-0"
                         @click.stop="openEditModal(jeu)"
                       />
+                    </div>
+                    <div
+                      v-if="getAverageRating(jeu) > 0"
+                      class="flex items-center gap-2 mb-2"
+                    >
+                      <StarRating
+                        :model-value="getAverageRating(jeu)"
+                        size="sm"
+                        readonly
+                      />
+                    </div>
+                    <div
+                      v-if="topWinners[jeu.id] && topWinners[jeu.id]?.member"
+                      class="flex items-center gap-1 mb-2"
+                    >
+                      <UIcon
+                        name="i-lucide-crown"
+                        class="w-3 h-3 text-yellow-500"
+                      />
+                      <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
+                        {{ topWinners[jeu.id]?.member?.username }} ({{ topWinners[jeu.id]?.wins }})
+                      </span>
                     </div>
                     <div class="flex flex-wrap gap-2 mt-3">
                       <UBadge
@@ -236,10 +274,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecherche } from '../composables/useRecherche'
-import { useFamilyStore, type TransformedGame as Game } from '~/stores/family'
+import { useFamilyStore, type TransformedGame as Game, type Rating } from '~/stores/family'
+import StarRating from '~/components/StarRating.vue'
 
 definePageMeta({
   layout: 'default',
@@ -264,6 +303,7 @@ const refresh = () => familyStore.fetchFamily()
 
 const isModalOpen = ref(false)
 const selectedGame = ref<Game | null>(null)
+const topWinners = ref<Record<number, { member: { id: number, username: string }, wins: number }>>({})
 
 const openModal = () => {
   selectedGame.value = null
@@ -360,5 +400,36 @@ const jeuxFiltres = computed(() => {
   }
 
   return result
+})
+
+const getAverageRating = (jeu: Game): number => {
+  if (!jeu.ratings || jeu.ratings.length === 0) return 0
+
+  const ratings = jeu.ratings.filter((r: Rating) => r.rating > 0)
+  if (ratings.length === 0) return 0
+
+  const sum = ratings.reduce((acc: number, r: Rating) => acc + r.rating, 0)
+  return sum / ratings.length
+}
+
+const loadTopWinners = async () => {
+  if (!games.value || games.value.length === 0) return
+
+  const promises = games.value.map(async (jeu) => {
+    const result = await familyStore.getTopWinner(jeu.id)
+    if (result.success && result.data) {
+      topWinners.value[jeu.id] = result.data
+    }
+  })
+
+  await Promise.all(promises)
+}
+
+watch(games, () => {
+  loadTopWinners()
+}, { immediate: true })
+
+onMounted(() => {
+  loadTopWinners()
 })
 </script>

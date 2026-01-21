@@ -13,8 +13,8 @@
     >
       <UIcon
         :name="getStarIcon(star)"
-        :class="getStarClass(star)"
-        class="w-6 h-6 transition-colors"
+        :class="[getStarClass(star), getSizeClass()]"
+        class="transition-colors"
       />
     </button>
   </div>
@@ -26,10 +26,12 @@ import { ref, computed } from 'vue'
 interface Props {
   modelValue: number
   readonly?: boolean
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  readonly: false
+  readonly: false,
+  size: 'md'
 })
 
 const emit = defineEmits<{
@@ -51,9 +53,24 @@ const getStarClass = (star: number) => {
   return 'text-gray-300 dark:text-gray-600'
 }
 
+const getSizeClass = () => {
+  switch (props.size) {
+    case 'sm':
+      return 'w-4 h-4'
+    case 'lg':
+      return 'w-8 h-8'
+    default:
+      return 'w-6 h-6'
+  }
+}
+
 const setRating = (rating: number) => {
   if (!props.readonly) {
-    emit('update:modelValue', rating)
+    if (props.modelValue === rating) {
+      emit('update:modelValue', 0)
+    } else {
+      emit('update:modelValue', rating)
+    }
   }
 }
 </script>

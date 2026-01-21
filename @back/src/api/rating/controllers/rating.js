@@ -20,12 +20,12 @@ module.exports = createCoreController('api::rating.rating', ({ strapi }) => ({
     const { gameId, memberId, rating } = ctx.request.body;
 
     // Validation des données
-    if (!gameId || !memberId || !rating) {
+    if (!gameId || !memberId || rating === undefined || rating === null) {
       return ctx.badRequest('gameId, memberId et rating sont requis');
     }
 
-    if (rating < 1 || rating > 5) {
-      return ctx.badRequest('La note doit être entre 1 et 5');
+    if (rating !== 0 && (rating < 1 || rating > 5)) {
+      return ctx.badRequest('La note doit être entre 1 et 5, ou 0 pour supprimer');
     }
 
     try {
@@ -76,6 +76,18 @@ module.exports = createCoreController('api::rating.rating', ({ strapi }) => ({
       );
 
       let result;
+
+      if (rating === 0) {
+        // Supprimer la note si elle existe
+        if (existingRatings && existingRatings.length > 0) {
+          await strapi.entityService.delete(
+            'api::rating.rating',
+            existingRatings[0].id
+          );
+          return { data: null };
+        }
+        return { data: null };
+      }
 
       if (existingRatings && existingRatings.length > 0) {
         // Mettre à jour la note existante

@@ -428,7 +428,7 @@ export const useFamilyStore = defineStore('family', {
 
       try {
         // Utiliser l'endpoint sécurisé qui gère à la fois la création et la mise à jour
-        const response = await $fetch<{ data: Rating }>(
+        const response = await $fetch<{ data: Rating | null }>(
           `${config.public.apiUrl}/api/ratings/set`,
           {
             method: 'POST',
@@ -446,7 +446,7 @@ export const useFamilyStore = defineStore('family', {
         // Recharger la famille pour avoir les notes à jour
         await this.fetchFamily()
 
-        return { success: true, data: response.data }
+        return { success: true, data: response.data || null }
       } catch (error: unknown) {
         console.error('Erreur lors de l\'enregistrement de la note:', error)
 
@@ -568,6 +568,40 @@ export const useFamilyStore = defineStore('family', {
         const errorMessage = err?.data?.error?.message
           || err?.message
           || 'Erreur lors de la suppression'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
+    },
+
+    async getTopWinner(gameId: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: { member: { id: number, username: string }, wins: number } | null }>(
+          `${config.public.apiUrl}/api/game-sessions/top-winner/${gameId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération du meilleur gagnant:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la récupération'
 
         return {
           success: false,

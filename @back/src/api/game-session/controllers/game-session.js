@@ -231,5 +231,94 @@ module.exports = createCoreController('api::game-session.game-session', ({ strap
       strapi.log.error('Erreur lors de la suppression de la partie:', err);
       ctx.throw(500, 'Erreur lors de la suppression de la partie');
     }
+  },
+
+  async getTopWinner(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté pour voir les statistiques');
+    }
+
+    const { gameId } = ctx.params;
+
+    if (!gameId) {
+      return ctx.badRequest('gameId est requis');
+    }
+
+    try {
+      const userWithFamily = await strapi.entityService.findOne(
+        'plugin::users-permissions.user',
+        user.id,
+        {
+          populate: {
+            family: {
+              populate: {
+                games: true
+              }
+            }
+          }
+        }
+      );
+
+      if (!userWithFamily.family) {
+        return ctx.forbidden('Vous devez appartenir à une famille');
+      }
+
+      const family = userWithFamily.family;
+
+      const gameBelongsToFamily = family.games.some(g => g.id === parseInt(gameId, 10));
+      if (!gameBelongsToFamily) {
+        return ctx.forbidden('Ce jeu n\'appartient pas à votre famille');
+      }
+
+      const sessions = await strapi.entityService.findMany(
+        'api::game-session.game-session',
+        {
+          filters: {
+            game: { id: gameId },
+            family: { id: family.id }
+          },
+          populate: {
+            player_scores: {
+              populate: ['member']
+            }
+          }
+        }
+      );
+
+      const winnerCounts = {};
+
+      sessions.forEach((session) => {
+        if (session.player_scores && Array.isArray(session.player_scores)) {
+          session.player_scores.forEach((score) => {
+            if (score.is_winner && score.member) {
+              const memberId = score.member.id;
+              if (!winnerCounts[memberId]) {
+                winnerCounts[memberId] = {
+                  member: score.member,
+                  wins: 0
+                };
+              }
+              winnerCounts[memberId].wins++;
+            }
+          });
+        }
+      });
+
+      const winners = Object.values(winnerCounts);
+      if (winners.length === 0) {
+        return { data: null };
+      }
+
+      const topWinner = winners.reduce((prev, current) =>
+        current.wins > prev.wins ? current : prev
+      );
+
+      return { data: topWinner };
+    } catch (err) {
+      strapi.log.error('Erreur lors de la récupération du meilleur gagnant:', err);
+      ctx.throw(500, 'Erreur lors de la récupération du meilleur gagnant');
+    }
   }
 }));

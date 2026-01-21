@@ -27,5 +27,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/game-sessions/top-winner/:gameId',
+      handler: 'game-session.getTopWinner',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

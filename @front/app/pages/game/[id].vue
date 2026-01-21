@@ -200,10 +200,20 @@
                   </div>
                   <span class="font-medium">{{ member.username }}</span>
                 </div>
-                <StarRating
-                  :model-value="getMemberRating(member.id)"
-                  @update:model-value="(rating) => setMemberRating(member.id, rating)"
-                />
+                <div class="flex items-center gap-2">
+                  <StarRating
+                    :model-value="getMemberRating(member.id)"
+                    @update:model-value="(rating) => setMemberRating(member.id, rating)"
+                  />
+                  <UButton
+                    v-if="getMemberRating(member.id) > 0"
+                    color="red"
+                    variant="ghost"
+                    icon="i-lucide-trash-2"
+                    size="xs"
+                    @click="setMemberRating(member.id, 0)"
+                  />
+                </div>
               </div>
             </div>
             
