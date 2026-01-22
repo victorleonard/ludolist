@@ -69,128 +69,101 @@
         v-else
         class="space-y-6"
       >
-        <!-- En-tête avec image et titre -->
-        <div class="flex flex-col sm:flex-row gap-6 items-start">
-          <!-- Image -->
-          <div class="shrink-0">
-            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+        <!-- Card avec image et infos synthétiques -->
+        <UCard>
+          <template #header>
+            <div class="flex items-start justify-between gap-2">
+              <h1 class="text-xl font-bold wrap-break-word min-w-0 flex-1">
+                {{ jeu.titre }}
+              </h1>
+              <div class="flex items-center gap-2 shrink-0">
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-lucide-edit"
+                  size="sm"
+                  @click="openEditModal"
+                />
+              </div>
+            </div>
+          </template>
+
+          <div class="flex flex-col gap-4">
+            <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
               <img
-                v-if="jeu.image"
+                v-if="jeu && jeu.image"
                 :src="jeu.image"
-                :alt="jeu.titre"
+                :alt="jeu.titre || 'Image du jeu'"
                 class="w-full h-full object-contain"
               >
               <div
                 v-else
-                class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500"
+                class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
               >
-                <UIcon
-                  name="i-lucide-dice-6"
-                  class="w-12 h-12 sm:w-16 sm:h-16"
-                />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-16 h-16 mb-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                  />
+                </svg>
+                <span class="text-xs text-center">Aucune image</span>
               </div>
             </div>
-          </div>
-
-          <!-- Titre et bouton modifier -->
-          <div class="flex-1 flex items-start justify-between gap-4 min-w-0">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold flex-1">
-              {{ jeu.titre }}
-            </h1>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-edit"
-              size="sm"
-              class="shrink-0"
-              @click="openEditModal"
+            <div
+              v-if="averageRating > 0"
+              class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
             >
-              Modifier
-            </UButton>
+              <StarRating
+                :model-value="averageRating"
+                size="sm"
+                readonly
+              />
+            </div>
+            <div
+              v-if="topWinner && topWinner.member"
+              class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
+            >
+              <UIcon
+                name="i-lucide-crown"
+                class="w-4 h-4 text-yellow-500"
+              />
+              <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                {{ topWinner.member.username }} ({{ topWinner.wins }} {{ (topWinner.wins || 0) > 1 ? 'victoires' : 'victoire' }})
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <UBadge
+                color="neutral"
+                variant="subtle"
+                class="whitespace-nowrap"
+              >
+                {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+              </UBadge>
+              <UBadge
+                v-for="tag in jeu.tags"
+                :key="tag"
+                :color="tag.includes('joueurs') ? 'info' : 'primary'"
+                variant="subtle"
+              >
+                {{ tag }}
+              </UBadge>
+            </div>
           </div>
-        </div>
+        </UCard>
 
         <!-- Onglets -->
         <UTabs
           :items="tabs"
           class="w-full"
         >
-          <template #informations>
-            <div class="space-y-6 py-6">
-              <!-- Description -->
-              <div>
-                <h2 class="text-xl font-bold mb-3">
-                  Description
-                </h2>
-                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {{ jeu.description }}
-                </p>
-              </div>
-
-              <!-- Caractéristiques -->
-              <div>
-                <h2 class="text-xl font-bold mb-4">
-                  Caractéristiques
-                </h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <!-- Âge -->
-                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div class="shrink-0 p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                      <UIcon
-                        name="i-lucide-cake"
-                        class="w-5 h-5 text-primary-600 dark:text-primary-400"
-                      />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        Âge recommandé
-                      </p>
-                      <p class="font-semibold text-lg">
-                        {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- Joueurs -->
-                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div class="shrink-0 p-2 bg-info-100 dark:bg-info-900 rounded-lg">
-                      <UIcon
-                        name="i-lucide-users"
-                        class="w-5 h-5 text-info-600 dark:text-info-400"
-                      />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        Nombre de joueurs
-                      </p>
-                      <p class="font-semibold text-lg">
-                        {{ jeu.player_min }}{{ jeu.player_max !== jeu.player_min ? `-${jeu.player_max}` : '' }} joueurs
-                      </p>
-                    </div>
-                  </div>
-
-                  <!-- Durée -->
-                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div class="shrink-0 p-2 bg-success-100 dark:bg-success-900 rounded-lg">
-                      <UIcon
-                        name="i-lucide-clock"
-                        class="w-5 h-5 text-success-600 dark:text-success-400"
-                      />
-                    </div>
-                    <div>
-                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        Durée de partie
-                      </p>
-                      <p class="font-semibold text-lg">
-                        {{ formatDuree(jeu.duree) }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-
           <template #notes>
             <div class="space-y-6 py-6">
               <div
@@ -233,7 +206,7 @@
                     </div>
                   </div>
                 </div>
-                
+
                 <!-- Note moyenne -->
                 <div
                   v-if="averageRating > 0"
@@ -290,7 +263,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useFamilyStore, type Rating } from '~/stores/family'
 import StarRating from '~/components/StarRating.vue'
 import GameSessions from '~/components/GameSessions.vue'
@@ -306,14 +279,10 @@ const familyStore = useFamilyStore()
 const isModalOpen = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const topWinner = ref<{ member: { id: number, username: string }, wins: number } | null>(null)
 
 // Définir les onglets avec des slots personnalisés
 const tabs = [
-  {
-    label: 'Informations',
-    icon: 'i-lucide-info',
-    slot: 'informations'
-  },
   {
     label: 'Notes',
     icon: 'i-lucide-star',
@@ -341,14 +310,28 @@ const jeu = computed(() => {
 // Récupérer les membres de la famille
 const familyMembers = computed(() => familyStore.familyMembers)
 
+// Charger le top winner
+const loadTopWinner = async () => {
+  if (!gameId.value) return
+
+  const result = await familyStore.getTopWinner(gameId.value)
+  if (result.success && result.data) {
+    topWinner.value = result.data
+  } else {
+    topWinner.value = null
+  }
+}
+
 // Charger la famille au montage
 onMounted(async () => {
   try {
     loading.value = true
     await familyStore.fetchFamily()
-    
+
     if (!jeu.value) {
       error.value = 'Jeu non trouvé'
+    } else {
+      await loadTopWinner()
     }
   } catch (err) {
     console.error('Erreur lors du chargement du jeu:', err)
@@ -358,19 +341,12 @@ onMounted(async () => {
   }
 })
 
-// Formater la durée
-const formatDuree = (duree: number) => {
-  if (duree < 60) {
-    return `${duree} min`
-  } else {
-    const heures = Math.floor(duree / 60)
-    const minutes = duree % 60
-    if (minutes === 0) {
-      return `${heures}h`
-    }
-    return `${heures}h${minutes}`
+// Recharger le top winner quand le jeu change
+watch(gameId, () => {
+  if (gameId.value) {
+    loadTopWinner()
   }
-}
+})
 
 // Ouvrir le modal de modification
 const openEditModal = () => {
@@ -380,6 +356,7 @@ const openEditModal = () => {
 // Gérer la mise à jour du jeu
 const handleGameUpdated = async () => {
   await familyStore.fetchFamily()
+  await loadTopWinner()
   isModalOpen.value = false
 }
 
@@ -396,7 +373,7 @@ const setMemberRating = async (memberId: number, rating: number) => {
 
   try {
     const result = await familyStore.setRating(gameId.value, memberId, rating)
-    
+
     if (!result.success) {
       console.error('Erreur lors de l\'enregistrement de la note:', result.error)
       error.value = result.error || 'Erreur lors de l\'enregistrement de la note'
@@ -410,10 +387,10 @@ const setMemberRating = async (memberId: number, rating: number) => {
 // Calculer la note moyenne
 const averageRating = computed(() => {
   if (!jeu.value?.ratings || jeu.value.ratings.length === 0) return 0
-  
+
   const ratings = jeu.value.ratings.filter((r: Rating) => r.rating > 0)
   if (ratings.length === 0) return 0
-  
+
   const sum = ratings.reduce((acc: number, r: Rating) => acc + r.rating, 0)
   return sum / ratings.length
 })
