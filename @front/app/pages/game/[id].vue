@@ -67,34 +67,34 @@
       <!-- Détails du jeu -->
       <div
         v-else
-        class="grid grid-cols-1 lg:grid-cols-2 gap-8"
+        class="space-y-6"
       >
-        <!-- Image -->
-        <div class="order-1 lg:order-1">
-          <div class="w-full aspect-square rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-            <img
-              v-if="jeu.image"
-              :src="jeu.image"
-              :alt="jeu.titre"
-              class="w-full h-full object-contain"
-            >
-            <div
-              v-else
-              class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500"
-            >
-              <UIcon
-                name="i-lucide-dice-6"
-                class="w-32 h-32 mb-4"
-              />
-              <span class="text-lg">Aucune image disponible</span>
+        <!-- En-tête avec image et titre -->
+        <div class="flex flex-col sm:flex-row gap-6 items-start">
+          <!-- Image -->
+          <div class="shrink-0">
+            <div class="w-32 h-32 sm:w-40 sm:h-40 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+              <img
+                v-if="jeu.image"
+                :src="jeu.image"
+                :alt="jeu.titre"
+                class="w-full h-full object-contain"
+              >
+              <div
+                v-else
+                class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500"
+              >
+                <UIcon
+                  name="i-lucide-dice-6"
+                  class="w-12 h-12 sm:w-16 sm:h-16"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Informations -->
-        <div class="order-2 lg:order-2">
-          <div class="flex items-start justify-between gap-4 mb-4">
-            <h1 class="text-3xl lg:text-4xl font-bold">
+          <!-- Titre et bouton modifier -->
+          <div class="flex-1 flex items-start justify-between gap-4 min-w-0">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold flex-1">
               {{ jeu.titre }}
             </h1>
             <UButton
@@ -102,149 +102,181 @@
               variant="ghost"
               icon="i-lucide-edit"
               size="sm"
+              class="shrink-0"
               @click="openEditModal"
             >
               Modifier
             </UButton>
           </div>
-
-          <!-- Description -->
-          <div class="mb-6">
-            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-              {{ jeu.description }}
-            </p>
-          </div>
-
-          <!-- Caractéristiques -->
-          <div class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Âge -->
-              <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div class="shrink-0 p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
-                  <UIcon
-                    name="i-lucide-cake"
-                    class="w-5 h-5 text-primary-600 dark:text-primary-400"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Âge recommandé
-                  </p>
-                  <p class="font-semibold text-lg">
-                    {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
-                  </p>
-                </div>
-              </div>
-
-              <!-- Joueurs -->
-              <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div class="shrink-0 p-2 bg-info-100 dark:bg-info-900 rounded-lg">
-                  <UIcon
-                    name="i-lucide-users"
-                    class="w-5 h-5 text-info-600 dark:text-info-400"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Nombre de joueurs
-                  </p>
-                  <p class="font-semibold text-lg">
-                    {{ jeu.player_min }}{{ jeu.player_max !== jeu.player_min ? `-${jeu.player_max}` : '' }} joueurs
-                  </p>
-                </div>
-              </div>
-
-              <!-- Durée -->
-              <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div class="shrink-0 p-2 bg-success-100 dark:bg-success-900 rounded-lg">
-                  <UIcon
-                    name="i-lucide-clock"
-                    class="w-5 h-5 text-success-600 dark:text-success-400"
-                  />
-                </div>
-                <div>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                    Durée de partie
-                  </p>
-                  <p class="font-semibold text-lg">
-                    {{ formatDuree(jeu.duree) }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Notes des membres de la famille -->
-          <div
-            v-if="familyMembers.length > 0"
-            class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700"
-          >
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-              <UIcon
-                name="i-lucide-star"
-                class="w-5 h-5"
-              />
-              Notes de la famille
-            </h2>
-            <div class="space-y-4">
-              <div
-                v-for="member in familyMembers"
-                :key="member.id"
-                class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                    <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
-                      {{ member.username?.charAt(0).toUpperCase() }}
-                    </span>
-                  </div>
-                  <span class="font-medium">{{ member.username }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <StarRating
-                    :model-value="getMemberRating(member.id)"
-                    @update:model-value="(rating) => setMemberRating(member.id, rating)"
-                  />
-                  <UButton
-                    v-if="getMemberRating(member.id) > 0"
-                    color="red"
-                    variant="ghost"
-                    icon="i-lucide-trash-2"
-                    size="xs"
-                    @click="setMemberRating(member.id, 0)"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            <!-- Note moyenne -->
-            <div
-              v-if="averageRating > 0"
-              class="mt-4 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
-            >
-              <div class="flex items-center justify-between">
-                <span class="font-semibold text-primary-900 dark:text-primary-100">
-                  Note moyenne
-                </span>
-                <div class="flex items-center gap-2">
-                  <StarRating
-                    :model-value="averageRating"
-                    readonly
-                  />
-                  <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
-                    {{ averageRating.toFixed(1) }} / 5
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Parties jouées -->
-          <GameSessions
-            v-if="gameId"
-            :game-id="gameId"
-          />
         </div>
+
+        <!-- Onglets -->
+        <UTabs
+          :items="tabs"
+          class="w-full"
+        >
+          <template #informations>
+            <div class="space-y-6 py-6">
+              <!-- Description -->
+              <div>
+                <h2 class="text-xl font-bold mb-3">
+                  Description
+                </h2>
+                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  {{ jeu.description }}
+                </p>
+              </div>
+
+              <!-- Caractéristiques -->
+              <div>
+                <h2 class="text-xl font-bold mb-4">
+                  Caractéristiques
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <!-- Âge -->
+                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div class="shrink-0 p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
+                      <UIcon
+                        name="i-lucide-cake"
+                        class="w-5 h-5 text-primary-600 dark:text-primary-400"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Âge recommandé
+                      </p>
+                      <p class="font-semibold text-lg">
+                        {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Joueurs -->
+                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div class="shrink-0 p-2 bg-info-100 dark:bg-info-900 rounded-lg">
+                      <UIcon
+                        name="i-lucide-users"
+                        class="w-5 h-5 text-info-600 dark:text-info-400"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Nombre de joueurs
+                      </p>
+                      <p class="font-semibold text-lg">
+                        {{ jeu.player_min }}{{ jeu.player_max !== jeu.player_min ? `-${jeu.player_max}` : '' }} joueurs
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Durée -->
+                  <div class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div class="shrink-0 p-2 bg-success-100 dark:bg-success-900 rounded-lg">
+                      <UIcon
+                        name="i-lucide-clock"
+                        class="w-5 h-5 text-success-600 dark:text-success-400"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        Durée de partie
+                      </p>
+                      <p class="font-semibold text-lg">
+                        {{ formatDuree(jeu.duree) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template #notes>
+            <div class="space-y-6 py-6">
+              <div
+                v-if="familyMembers.length > 0"
+              >
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                  <UIcon
+                    name="i-lucide-star"
+                    class="w-5 h-5"
+                  />
+                  Notes de la famille
+                </h2>
+                <div class="space-y-4">
+                  <div
+                    v-for="member in familyMembers"
+                    :key="member.id"
+                    class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
+                        <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                          {{ member.username?.charAt(0).toUpperCase() }}
+                        </span>
+                      </div>
+                      <span class="font-medium">{{ member.username }}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <StarRating
+                        :model-value="getMemberRating(member.id)"
+                        @update:model-value="(rating) => setMemberRating(member.id, rating)"
+                      />
+                      <UButton
+                        v-if="getMemberRating(member.id) > 0"
+                        color="red"
+                        variant="ghost"
+                        icon="i-lucide-trash-2"
+                        size="xs"
+                        @click="setMemberRating(member.id, 0)"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Note moyenne -->
+                <div
+                  v-if="averageRating > 0"
+                  class="mt-4 p-4 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="font-semibold text-primary-900 dark:text-primary-100">
+                      Note moyenne
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <StarRating
+                        :model-value="averageRating"
+                        readonly
+                      />
+                      <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
+                        {{ averageRating.toFixed(1) }} / 5
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-else
+                class="text-center py-12 text-gray-500 dark:text-gray-400"
+              >
+                <UIcon
+                  name="i-lucide-users"
+                  class="w-16 h-16 mx-auto mb-4 opacity-50"
+                />
+                <p>Aucun membre dans la famille</p>
+              </div>
+            </div>
+          </template>
+
+          <template #parties>
+            <div class="py-6">
+              <GameSessions
+                v-if="gameId"
+                :game-id="gameId"
+              />
+            </div>
+          </template>
+        </UTabs>
       </div>
     </div>
 
@@ -274,6 +306,25 @@ const familyStore = useFamilyStore()
 const isModalOpen = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+// Définir les onglets avec des slots personnalisés
+const tabs = [
+  {
+    label: 'Informations',
+    icon: 'i-lucide-info',
+    slot: 'informations'
+  },
+  {
+    label: 'Notes',
+    icon: 'i-lucide-star',
+    slot: 'notes'
+  },
+  {
+    label: 'Parties',
+    icon: 'i-lucide-gamepad-2',
+    slot: 'parties'
+  }
+]
 
 // Récupérer l'ID depuis la route
 const gameId = computed(() => {
