@@ -169,13 +169,6 @@
               <div
                 v-if="familyMembers.length > 0"
               >
-                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
-                  <UIcon
-                    name="i-lucide-star"
-                    class="w-5 h-5"
-                  />
-                  Notes de la famille
-                </h2>
                 <div class="space-y-4">
                   <div
                     v-for="member in familyMembers"
@@ -245,12 +238,10 @@
           </template>
 
           <template #parties>
-            <div class="py-6">
-              <GameSessions
-                v-if="gameId"
-                :game-id="gameId"
-              />
-            </div>
+            <GameSessions
+              v-if="gameId"
+              :game-id="gameId"
+            />
           </template>
         </UTabs>
       </div>

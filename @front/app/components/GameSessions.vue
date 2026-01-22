@@ -1,13 +1,6 @@
 <template>
-  <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-bold flex items-center gap-2">
-        <UIcon
-          name="i-lucide-trophy"
-          class="w-5 h-5"
-        />
-        Parties jouées
-      </h2>
+  <div>
+    <div class="flex items-center justify-end mb-4">
       <UButton
         color="primary"
         size="sm"
@@ -110,8 +103,8 @@
                   {{ score.position }}
                 </span>
               </div>
-              <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
+              <div :class="['w-8 h-8 rounded-full flex items-center justify-center', getMemberAvatarColor(score.member.id).bg]">
+                <span :class="['text-xs font-semibold', getMemberAvatarColor(score.member.id).text]">
                   {{ score.member.username.charAt(0).toUpperCase() }}
                 </span>
               </div>
@@ -119,12 +112,6 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="font-bold">{{ score.score }}</span>
-              <span
-                v-if="score.is_winner"
-                class="text-xs text-yellow-600 dark:text-yellow-400 font-semibold"
-              >
-                Gagnant
-              </span>
             </div>
           </div>
         </div>
@@ -451,6 +438,22 @@ const handleDeleteSession = async (sessionId: number) => {
   } finally {
     deletingSessionId.value = null
   }
+}
+
+// Obtenir les classes de couleur pour l'avatar d'un membre
+const getMemberAvatarColor = (memberId: number) => {
+  const colors = [
+    { bg: 'bg-primary-100 dark:bg-primary-900', text: 'text-primary-600 dark:text-primary-400' },
+    { bg: 'bg-info-100 dark:bg-info-900', text: 'text-info-600 dark:text-info-400' },
+    { bg: 'bg-success-100 dark:bg-success-900', text: 'text-success-600 dark:text-success-400' },
+    { bg: 'bg-warning-100 dark:bg-warning-900', text: 'text-warning-600 dark:text-warning-400' },
+    { bg: 'bg-red-100 dark:bg-red-900', text: 'text-red-600 dark:text-red-400' },
+    { bg: 'bg-purple-100 dark:bg-purple-900', text: 'text-purple-600 dark:text-purple-400' },
+    { bg: 'bg-pink-100 dark:bg-pink-900', text: 'text-pink-600 dark:text-pink-400' },
+    { bg: 'bg-indigo-100 dark:bg-indigo-900', text: 'text-indigo-600 dark:text-indigo-400' }
+  ]
+  const colorIndex = memberId % colors.length
+  return colors[colorIndex]
 }
 
 onMounted(() => {
