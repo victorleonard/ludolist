@@ -180,28 +180,31 @@
                   <div
                     v-for="member in familyMembers"
                     :key="member.id"
-                    class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
                   >
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center">
-                        <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div :class="['w-10 h-10 rounded-full flex items-center justify-center', getMemberAvatarColor(member.id).bg]">
+                        <span :class="['text-sm font-semibold', getMemberAvatarColor(member.id).text]">
                           {{ member.username?.charAt(0).toUpperCase() }}
                         </span>
                       </div>
-                      <span class="font-medium">{{ member.username }}</span>
+                      <div class="flex items-center justify-between flex-1">
+                        <span class="font-medium">{{ member.username }}</span>
+                        <UButton
+                          v-if="getMemberRating(member.id) > 0"
+                          color="red"
+                          variant="ghost"
+                          icon="i-lucide-trash-2"
+                          size="xs"
+                          @click="setMemberRating(member.id, 0)"
+                        />
+                      </div>
                     </div>
-                    <div class="flex items-center gap-2">
+                    <div class="flex justify-center">
                       <StarRating
                         :model-value="getMemberRating(member.id)"
+                        size="lg"
                         @update:model-value="(rating) => setMemberRating(member.id, rating)"
-                      />
-                      <UButton
-                        v-if="getMemberRating(member.id) > 0"
-                        color="red"
-                        variant="ghost"
-                        icon="i-lucide-trash-2"
-                        size="xs"
-                        @click="setMemberRating(member.id, 0)"
                       />
                     </div>
                   </div>
@@ -394,4 +397,20 @@ const averageRating = computed(() => {
   const sum = ratings.reduce((acc: number, r: Rating) => acc + r.rating, 0)
   return sum / ratings.length
 })
+
+// Obtenir les classes de couleur pour l'avatar d'un membre
+const getMemberAvatarColor = (memberId: number) => {
+  const colors = [
+    { bg: 'bg-primary-100 dark:bg-primary-900', text: 'text-primary-600 dark:text-primary-400' },
+    { bg: 'bg-info-100 dark:bg-info-900', text: 'text-info-600 dark:text-info-400' },
+    { bg: 'bg-success-100 dark:bg-success-900', text: 'text-success-600 dark:text-success-400' },
+    { bg: 'bg-warning-100 dark:bg-warning-900', text: 'text-warning-600 dark:text-warning-400' },
+    { bg: 'bg-red-100 dark:bg-red-900', text: 'text-red-600 dark:text-red-400' },
+    { bg: 'bg-purple-100 dark:bg-purple-900', text: 'text-purple-600 dark:text-purple-400' },
+    { bg: 'bg-pink-100 dark:bg-pink-900', text: 'text-pink-600 dark:text-pink-400' },
+    { bg: 'bg-indigo-100 dark:bg-indigo-900', text: 'text-indigo-600 dark:text-indigo-400' }
+  ]
+  const colorIndex = memberId % colors.length
+  return colors[colorIndex]
+}
 </script>
