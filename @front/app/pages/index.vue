@@ -9,25 +9,30 @@
         >
           <UCard class="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
             <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <div
-                v-if="latestSessionGameImage"
-                class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0"
+              <NuxtLink
+                :to="`/game/${latestSession.game.id}`"
+                class="shrink-0"
               >
-                <img
-                  :src="latestSessionGameImage"
-                  :alt="latestSession.game.name"
-                  class="w-full h-full object-contain"
+                <div
+                  v-if="latestSessionGameImage"
+                  class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
                 >
-              </div>
-              <div
-                v-else
-                class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center shrink-0"
-              >
-                <UIcon
-                  name="i-lucide-dice-6"
-                  class="w-10 h-10 text-gray-400"
-                />
-              </div>
+                  <img
+                    :src="latestSessionGameImage"
+                    :alt="latestSession.game.name"
+                    class="w-full h-full object-contain"
+                  >
+                </div>
+                <div
+                  v-else
+                  class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                >
+                  <UIcon
+                    name="i-lucide-dice-6"
+                    class="w-10 h-10 text-gray-400"
+                  />
+                </div>
+              </NuxtLink>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
                   <UIcon
@@ -39,7 +44,12 @@
                   </h2>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <span class="font-semibold">{{ latestSession.game.name }}</span>
+                  <NuxtLink
+                    :to="`/game/${latestSession.game.id}`"
+                    class="font-semibold hover:text-primary-600 dark:hover:text-primary-400 transition-colors underline-offset-2 hover:underline"
+                  >
+                    {{ latestSession.game.name }}
+                  </NuxtLink>
                   <span class="mx-2">•</span>
                   <span>{{ formatDate(latestSession.played_at) }}</span>
                 </p>
