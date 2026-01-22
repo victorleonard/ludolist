@@ -7,70 +7,69 @@
           v-if="latestSession"
           class="mb-8"
         >
-          <UCard class="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
-            <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
-              <NuxtLink
-                :to="`/game/${latestSession.game.id}`"
-                class="shrink-0"
-              >
-                <div
+          <UCard
+            class="cursor-pointer hover:shadow-lg transition-shadow duration-200 max-w-md"
+            @click="navigateTo(`/game/${latestSession.game.id}`)"
+          >
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-trophy"
+                  class="w-4 h-4 text-yellow-500"
+                />
+                <h2 class="text-base font-bold">
+                  Dernière partie jouée
+                </h2>
+              </div>
+            </template>
+
+            <div class="flex flex-col gap-3">
+              <div class="w-full h-32 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                <img
                   v-if="latestSessionGameImage"
-                  class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden hover:opacity-80 transition-opacity cursor-pointer"
+                  :src="latestSessionGameImage"
+                  :alt="latestSession.game.name"
+                  class="w-full h-full object-contain"
                 >
-                  <img
-                    :src="latestSessionGameImage"
-                    :alt="latestSession.game.name"
-                    class="w-full h-full object-contain"
-                  >
-                </div>
                 <div
                   v-else
-                  class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center hover:opacity-80 transition-opacity cursor-pointer"
+                  class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
                 >
                   <UIcon
                     name="i-lucide-dice-6"
-                    class="w-10 h-10 text-gray-400"
+                    class="w-8 h-8"
                   />
                 </div>
-              </NuxtLink>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <UIcon
-                    name="i-lucide-trophy"
-                    class="w-5 h-5 text-yellow-500"
-                  />
-                  <h2 class="text-lg font-bold">
-                    Dernière partie jouée
-                  </h2>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <NuxtLink
-                    :to="`/game/${latestSession.game.id}`"
-                    class="font-semibold hover:text-primary-600 dark:hover:text-primary-400 transition-colors underline-offset-2 hover:underline"
-                  >
-                    {{ latestSession.game.name }}
-                  </NuxtLink>
-                  <span class="mx-2">•</span>
-                  <span>{{ formatDate(latestSession.played_at) }}</span>
-                </p>
-                <div
-                  v-if="latestSessionWinner"
-                  class="flex items-center gap-2"
+              </div>
+              <div>
+                <NuxtLink
+                  :to="`/game/${latestSession.game.id}`"
+                  class="text-sm font-semibold hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  @click.stop
                 >
-                  <UIcon
-                    name="i-lucide-crown"
-                    class="w-4 h-4 text-yellow-500"
-                  />
-                  <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-                    Vainqueur : {{ latestSessionWinner.member.username }}
-                    <span
-                      v-if="latestSessionWinner.score !== undefined"
-                      class="text-gray-600 dark:text-gray-400"
-                    >
-                      ({{ latestSessionWinner.score }} points)
-                    </span>
+                  {{ latestSession.game.name }}
+                </NuxtLink>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  {{ formatDate(latestSession.played_at) }}
+                </p>
+              </div>
+              <div
+                v-if="latestSessionWinner"
+                class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
+              >
+                <UIcon
+                  name="i-lucide-crown"
+                  class="w-3 h-3 text-yellow-500"
+                />
+                <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
+                  {{ latestSessionWinner.member.username }}
+                  <span
+                    v-if="latestSessionWinner.score !== undefined"
+                    class="text-gray-600 dark:text-gray-400 font-normal"
+                  >
+                    ({{ latestSessionWinner.score }} pts)
                   </span>
-                </div>
+                </span>
               </div>
             </div>
           </UCard>
