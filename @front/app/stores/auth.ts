@@ -27,16 +27,32 @@ export const useAuthStore = defineStore('auth', {
     // Charger le token depuis le localStorage au démarrage
     loadToken() {
       if (import.meta.client) {
-        const token = localStorage.getItem('auth_token')
-        const userStr = localStorage.getItem('auth_user')
+        try {
+          const token = localStorage.getItem('auth_token')
+          const userStr = localStorage.getItem('auth_user')
 
-        if (token && userStr) {
-          this.token = token
-          this.user = JSON.parse(userStr)
+          if (token && userStr) {
+            this.token = token
+            try {
+              this.user = JSON.parse(userStr)
 
-          // Charger aussi les informations de famille
-          const familyStore = useFamilyStore()
-          familyStore.loadFamily()
+              // Charger aussi les informations de famille
+              const familyStore = useFamilyStore()
+              familyStore.loadFamily()
+            } catch (e) {
+              console.error('Erreur lors du parsing de l\'utilisateur:', e)
+              // Si le parsing échoue, nettoyer les données corrompues
+              this.clearToken()
+            }
+          } else {
+            // Si pas de token dans le localStorage, s'assurer que le store est vide
+            if (this.token) {
+              this.clearToken()
+            }
+          }
+        } catch (e) {
+          console.error('Erreur lors du chargement du token:', e)
+          this.clearToken()
         }
       }
     },
