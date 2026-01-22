@@ -39,6 +39,7 @@ export interface GameSession {
   game: {
     id: number
     name: string
+    image?: StrapiImage | null
   }
   family: {
     id: number
@@ -598,6 +599,40 @@ export const useFamilyStore = defineStore('family', {
         return { success: true, data: response.data }
       } catch (error: unknown) {
         console.error('Erreur lors de la récupération du meilleur gagnant:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la récupération'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
+    },
+
+    async getLatestSession() {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: GameSession | null }>(
+          `${config.public.apiUrl}/api/game-sessions/latest`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération de la dernière partie:', error)
         const err = error as { data?: { error?: { message?: string } }, message?: string }
         const errorMessage = err?.data?.error?.message
           || err?.message

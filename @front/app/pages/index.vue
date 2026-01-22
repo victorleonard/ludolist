@@ -2,6 +2,70 @@
   <UContainer>
     <div>
       <div class="mt-6">
+        <!-- Dernière session de jeu -->
+        <div
+          v-if="latestSession"
+          class="mb-8"
+        >
+          <UCard class="bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20">
+            <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
+              <div
+                v-if="latestSessionGameImage"
+                class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0"
+              >
+                <img
+                  :src="latestSessionGameImage"
+                  :alt="latestSession.game.name"
+                  class="w-full h-full object-contain"
+                >
+              </div>
+              <div
+                v-else
+                class="w-20 h-20 rounded-lg bg-white dark:bg-gray-800 flex items-center justify-center shrink-0"
+              >
+                <UIcon
+                  name="i-lucide-dice-6"
+                  class="w-10 h-10 text-gray-400"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  <UIcon
+                    name="i-lucide-trophy"
+                    class="w-5 h-5 text-yellow-500"
+                  />
+                  <h2 class="text-lg font-bold">
+                    Dernière partie jouée
+                  </h2>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <span class="font-semibold">{{ latestSession.game.name }}</span>
+                  <span class="mx-2">•</span>
+                  <span>{{ formatDate(latestSession.played_at) }}</span>
+                </p>
+                <div
+                  v-if="latestSessionWinner"
+                  class="flex items-center gap-2"
+                >
+                  <UIcon
+                    name="i-lucide-crown"
+                    class="w-4 h-4 text-yellow-500"
+                  />
+                  <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
+                    Vainqueur : {{ latestSessionWinner.member.username }}
+                    <span
+                      v-if="latestSessionWinner.score !== undefined"
+                      class="text-gray-600 dark:text-gray-400"
+                    >
+                      ({{ latestSessionWinner.score }} points)
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </UCard>
+        </div>
+
         <div class="mb-8">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h1 class="text-2xl font-bold">
@@ -277,7 +341,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecherche } from '../composables/useRecherche'
-import { useFamilyStore, type TransformedGame as Game, type Rating } from '~/stores/family'
+import { useFamilyStore, type TransformedGame as Game, type Rating, type GameSession } from '~/stores/family'
 import StarRating from '~/components/StarRating.vue'
 
 definePageMeta({
@@ -289,9 +353,17 @@ definePageMeta({
 const familyStore = useFamilyStore()
 const { isLoading: loading } = storeToRefs(familyStore)
 
+const loadLatestSession = async () => {
+  const result = await familyStore.getLatestSession()
+  if (result.success && result.data) {
+    latestSession.value = result.data
+  }
+}
+
 onMounted(async () => {
   // Recharger la famille depuis l'API pour avoir les données à jour
   await familyStore.fetchFamily()
+  await loadLatestSession()
 })
 
 const { recherche } = useRecherche()
@@ -304,6 +376,7 @@ const refresh = () => familyStore.fetchFamily()
 const isModalOpen = ref(false)
 const selectedGame = ref<Game | null>(null)
 const topWinners = ref<Record<number, { member: { id: number, username: string }, wins: number }>>({})
+const latestSession = ref<GameSession | null>(null)
 
 const openModal = () => {
   selectedGame.value = null
@@ -411,6 +484,64 @@ const getAverageRating = (jeu: Game): number => {
   const sum = ratings.reduce((acc: number, r: Rating) => acc + r.rating, 0)
   return sum / ratings.length
 }
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date)
+}
+
+const latestSessionGameImage = computed(() => {
+  if (!latestSession.value?.game?.image) return null
+
+  const config = useRuntimeConfig()
+  const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+  const imageData = latestSession.value.game.image
+
+  if (imageData && typeof imageData === 'object') {
+    if (imageData.formats?.medium?.url) {
+      return `${apiUrl}${imageData.formats.medium.url}`
+    } else if (imageData.formats?.small?.url) {
+      return `${apiUrl}${imageData.formats.small.url}`
+    } else if (imageData.formats?.thumbnail?.url) {
+      return `${apiUrl}${imageData.formats.thumbnail.url}`
+    } else if (imageData.url) {
+      return `${apiUrl}${imageData.url}`
+    }
+  }
+
+  return null
+})
+
+const latestSessionWinner = computed(() => {
+  if (!latestSession.value?.player_scores || latestSession.value.player_scores.length === 0) {
+    return null
+  }
+
+  const winner = latestSession.value.player_scores.find(ps => ps.is_winner)
+  if (winner) {
+    return {
+      member: winner.member,
+      score: winner.score
+    }
+  }
+
+  // Si aucun vainqueur marqué, prendre le meilleur score
+  const sortedScores = [...latestSession.value.player_scores].sort((a, b) => b.score - a.score)
+  if (sortedScores.length > 0 && sortedScores[0]) {
+    return {
+      member: sortedScores[0].member,
+      score: sortedScores[0].score
+    }
+  }
+
+  return null
+})
 
 const loadTopWinners = async () => {
   if (!games.value || games.value.length === 0) return

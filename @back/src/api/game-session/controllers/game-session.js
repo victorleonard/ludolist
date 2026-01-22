@@ -320,5 +320,59 @@ module.exports = createCoreController('api::game-session.game-session', ({ strap
       strapi.log.error('Erreur lors de la récupération du meilleur gagnant:', err);
       ctx.throw(500, 'Erreur lors de la récupération du meilleur gagnant');
     }
+  },
+
+  async getLatestSession(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté pour voir les parties');
+    }
+
+    try {
+      const userWithFamily = await strapi.entityService.findOne(
+        'plugin::users-permissions.user',
+        user.id,
+        {
+          populate: {
+            family: true
+          }
+        }
+      );
+
+      if (!userWithFamily.family) {
+        return ctx.forbidden('Vous devez appartenir à une famille');
+      }
+
+      const family = userWithFamily.family;
+
+      const sessions = await strapi.entityService.findMany(
+        'api::game-session.game-session',
+        {
+          filters: {
+            family: { id: family.id }
+          },
+          populate: {
+            player_scores: {
+              populate: ['member']
+            },
+            game: {
+              populate: ['image']
+            }
+          },
+          sort: { played_at: 'desc' },
+          limit: 1
+        }
+      );
+
+      if (!sessions || sessions.length === 0) {
+        return { data: null };
+      }
+
+      return { data: sessions[0] };
+    } catch (err) {
+      strapi.log.error('Erreur lors de la récupération de la dernière partie:', err);
+      ctx.throw(500, 'Erreur lors de la récupération de la dernière partie');
+    }
   }
 }));
