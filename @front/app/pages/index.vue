@@ -2,77 +2,157 @@
   <UContainer>
     <div>
       <div class="mt-6">
-        <!-- Dernière session de jeu -->
+        <!-- 3 derniers jeux joués -->
         <div
-          v-if="latestSession"
+          v-if="latest3Sessions && latest3Sessions.length > 0"
           class="mb-8"
         >
-          <UCard
-            class="cursor-pointer hover:shadow-lg transition-shadow duration-200 max-w-md"
-            @click="navigateTo(`/game/${latestSession.game.id}`)"
-          >
-            <template #header>
-              <div class="flex items-center gap-2">
-                <UIcon
-                  name="i-lucide-trophy"
-                  class="w-4 h-4 text-yellow-500"
-                />
-                <h2 class="text-base font-bold">
-                  Dernière partie jouée
-                </h2>
-              </div>
-            </template>
+          <h2 class="text-xl font-bold mb-4">
+            3 derniers jeux joués
+          </h2>
+          <div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            <UCard
+              v-for="session in latest3Sessions"
+              :key="session.id"
+              class="cursor-pointer hover:shadow-lg transition-shadow duration-200"
+              @click="navigateTo(`/game/${session.game.id}`)"
+            >
+              <template #header>
+                <div class="flex items-start justify-between gap-2">
+                  <h2 class="text-xl font-bold wrap-break-word min-w-0 flex-1">
+                    {{ session.game.name }}
+                  </h2>
+                </div>
+              </template>
 
-            <div class="flex flex-col gap-3">
-              <div class="w-full h-32 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                <img
-                  v-if="latestSessionGameImage"
-                  :src="latestSessionGameImage"
-                  :alt="latestSession.game.name"
-                  class="w-full h-full object-contain"
-                >
+              <div class="flex flex-col gap-4">
+                <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  <img
+                    v-if="getSessionGameImage(session)"
+                    :src="getSessionGameImage(session) ?? ''"
+                    :alt="session.game.name"
+                    class="w-full h-full object-contain"
+                  >
+                  <div
+                    v-else
+                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-16 h-16 mb-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                      />
+                    </svg>
+                    <span class="text-xs text-center">Aucune image</span>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <UIcon
+                    name="i-lucide-calendar"
+                    class="w-4 h-4 text-gray-500"
+                  />
+                  <span class="text-xs text-gray-600 dark:text-gray-400">
+                    {{ formatDate(session.played_at) }}
+                  </span>
+                </div>
                 <div
-                  v-else
-                  class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                  v-if="getSessionWinner(session)"
+                  class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                 >
                   <UIcon
-                    name="i-lucide-dice-6"
-                    class="w-8 h-8"
+                    name="i-lucide-crown"
+                    class="w-4 h-4 text-yellow-500"
                   />
+                  <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
+                    {{ getSessionWinner(session)?.member.username }}
+                    <span
+                      v-if="getSessionWinner(session)?.score !== undefined"
+                      class="text-gray-600 dark:text-gray-400 font-normal"
+                    >
+                      ({{ getSessionWinner(session)?.score }} pts)
+                    </span>
+                  </span>
                 </div>
               </div>
-              <div>
-                <NuxtLink
-                  :to="`/game/${latestSession.game.id}`"
-                  class="text-sm font-semibold hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  @click.stop
-                >
-                  {{ latestSession.game.name }}
-                </NuxtLink>
-                <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                  {{ formatDate(latestSession.played_at) }}
-                </p>
-              </div>
-              <div
-                v-if="latestSessionWinner"
-                class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
-              >
-                <UIcon
-                  name="i-lucide-crown"
-                  class="w-3 h-3 text-yellow-500"
-                />
-                <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
-                  {{ latestSessionWinner.member.username }}
-                  <span
-                    v-if="latestSessionWinner.score !== undefined"
-                    class="text-gray-600 dark:text-gray-400 font-normal"
-                  >
-                    ({{ latestSessionWinner.score }} pts)
-                  </span>
-                </span>
-              </div>
-            </div>
-          </UCard>
+            </UCard>
+          </div>
+
+          <!-- Vue mobile : liste avec UPageList -->
+          <UPageList class="md:hidden space-y-4">
+            <UPageCard
+              v-for="session in latest3Sessions"
+              :key="session.id"
+              variant="ghost"
+              class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer"
+              @click="navigateTo(`/game/${session.game.id}`)"
+            >
+              <template #body>
+                <div class="flex items-start gap-4 w-full">
+                  <div class="w-24 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0">
+                    <img
+                      v-if="getSessionGameImage(session)"
+                      :src="getSessionGameImage(session) ?? ''"
+                      :alt="session.game.name"
+                      class="w-full h-full object-contain"
+                    >
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
+                    >
+                      <UIcon
+                        name="i-lucide-dice-6"
+                        class="w-8 h-8"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <div class="flex-1 min-w-0">
+                        <h3 class="text-lg font-semibold wrap-break-word">
+                          {{ session.game.name }}
+                        </h3>
+                      </div>
+                    </div>
+                    <div class="flex items-center gap-1 mb-2">
+                      <UIcon
+                        name="i-lucide-calendar"
+                        class="w-3 h-3 text-gray-500"
+                      />
+                      <span class="text-xs text-gray-600 dark:text-gray-400">
+                        {{ formatDate(session.played_at) }}
+                      </span>
+                    </div>
+                    <div
+                      v-if="getSessionWinner(session)"
+                      class="flex items-center gap-1 mb-2"
+                    >
+                      <UIcon
+                        name="i-lucide-crown"
+                        class="w-3 h-3 text-yellow-500"
+                      />
+                      <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
+                        {{ getSessionWinner(session)?.member.username }}
+                        <span
+                          v-if="getSessionWinner(session)?.score !== undefined"
+                          class="text-gray-600 dark:text-gray-400 font-normal"
+                        >
+                          ({{ getSessionWinner(session)?.score }} pts)
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </UPageCard>
+          </UPageList>
         </div>
 
         <div class="mb-8">
@@ -362,17 +442,17 @@ definePageMeta({
 const familyStore = useFamilyStore()
 const { isLoading: loading } = storeToRefs(familyStore)
 
-const loadLatestSession = async () => {
-  const result = await familyStore.getLatestSession()
+const loadLatest3Sessions = async () => {
+  const result = await familyStore.getLatest3Sessions()
   if (result.success && result.data) {
-    latestSession.value = result.data
+    latest3Sessions.value = result.data
   }
 }
 
 onMounted(async () => {
   // Recharger la famille depuis l'API pour avoir les données à jour
   await familyStore.fetchFamily()
-  await loadLatestSession()
+  await loadLatest3Sessions()
 })
 
 const { recherche } = useRecherche()
@@ -385,7 +465,7 @@ const refresh = () => familyStore.fetchFamily()
 const isModalOpen = ref(false)
 const selectedGame = ref<Game | null>(null)
 const topWinners = ref<Record<number, { member: { id: number, username: string }, wins: number }>>({})
-const latestSession = ref<GameSession | null>(null)
+const latest3Sessions = ref<GameSession[]>([])
 
 const openModal = () => {
   selectedGame.value = null
@@ -505,12 +585,12 @@ const formatDate = (dateString: string) => {
   }).format(date)
 }
 
-const latestSessionGameImage = computed(() => {
-  if (!latestSession.value?.game?.image) return null
+const getSessionGameImage = (session: GameSession): string | undefined => {
+  if (!session?.game?.image) return undefined
 
   const config = useRuntimeConfig()
   const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
-  const imageData = latestSession.value.game.image
+  const imageData = session.game.image
 
   if (imageData && typeof imageData === 'object') {
     if (imageData.formats?.medium?.url) {
@@ -524,15 +604,15 @@ const latestSessionGameImage = computed(() => {
     }
   }
 
-  return null
-})
+  return undefined
+}
 
-const latestSessionWinner = computed(() => {
-  if (!latestSession.value?.player_scores || latestSession.value.player_scores.length === 0) {
+const getSessionWinner = (session: GameSession) => {
+  if (!session?.player_scores || session.player_scores.length === 0) {
     return null
   }
 
-  const winner = latestSession.value.player_scores.find(ps => ps.is_winner)
+  const winner = session.player_scores.find(ps => ps.is_winner)
   if (winner) {
     return {
       member: winner.member,
@@ -541,7 +621,7 @@ const latestSessionWinner = computed(() => {
   }
 
   // Si aucun vainqueur marqué, prendre le meilleur score
-  const sortedScores = [...latestSession.value.player_scores].sort((a, b) => b.score - a.score)
+  const sortedScores = [...session.player_scores].sort((a, b) => b.score - a.score)
   if (sortedScores.length > 0 && sortedScores[0]) {
     return {
       member: sortedScores[0].member,
@@ -550,7 +630,7 @@ const latestSessionWinner = computed(() => {
   }
 
   return null
-})
+}
 
 const loadTopWinners = async () => {
   if (!games.value || games.value.length === 0) return

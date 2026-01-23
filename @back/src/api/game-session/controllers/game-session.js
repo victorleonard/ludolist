@@ -374,5 +374,69 @@ module.exports = createCoreController('api::game-session.game-session', ({ strap
       strapi.log.error('Erreur lors de la récupération de la dernière partie:', err);
       ctx.throw(500, 'Erreur lors de la récupération de la dernière partie');
     }
+  },
+
+  async getLatest3Sessions(ctx) {
+    const user = ctx.state.user;
+
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté pour voir les parties');
+    }
+
+    try {
+      const userWithFamily = await strapi.entityService.findOne(
+        'plugin::users-permissions.user',
+        user.id,
+        {
+          populate: {
+            family: true
+          }
+        }
+      );
+
+      if (!userWithFamily.family) {
+        return ctx.forbidden('Vous devez appartenir à une famille');
+      }
+
+      const family = userWithFamily.family;
+
+      const sessions = await strapi.entityService.findMany(
+        'api::game-session.game-session',
+        {
+          filters: {
+            family: { id: family.id }
+          },
+          populate: {
+            player_scores: {
+              populate: ['member']
+            },
+            game: {
+              populate: ['image']
+            }
+          },
+          sort: { played_at: 'desc' },
+          limit: 3
+        }
+      );
+
+      // Grouper par jeu et ne garder que la session la plus récente pour chaque jeu
+      const uniqueGames = new Map();
+      sessions.forEach((session) => {
+        const gameId = session.game.id;
+        if (!uniqueGames.has(gameId)) {
+          uniqueGames.set(gameId, session);
+        }
+      });
+
+      // Retourner les 3 jeux les plus récents
+      const result = Array.from(uniqueGames.values())
+        .sort((a, b) => new Date(b.played_at) - new Date(a.played_at))
+        .slice(0, 3);
+
+      return { data: result };
+    } catch (err) {
+      strapi.log.error('Erreur lors de la récupération des 3 dernières parties:', err);
+      ctx.throw(500, 'Erreur lors de la récupération des 3 dernières parties');
+    }
   }
 }));

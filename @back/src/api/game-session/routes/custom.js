@@ -45,5 +45,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/game-sessions/latest-3',
+      handler: 'game-session.getLatest3Sessions',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

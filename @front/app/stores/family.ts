@@ -700,6 +700,40 @@ export const useFamilyStore = defineStore('family', {
           error: errorMessage
         }
       }
+    },
+
+    async getLatest3Sessions() {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      const config = useRuntimeConfig()
+
+      try {
+        const response = await $fetch<{ data: GameSession[] }>(
+          `${config.public.apiUrl}/api/game-sessions/latest-3`,
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`
+            }
+          }
+        )
+
+        return { success: true, data: response.data }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération des 3 dernières parties:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la récupération'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
     }
   }
 })
