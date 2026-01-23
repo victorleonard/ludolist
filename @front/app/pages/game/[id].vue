@@ -127,17 +127,99 @@
                 readonly
               />
             </div>
+            <!-- Podium des top 3 -->
             <div
-              v-if="topWinner && topWinner.member"
-              class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
+              v-if="top3Winners.length > 0"
+              class="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg"
             >
-              <UIcon
-                name="i-lucide-crown"
-                class="w-4 h-4 text-yellow-500"
-              />
-              <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
-                {{ topWinner.member.username }} ({{ topWinner.wins }} {{ (topWinner.wins || 0) > 1 ? 'victoires' : 'victoire' }})
-              </span>
+              <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">
+                Podium
+              </h3>
+              <div class="flex items-end justify-center gap-2">
+                <!-- 2ème place -->
+                <div
+                  v-if="top3Winners[1]"
+                  class="flex flex-col items-center flex-1 max-w-[120px]"
+                >
+                  <div :class="['w-16 h-16 rounded-full flex items-center justify-center mb-2', getMemberAvatarColor(top3Winners[1].member.id).bg]">
+                    <span :class="['text-lg font-bold', getMemberAvatarColor(top3Winners[1].member.id).text]">
+                      {{ top3Winners[1].member.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                  <div
+                    class="w-full bg-gray-300 dark:bg-gray-600 rounded-t-lg p-3 text-center"
+                    style="height: 80px;"
+                  >
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">2ème</span>
+                      <span class="text-xs font-bold text-gray-900 dark:text-gray-100 truncate w-full">
+                        {{ top3Winners[1].member.username }}
+                      </span>
+                      <span class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 1ère place -->
+                <div
+                  v-if="top3Winners[0]"
+                  class="flex flex-col items-center flex-1 max-w-[120px]"
+                >
+                  <div class="mb-2">
+                    <UIcon
+                      name="i-lucide-crown"
+                      class="w-6 h-6 text-yellow-500"
+                    />
+                  </div>
+                  <div :class="['w-20 h-20 rounded-full flex items-center justify-center mb-2 border-4 border-yellow-400', getMemberAvatarColor(top3Winners[0].member.id).bg]">
+                    <span :class="['text-xl font-bold', getMemberAvatarColor(top3Winners[0].member.id).text]">
+                      {{ top3Winners[0].member.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                  <div
+                    class="w-full bg-yellow-400 dark:bg-yellow-600 rounded-t-lg p-3 text-center"
+                    style="height: 100px;"
+                  >
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span class="text-xs font-semibold text-yellow-900 dark:text-yellow-100 mb-1">1er</span>
+                      <span class="text-sm font-bold text-yellow-900 dark:text-yellow-100 truncate w-full">
+                        {{ top3Winners[0].member.username }}
+                      </span>
+                      <span class="text-xs text-yellow-800 dark:text-yellow-200 mt-1">
+                        {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3ème place -->
+                <div
+                  v-if="top3Winners[2]"
+                  class="flex flex-col items-center flex-1 max-w-[120px]"
+                >
+                  <div :class="['w-16 h-16 rounded-full flex items-center justify-center mb-2', getMemberAvatarColor(top3Winners[2].member.id).bg]">
+                    <span :class="['text-lg font-bold', getMemberAvatarColor(top3Winners[2].member.id).text]">
+                      {{ top3Winners[2].member.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                  <div
+                    class="w-full bg-amber-300 dark:bg-amber-700 rounded-t-lg p-3 text-center"
+                    style="height: 60px;"
+                  >
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span class="text-xs font-semibold text-amber-900 dark:text-amber-100 mb-1">3ème</span>
+                      <span class="text-xs font-bold text-amber-900 dark:text-amber-100 truncate w-full">
+                        {{ top3Winners[2].member.username }}
+                      </span>
+                      <span class="text-xs text-amber-800 dark:text-amber-200 mt-1">
+                        {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="flex flex-wrap gap-2">
               <UBadge
@@ -273,7 +355,7 @@ const familyStore = useFamilyStore()
 const isModalOpen = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const topWinner = ref<{ member: { id: number, username: string }, wins: number } | null>(null)
+const top3Winners = ref<Array<{ member: { id: number, username: string }, wins: number }>>([])
 
 // Définir les onglets avec des slots personnalisés
 const tabs = [
@@ -304,15 +386,15 @@ const jeu = computed(() => {
 // Récupérer les membres de la famille
 const familyMembers = computed(() => familyStore.familyMembers)
 
-// Charger le top winner
-const loadTopWinner = async () => {
+// Charger les top 3 gagnants
+const loadTop3Winners = async () => {
   if (!gameId.value) return
 
-  const result = await familyStore.getTopWinner(gameId.value)
+  const result = await familyStore.getTop3Winners(gameId.value)
   if (result.success && result.data) {
-    topWinner.value = result.data
+    top3Winners.value = result.data
   } else {
-    topWinner.value = null
+    top3Winners.value = []
   }
 }
 
@@ -325,7 +407,7 @@ onMounted(async () => {
     if (!jeu.value) {
       error.value = 'Jeu non trouvé'
     } else {
-      await loadTopWinner()
+      await loadTop3Winners()
     }
   } catch (err) {
     console.error('Erreur lors du chargement du jeu:', err)
@@ -335,10 +417,10 @@ onMounted(async () => {
   }
 })
 
-// Recharger le top winner quand le jeu change
+// Recharger les top 3 gagnants quand le jeu change
 watch(gameId, () => {
   if (gameId.value) {
-    loadTopWinner()
+    loadTop3Winners()
   }
 })
 
@@ -350,7 +432,7 @@ const openEditModal = () => {
 // Gérer la mise à jour du jeu
 const handleGameUpdated = async () => {
   await familyStore.fetchFamily()
-  await loadTopWinner()
+  await loadTop3Winners()
   isModalOpen.value = false
 }
 

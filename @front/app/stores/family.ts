@@ -611,6 +611,63 @@ export const useFamilyStore = defineStore('family', {
       }
     },
 
+    async getTop3Winners(gameId: number) {
+      const authStore = useAuthStore()
+
+      if (!authStore.token) {
+        return { success: false, error: 'Non authentifié' }
+      }
+
+      try {
+        // Récupérer toutes les sessions du jeu
+        const sessionsResult = await this.fetchGameSessions(gameId)
+
+        if (!sessionsResult.success || !sessionsResult.data) {
+          return { success: false, error: 'Erreur lors de la récupération des sessions' }
+        }
+
+        const sessions = sessionsResult.data
+        const winnerCounts: Record<number, { member: { id: number, username: string }, wins: number }> = {}
+
+        // Compter les victoires pour chaque membre
+        sessions.forEach((session) => {
+          if (session.player_scores && Array.isArray(session.player_scores)) {
+            session.player_scores.forEach((score) => {
+              if (score.is_winner && score.member) {
+                const memberId = score.member.id
+                if (!winnerCounts[memberId]) {
+                  winnerCounts[memberId] = {
+                    member: score.member,
+                    wins: 0
+                  }
+                }
+                // TypeScript sait que winnerCounts[memberId] existe maintenant
+                winnerCounts[memberId]!.wins++
+              }
+            })
+          }
+        })
+
+        // Trier par nombre de victoires et prendre les top 3
+        const winners = Object.values(winnerCounts)
+          .sort((a, b) => b.wins - a.wins)
+          .slice(0, 3)
+
+        return { success: true, data: winners }
+      } catch (error: unknown) {
+        console.error('Erreur lors de la récupération des top 3 gagnants:', error)
+        const err = error as { data?: { error?: { message?: string } }, message?: string }
+        const errorMessage = err?.data?.error?.message
+          || err?.message
+          || 'Erreur lors de la récupération'
+
+        return {
+          success: false,
+          error: errorMessage
+        }
+      }
+    },
+
     async getLatestSession() {
       const authStore = useAuthStore()
 
