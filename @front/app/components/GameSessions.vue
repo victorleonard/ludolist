@@ -221,8 +221,8 @@
                   :key="member.id"
                   class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
-                  <div class="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center flex-shrink-0">
-                    <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
+                  <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', getMemberAvatarColor(member.id).bg]">
+                    <span :class="['text-xs font-semibold', getMemberAvatarColor(member.id).text]">
                       {{ member.username.charAt(0).toUpperCase() }}
                     </span>
                   </div>
