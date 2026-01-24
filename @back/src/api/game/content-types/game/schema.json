@@ -42,6 +42,12 @@
     "age_max": {
       "type": "integer"
     },
+    "image_url": {
+      "type": "string"
+    },
+    "bggId": {
+      "type": "string"
+    },
     "families": {
       "type": "relation",
       "relation": "manyToMany",

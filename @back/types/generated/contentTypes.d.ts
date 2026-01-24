@@ -518,6 +518,7 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
   attributes: {
     age_max: Schema.Attribute.Integer;
     age_min: Schema.Attribute.Integer;
+    bggId: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -528,6 +529,7 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
       'api::game-session.game-session'
     >;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    image_url: Schema.Attribute.String;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::game.game'> &
       Schema.Attribute.Private;

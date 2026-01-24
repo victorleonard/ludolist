@@ -69,6 +69,7 @@ interface StrapiGame {
   player_min: number
   player_max: number | null
   image?: StrapiImage | null
+  image_url?: string | null
   ratings?: Rating[]
   publishedAt?: string
   createdAt: string
@@ -131,19 +132,25 @@ export const useFamilyStore = defineStore('family', {
             continue
           }
 
-          // Extraire l'URL de l'image
+          // Extraire l'URL de l'image - prioriser image_url (thumbnail BGG) s'il existe
           let imageUrl: string | null = null
-          const imageData = strapiGame.image
 
-          if (imageData && imageData !== null && typeof imageData === 'object') {
-            if (imageData.formats?.medium?.url) {
-              imageUrl = `${apiUrl}${imageData.formats.medium.url}`
-            } else if (imageData.formats?.small?.url) {
-              imageUrl = `${apiUrl}${imageData.formats.small.url}`
-            } else if (imageData.formats?.thumbnail?.url) {
-              imageUrl = `${apiUrl}${imageData.formats.thumbnail.url}`
-            } else if (imageData.url) {
-              imageUrl = `${apiUrl}${imageData.url}`
+          // Si un image_url (thumbnail BGG) est disponible, l'utiliser en priorité
+          if (strapiGame.image_url) {
+            imageUrl = strapiGame.image_url
+          } else {
+            // Sinon, utiliser l'image uploadée dans Strapi
+            const imageData = strapiGame.image
+            if (imageData && imageData !== null && typeof imageData === 'object') {
+              if (imageData.formats?.medium?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.medium.url}`
+              } else if (imageData.formats?.small?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.small.url}`
+              } else if (imageData.formats?.thumbnail?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.thumbnail.url}`
+              } else if (imageData.url) {
+                imageUrl = `${apiUrl}${imageData.url}`
+              }
             }
           }
 
