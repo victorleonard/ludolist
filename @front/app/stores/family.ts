@@ -202,7 +202,12 @@ export const useFamilyStore = defineStore('family', {
         }
       }
 
-      return result
+      // Trier par date de création décroissante (derniers ajoutés en premier)
+      return result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime()
+        const dateB = new Date(b.createdAt).getTime()
+        return dateB - dateA // Ordre décroissant
+      })
     }
   },
 
