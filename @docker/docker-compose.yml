@@ -28,6 +28,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-}
       - CORS_ORIGIN=${CORS_ORIGIN}
       - PUBLIC_URL=${PUBLIC_URL}
+      - BGG_TOKEN=${BGG_TOKEN}
     volumes:
       - ../@data/ludolist/db:/data/db:rw
       - ../@data/ludolist/uploads:/app/public/uploads:rw
