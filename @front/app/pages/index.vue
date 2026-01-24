@@ -156,19 +156,10 @@
         </div>
 
         <div class="mb-8">
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div class="mb-6">
             <h1 class="text-2xl font-bold">
               Ma collection de jeux
             </h1>
-            <UButton
-              color="primary"
-              icon="i-lucide-plus"
-              size="sm"
-              class="whitespace-nowrap shrink-0 self-start sm:self-auto"
-              @click="openModal"
-            >
-              Ajouter un jeu
-            </UButton>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
@@ -418,11 +409,6 @@
       </div>
     </div>
 
-    <AddGameModal
-      v-model="isModalOpen"
-      :game="selectedGame"
-      @success="handleGameAdded"
-    />
   </UContainer>
 </template>
 
@@ -462,24 +448,16 @@ const games = computed(() => familyStore.transformedGames)
 const error = computed(() => null)
 const refresh = () => familyStore.fetchFamily()
 
-const isModalOpen = ref(false)
-const selectedGame = ref<Game | null>(null)
+const { openModal: openAddGameModal } = useAddGameModal()
 const topWinners = ref<Record<number, { member: { id: number, username: string }, wins: number }>>({})
 const latest3Sessions = ref<GameSession[]>([])
 
-const openModal = () => {
-  selectedGame.value = null
-  isModalOpen.value = true
-}
-
 const openEditModal = (jeu: Game) => {
-  selectedGame.value = jeu
-  isModalOpen.value = true
+  openModal(jeu)
 }
 
 const handleGameAdded = () => {
   // Le refresh est déjà géré dans createGame/updateGame, mais on peut ajouter une notification ici si besoin
-  selectedGame.value = null
   refresh()
 }
 

@@ -17,11 +17,12 @@
   --color-green-950: #052E16;
 }
 
-/* Masquer le menu burger dans la navigation */
-header button[aria-label*="menu"],
-header button[aria-label*="Menu"],
-header button[aria-label*="navigation"],
-header button[aria-expanded="true"],
-header button[aria-expanded="false"] {
+/* Masquer le menu burger par défaut de Nuxt UI à droite */
+header button[data-slot="mobile-menu"],
+header [data-slot="mobile-menu"],
+header button[aria-label*="menu"][aria-label*="mobile"],
+header button[aria-label*="Menu"][aria-label*="mobile"],
+header [data-slot="right"] button[aria-label*="menu"],
+header [data-slot="right"] button[aria-label*="Menu"] {
   display: none !important;
 }
