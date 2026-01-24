@@ -26,3 +26,42 @@ header [data-slot="right"] button[aria-label*="menu"],
 header [data-slot="right"] button[aria-label*="Menu"] {
   display: none !important;
 }
+
+/* Fond gris léger pour améliorer le contraste */
+body {
+  background-color: #f9fafb;
+}
+
+.dark body {
+  background-color: #111827;
+}
+
+/* Fond blanc pour les cartes UCard */
+/* Forcer le fond blanc sur tous les éléments avec bg-white */
+.bg-white,
+[class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+.dark .bg-white,
+.dark [class*="bg-white"] {
+  background-color: #1f2937 !important;
+}
+
+/* Cibler spécifiquement les cartes Nuxt UI */
+div[data-slot="card"] {
+  background-color: #ffffff !important;
+}
+
+.dark div[data-slot="card"] {
+  background-color: #1f2937 !important;
+}
+
+/* Cibler les conteneurs de cartes avec border et rounded */
+div[class*="rounded"][class*="border"]:not([class*="bg-gray"]):not([class*="bg-primary"]):not([class*="bg-yellow"]) {
+  background-color: #ffffff !important;
+}
+
+.dark div[class*="rounded"][class*="border"]:not([class*="bg-gray"]):not([class*="bg-primary"]):not([class*="bg-yellow"]) {
+  background-color: #1f2937 !important;
+}

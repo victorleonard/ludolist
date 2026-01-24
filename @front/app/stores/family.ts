@@ -714,7 +714,7 @@ export const useFamilyStore = defineStore('family', {
       }
     },
 
-    async getLatest3Sessions() {
+    async getLatest10Sessions() {
       const authStore = useAuthStore()
 
       if (!authStore.token) {
@@ -725,7 +725,7 @@ export const useFamilyStore = defineStore('family', {
 
       try {
         const response = await $fetch<{ data: GameSession[] }>(
-          `${config.public.apiUrl}/api/game-sessions/latest-3`,
+          `${config.public.apiUrl}/api/game-sessions/latest`,
           {
             headers: {
               Authorization: `Bearer ${authStore.token}`
@@ -733,9 +733,12 @@ export const useFamilyStore = defineStore('family', {
           }
         )
 
-        return { success: true, data: response.data }
+        // S'assurer que la réponse est toujours un tableau
+        const data = Array.isArray(response.data) ? response.data : (response.data ? [response.data] : [])
+
+        return { success: true, data }
       } catch (error: unknown) {
-        console.error('Erreur lors de la récupération des 3 dernières parties:', error)
+        console.error('Erreur lors de la récupération des dernières parties:', error)
         const err = error as { data?: { error?: { message?: string } }, message?: string }
         const errorMessage = err?.data?.error?.message
           || err?.message

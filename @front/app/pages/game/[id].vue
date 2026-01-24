@@ -1,19 +1,6 @@
 <template>
   <UContainer>
     <div class="py-6">
-      <!-- Bouton retour -->
-      <div class="mb-6">
-        <UButton
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-arrow-left"
-          size="sm"
-          @click="navigateTo('/')"
-        >
-          Retour à la collection
-        </UButton>
-      </div>
-
       <!-- Loading -->
       <div
         v-if="loading"
@@ -70,7 +57,7 @@
         class="space-y-6"
       >
         <!-- Card avec image et infos synthétiques -->
-        <UCard>
+        <UCard class="bg-white dark:bg-gray-800">
           <template #header>
             <div class="flex items-start justify-between gap-2">
               <h1 class="text-xl font-bold wrap-break-word min-w-0 flex-1">

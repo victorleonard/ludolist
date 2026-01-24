@@ -1,9 +1,10 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useFamilyStore } from '~/stores/family'
 
+const route = useRoute()
 const { recherche } = useRecherche()
 
 const authStore = useAuthStore()
@@ -15,6 +16,11 @@ const { logout } = authStore
 
 const isMenuOpen = ref(false)
 const { isOpen: isAddGameModalOpen, selectedGame, openModal: openAddGameModal, closeModal: closeAddGameModal } = useAddGameModal()
+
+// Détecter si on est sur une page de jeu
+const isGamePage = computed(() => {
+  return route.path.startsWith('/game/') && route.params.id
+})
 
 const menuItems = [
   {
@@ -43,6 +49,18 @@ const handleGameAdded = () => {
       <template #left>
         <div class="relative z-10">
           <UButton
+            v-if="isGamePage"
+            variant="ghost"
+            color="neutral"
+            size="sm"
+            icon="i-lucide-arrow-left"
+            aria-label="Retour"
+            @click="navigateTo('/jeux')"
+          >
+            Retour
+          </UButton>
+          <UButton
+            v-else
             variant="ghost"
             color="neutral"
             size="sm"
@@ -93,13 +111,13 @@ const handleGameAdded = () => {
       </template>
     </UHeader>
 
-    <UMain>
+    <UMain class="pb-20 md:pb-0 min-h-screen bg-gray-50 dark:bg-gray-900">
       <slot />
     </UMain>
 
-    <USeparator class="mt-8" />
+    <USeparator class="mt-8 hidden md:block" />
 
-    <UFooter>
+    <UFooter class="hidden md:flex">
       <template #left>
         <p class="text-sm text-muted">
           Built with Nuxt UI • © {{ new Date().getFullYear() }}
@@ -108,6 +126,8 @@ const handleGameAdded = () => {
 
       <template #right />
     </UFooter>
+
+    <BottomTabNavigation class="md:hidden" />
 
     <UDrawer
       :open="isMenuOpen"

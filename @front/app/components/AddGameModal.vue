@@ -5,7 +5,7 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col">
+      <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col bg-white dark:bg-gray-800">
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">
