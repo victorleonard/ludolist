@@ -28,15 +28,53 @@ const iconSizes = {
   <NuxtLink
     :to="to"
     :class="[
-      'font-bold flex items-center gap-0.5 text-blue-500 dark:text-blue-500 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
+      'font-bold flex items-center gap-0.5',
       sizeClasses[size],
       props.class
     ]"
     style="font-family: 'Audiowide', cursive;"
   >
-    Lud<UIcon
+    <span class="gradient-text">Lud</span><UIcon
       name="i-lucide-dice-6"
-      :class="['-mx-0.5 rotate-12', iconSizes[size]]"
-    />List
+      :class="['-mx-0.5 rotate-12 gradient-icon', iconSizes[size]]"
+    /><span class="gradient-text">List</span>
   </NuxtLink>
 </template>
+
+<style scoped>
+.gradient-text {
+  background: linear-gradient(
+    135deg,
+    #667eea 0%,
+    #764ba2 25%,
+    #f093fb 50%,
+    #4facfe 75%,
+    #00f2fe 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-icon {
+  color: #667eea;
+}
+
+/* Support pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      #818cf8 0%,
+      #a78bfa 25%,
+      #f472b6 50%,
+      #60a5fa 75%,
+      #34d399 100%
+    );
+  }
+  
+  .gradient-icon {
+    color: #818cf8;
+  }
+}
+</style>

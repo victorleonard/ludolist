@@ -36,10 +36,10 @@
       v-else
       class="space-y-4"
     >
-      <div
+      <UCard
         v-for="session in sessions"
         :key="session.id"
-        class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
+        class="bg-white dark:bg-gray-800"
       >
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
@@ -115,13 +115,13 @@
             </div>
           </div>
         </div>
-      </div>
+      </UCard>
     </div>
 
     <UModal
       :open="isAddModalOpen"
       :fullscreen="isMobile"
-      @update:open="(value) => { isAddModalOpen = value }"
+      @update:open="(value) => { if (!value) closeAddSessionModal() }"
     >
       <template #content>
         <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col">
@@ -265,6 +265,7 @@
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 import { useFamilyStore, type GameSession, type PlayerScore } from '~/stores/family'
+import { useAddSessionModal } from '~/composables/useAddSessionModal'
 
 const isMobile = useMediaQuery('(max-width: 767px)')
 
@@ -273,12 +274,28 @@ const props = defineProps<{
 }>()
 
 const familyStore = useFamilyStore()
+const { isOpen: isAddSessionModalOpen, openModal: openAddSessionModalFromComposable, closeModal: closeAddSessionModal } = useAddSessionModal()
+
 const sessions = ref<GameSession[]>([])
 const loading = ref(false)
-const isAddModalOpen = ref(false)
+const isAddModalOpen = computed({
+  get: () => isAddSessionModalOpen.value,
+  set: (value) => {
+    if (!value) {
+      closeAddSessionModal()
+    }
+  }
+})
 const isSubmitting = ref(false)
 const submitError = ref<string | null>(null)
 const deletingSessionId = ref<number | null>(null)
+
+// Écouter les changements du composable
+watch(isAddSessionModalOpen, (newValue) => {
+  if (newValue) {
+    resetForm()
+  }
+})
 
 const newSession = ref({
   played_at: new Date().toISOString().slice(0, 16),
@@ -333,7 +350,7 @@ const resetForm = () => {
 
 const openAddSessionModal = () => {
   resetForm()
-  isAddModalOpen.value = true
+  openAddSessionModalFromComposable()
 }
 
 const validateForm = (): boolean => {
@@ -360,7 +377,7 @@ const validateForm = (): boolean => {
 const closeModal = () => {
   if (!isSubmitting.value) {
     resetForm()
-    isAddModalOpen.value = false
+    closeAddSessionModal()
   }
 }
 
@@ -390,7 +407,7 @@ const handleAddSession = async () => {
 
     if (result.success) {
       resetForm()
-      isAddModalOpen.value = false
+      closeAddSessionModal()
       await loadSessions()
     } else {
       submitError.value = result.error || 'Erreur lors de l\'enregistrement de la partie'

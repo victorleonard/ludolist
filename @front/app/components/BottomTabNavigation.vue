@@ -10,10 +10,6 @@
         active-class="text-primary-600 dark:text-primary-400"
         @click="handleClick"
       >
-        <div
-          v-if="isActive(item.to)"
-          class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary-600 dark:bg-primary-400 rounded-b-full"
-        />
         <UIcon
           :name="item.icon"
           class="w-6 h-6 mb-1 transition-transform"
