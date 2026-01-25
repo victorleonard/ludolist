@@ -58,7 +58,7 @@
               class="w-5 h-5"
             />
             <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-              Rechercher sur BoardGameGeek
+              Rechercher
             </h4>
           </div>
 

@@ -17,6 +17,7 @@ const { logout } = authStore
 
 const isMenuOpen = ref(false)
 const isAddDrawerOpen = ref(false)
+const isSearchDrawerOpen = ref(false)
 const { isOpen: isAddGameModalOpen, selectedGame, openModal: openAddGameModal, closeModal: closeAddGameModal } = useAddGameModal()
 const { openModal: openAddSessionModal } = useAddSessionModal()
 
@@ -43,7 +44,7 @@ const handleBackFromGame = () => {
         navigateTo('/jeux')
         return
       }
-    } catch (e) {
+    } catch {
       // En cas d'erreur, utiliser router.back()
     }
   }
@@ -84,6 +85,14 @@ const closeAddDrawer = () => {
   isAddDrawerOpen.value = false
 }
 
+const openSearchDrawer = () => {
+  isSearchDrawerOpen.value = true
+}
+
+const closeSearchDrawer = () => {
+  isSearchDrawerOpen.value = false
+}
+
 const handleAddGame = () => {
   closeAddDrawer()
   openAddGameModal()
@@ -105,7 +114,7 @@ const handleAddSession = () => {
   <UApp>
     <UHeader
       :mobile="false"
-      class="relative"
+      class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 shadow-lg shadow-black/5"
     >
       <template #left>
         <div class="relative z-10">
@@ -141,6 +150,15 @@ const handleAddSession = () => {
 
       <template #right>
         <div class="flex items-center gap-3">
+          <UButton
+            color="neutral"
+            icon="i-lucide-search"
+            size="sm"
+            aria-label="Rechercher"
+            variant="ghost"
+            class="md:hidden"
+            @click="openSearchDrawer"
+          />
           <div class="relative w-64 hidden md:block">
             <UInput
               v-model="recherche"
@@ -176,13 +194,11 @@ const handleAddSession = () => {
       </template>
     </UHeader>
 
-    <UMain class="pb-20 md:pb-0 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <UMain class="pb-20 min-h-screen bg-gray-50 dark:bg-gray-900">
       <slot />
     </UMain>
 
-    <USeparator class="mt-8 hidden md:block" />
-
-    <BottomTabNavigation class="md:hidden" />
+    <BottomTabNavigation />
 
     <UDrawer
       :open="isMenuOpen"
@@ -272,6 +288,52 @@ const handleAddSession = () => {
               <span class="font-medium">Déconnexion</span>
             </UButton>
           </div>
+        </div>
+      </template>
+    </UDrawer>
+
+    <!-- Drawer pour la recherche mobile -->
+    <UDrawer
+      :open="isSearchDrawerOpen"
+      direction="top"
+      @update:open="(value) => { isSearchDrawerOpen = value }"
+    >
+      <template #content>
+        <div class="flex flex-col p-4">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold">
+              Rechercher un jeu
+            </h2>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              icon="i-lucide-x"
+              size="sm"
+              @click="closeSearchDrawer"
+            />
+          </div>
+          <UInput
+            v-model="recherche"
+            placeholder="Rechercher un jeu..."
+            icon="i-lucide-search"
+            size="lg"
+            class="w-full"
+            autofocus
+          >
+            <template
+              v-if="recherche"
+              #trailing
+            >
+              <UButton
+                color="gray"
+                variant="ghost"
+                icon="i-lucide-x"
+                size="xs"
+                :padded="false"
+                @click="recherche = ''"
+              />
+            </template>
+          </UInput>
         </div>
       </template>
     </UDrawer>

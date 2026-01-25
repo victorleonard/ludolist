@@ -28,16 +28,20 @@ const iconSizes = {
   <NuxtLink
     :to="to"
     :class="[
-      'font-bold flex items-center gap-0.5',
+      'flex items-center',
       sizeClasses[size],
       props.class
     ]"
     style="font-family: 'Audiowide', cursive;"
-    class="text-primary-600 dark:text-primary-400"
+    class="text-violet-500 dark:text-violet-300"
   >
-    <span>Lud</span><UIcon
-      name="i-lucide-dice-6"
-      :class="['-mx-0.5 rotate-12', iconSizes[size]]"
-    /><span>List</span>
+    <span>Lud</span>
+    <div class="flex items-center justify-center rounded-full bg-violet-500 dark:bg-violet-400 p-1 mx-0.5">
+      <UIcon
+        name="i-lucide-dice-6"
+        :class="['text-white', size === 'sm' ? 'w-3 h-3' : size === 'md' ? 'w-4 h-4' : 'w-5 h-5']"
+      />
+    </div>
+    <span>list</span>
   </NuxtLink>
 </template>
