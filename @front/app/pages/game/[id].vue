@@ -404,7 +404,7 @@ const isModalOpen = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const top3Winners = ref<Array<{ member: { id: number, username: string }, wins: number }>>([])
-const activeTab = ref(0)
+const activeTab = ref('0')
 const showPodiumAnimation = ref(false)
 
 // Définir les onglets avec des slots personnalisés
