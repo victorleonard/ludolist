@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 
 interface BadgeProps {
   label: string;
@@ -12,22 +12,16 @@ export function Badge({
   textColor = '#FFFFFF'
 }: BadgeProps) {
   return (
-    <View style={[styles.badge, { backgroundColor }]}>
-      <Text style={[styles.text, { color: textColor }]}>
+    <View 
+      className="px-2.5 py-1.5 rounded-md"
+      style={{ backgroundColor }}
+    >
+      <Text 
+        className="text-xs font-medium"
+        style={{ color: textColor }}
+      >
         {label}
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  text: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-});

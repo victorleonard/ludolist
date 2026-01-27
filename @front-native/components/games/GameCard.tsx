@@ -1,17 +1,12 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StarRating } from './StarRating';
 import { Badge } from './Badge';
+import type { TransformedGame } from '@/stores/familyStore';
 
-export interface Game {
-  id: number;
-  titre: string;
-  image: string;
-  age_min: number;
-  age_max: number | null;
-  tags: string[];
-  rating: number;
-  topWinner: {
+export interface Game extends TransformedGame {
+  rating?: number;
+  topWinner?: {
     username: string;
     wins: number;
   } | null;
@@ -23,42 +18,53 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onPress }: GameCardProps) {
+  // Calculer la note moyenne à partir des ratings
+  const averageRating = game.ratings && game.ratings.length > 0
+    ? game.ratings.reduce((acc, r) => acc + r.rating, 0) / game.ratings.length
+    : 0;
+
   return (
     <TouchableOpacity
-      style={styles.card}
+      className="bg-white rounded-xl mb-4 shadow-md"
       onPress={() => onPress?.(game)}
       activeOpacity={0.7}
     >
-      <View style={styles.content}>
+      <View className="p-4">
         {/* En-tête avec titre */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{game.titre}</Text>
+        <View className="mb-3">
+          <Text className="text-xl font-bold text-gray-900">{game.titre}</Text>
         </View>
 
         {/* Image du jeu */}
-        <Image
-          source={{ uri: game.image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        {game.image ? (
+          <Image
+            source={{ uri: game.image }}
+            className="w-full h-52 rounded-lg bg-gray-200"
+            resizeMode="cover"
+          />
+        ) : (
+          <View className="w-full h-52 rounded-lg bg-gray-200 justify-center items-center">
+            <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+          </View>
+        )}
 
         {/* Rating */}
-        {game.rating > 0 && (
-          <View style={styles.ratingContainer}>
-            <StarRating rating={game.rating} size={18} />
+        {averageRating > 0 && (
+          <View className="mt-3 p-2 bg-blue-50 rounded-lg self-start">
+            <StarRating rating={averageRating} size={18} />
           </View>
         )}
 
         {/* Top Winner */}
         {game.topWinner && (
-          <View style={styles.winnerContainer}>
+          <View className="flex-row items-center mt-2 p-2 bg-yellow-50 rounded-lg">
             <Ionicons
               name="trophy"
               size={16}
               color="#F59E0B"
               style={{ marginRight: 6 }}
             />
-            <Text style={styles.winnerText}>
+            <Text className="font-bold text-yellow-700 text-sm">
               {game.topWinner.username} ({game.topWinner.wins}{' '}
               {game.topWinner.wins > 1 ? 'victoires' : 'victoire'})
             </Text>
@@ -66,7 +72,7 @@ export function GameCard({ game, onPress }: GameCardProps) {
         )}
 
         {/* Badges (Âge et tags) */}
-        <View style={styles.badgesContainer}>
+        <View className="flex-row flex-wrap gap-2 mt-3">
           <Badge 
             label={`${game.age_min}${game.age_max ? `-${game.age_max}` : '+'} ans`}
             backgroundColor="#6B7280"
@@ -83,62 +89,3 @@ export function GameCard({ game, onPress }: GameCardProps) {
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  content: {
-    padding: 16,
-  },
-  header: {
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    backgroundColor: '#E5E7EB',
-  },
-  ratingContainer: {
-    marginTop: 12,
-    padding: 8,
-    backgroundColor: '#DBEAFE',
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  winnerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 8,
-  },
-  winnerText: {
-    fontWeight: 'bold',
-    color: '#D97706',
-    fontSize: 13,
-  },
-  badgesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-  },
-});

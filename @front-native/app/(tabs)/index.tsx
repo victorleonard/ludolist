@@ -1,7 +1,8 @@
-import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import AppHeader from '@/components/AppHeader';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -29,181 +30,75 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header avec bouton de déconnexion */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.welcomeText}>Bonjour,</Text>
-          <Text style={styles.userName}>{user?.username || 'Utilisateur'}</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={handleLogout}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="log-out-outline" size={24} color="#EF4444" />
-        </TouchableOpacity>
-      </View>
+    <View className="flex-1 bg-gray-100">
+      <AppHeader 
+        title={`Bonjour, ${user?.username || 'Utilisateur'}`}
+        showBackButton={false}
+        rightComponent={
+          <TouchableOpacity
+            className="p-2 bg-gray-100 rounded-lg"
+            onPress={handleLogout}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+          </TouchableOpacity>
+        }
+      />
 
-      <View style={styles.content}>
+      <View className="flex-1 p-5 justify-center items-center">
         {/* Logo / Icône */}
-        <View style={styles.logoContainer}>
-          <Ionicons name="game-controller" size={80} color="#3B82F6" />
+        <View className="mb-8">
+          <Ionicons name="people" size={80} color="#3B82F6" />
         </View>
 
         {/* Titre */}
-        <Text style={styles.title}>Bienvenue sur LudoList</Text>
+        <Text className="text-3xl font-bold text-gray-900 mb-2.5 text-center">
+          Bienvenue sur votre Family Team 🎉
+        </Text>
         
-        <Text style={styles.subtitle}>
-          Gérez votre collection de jeux de société et suivez vos parties
+        <Text className="text-base text-gray-500 max-w-[300px] text-center mb-10">
+          Gérez votre famille et suivez vos parties
         </Text>
 
         {/* Cartes d'action */}
-        <View style={styles.cardsContainer}>
+        <View className="flex-row gap-4 mb-8 flex-wrap justify-center">
           <TouchableOpacity
-            style={styles.actionCard}
+            className="w-40 bg-white rounded-2xl p-5 items-center shadow"
             onPress={() => router.push('/games')}
             activeOpacity={0.7}
           >
-            <Ionicons name="dice" size={40} color="#3B82F6" style={{ marginBottom: 12 }} />
-            <Text style={styles.cardTitle}>Mes Jeux</Text>
-            <Text style={styles.cardSubtitle}>Explorez votre collection</Text>
+            <View className="mb-3">
+              <Ionicons name="dice" size={40} color="#3B82F6" />
+            </View>
+            <Text className="text-lg font-bold text-gray-900 mb-2 text-center">Mes Jeux</Text>
+            <Text className="text-xs text-gray-500 text-center">Explorez votre collection</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.actionCard}
+            className="w-40 bg-white rounded-2xl p-5 items-center shadow"
             onPress={() => console.log('Sessions à venir')}
             activeOpacity={0.7}
           >
-            <Ionicons name="calendar" size={40} color="#8B5CF6" style={{ marginBottom: 12 }} />
-            <Text style={styles.cardTitle}>Parties</Text>
-            <Text style={styles.cardSubtitle}>Historique des parties</Text>
+            <View className="mb-3">
+              <Ionicons name="calendar" size={40} color="#8B5CF6" />
+            </View>
+            <Text className="text-lg font-bold text-gray-900 mb-2 text-center">Parties</Text>
+            <Text className="text-xs text-gray-500 text-center">Historique des parties</Text>
           </TouchableOpacity>
         </View>
 
         {/* Bouton principal */}
         <TouchableOpacity
-          style={styles.mainButton}
+          className="flex-row items-center bg-blue-500 px-8 py-4 rounded-xl shadow"
           onPress={() => router.push('/games')}
           activeOpacity={0.8}
         >
-          <Text style={styles.buttonText}>Voir ma collection</Text>
-          <Ionicons name="arrow-forward" size={20} color="white" style={{ marginLeft: 8 }} />
+          <Text className="text-white text-base font-bold">Voir ma collection</Text>
+          <View className="ml-2">
+            <Ionicons name="arrow-forward" size={20} color="white" />
+          </View>
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  welcomeText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-  },
-  logoutButton: {
-    padding: 8,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    maxWidth: 300,
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  cardsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 30,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  actionCard: {
-    width: 160,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  cardSubtitle: {
-    fontSize: 13,
-    color: '#6B7280',
-    textAlign: 'center',
-  },
-  mainButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 30,
-    paddingVertical: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-});
