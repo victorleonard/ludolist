@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from "zustand";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface User {
   id: number;
@@ -17,21 +17,24 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  
+
   // Getters
   isAuthenticated: () => boolean;
   currentUser: () => User | null;
-  
+
   // Actions
   loadToken: () => Promise<void>;
   saveToken: (token: string, user: User) => Promise<void>;
   clearToken: () => Promise<void>;
-  login: (email: string, password: string) => Promise<{ success: boolean; data?: LoginResponse; error?: string }>;
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; data?: LoginResponse; error?: string }>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<User | null>;
 }
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:1337';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:1337";
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
@@ -45,8 +48,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Charger le token depuis AsyncStorage au démarrage
   loadToken: async () => {
     try {
-      const token = await AsyncStorage.getItem('auth_token');
-      const userStr = await AsyncStorage.getItem('auth_user');
+      const token = await AsyncStorage.getItem("auth_token");
+      const userStr = await AsyncStorage.getItem("auth_user");
 
       if (token && userStr) {
         try {
@@ -54,10 +57,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           set({ token, user });
 
           // Charger aussi les informations de famille
-          const { useFamilyStore } = await import('./familyStore');
+          const { useFamilyStore } = await import("./familyStore");
           await useFamilyStore.getState().loadFamily();
         } catch (e) {
-          console.error('Erreur lors du parsing de l\'utilisateur:', e);
+          console.error("Erreur lors du parsing de l'utilisateur:", e);
           // Si le parsing échoue, nettoyer les données corrompues
           await get().clearToken();
         }
@@ -68,7 +71,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       }
     } catch (e) {
-      console.error('Erreur lors du chargement du token:', e);
+      console.error("Erreur lors du chargement du token:", e);
       await get().clearToken();
     }
   },
@@ -76,34 +79,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Sauvegarder le token dans AsyncStorage
   saveToken: async (token: string, user: User) => {
     try {
-      await AsyncStorage.setItem('auth_token', token);
-      await AsyncStorage.setItem('auth_user', JSON.stringify(user));
+      await AsyncStorage.setItem("auth_token", token);
+      await AsyncStorage.setItem("auth_user", JSON.stringify(user));
       set({ token, user });
     } catch (e) {
-      console.error('Erreur lors de la sauvegarde du token:', e);
+      console.error("Erreur lors de la sauvegarde du token:", e);
     }
   },
 
   // Supprimer le token
   clearToken: async () => {
     try {
-      await AsyncStorage.removeItem('auth_token');
-      await AsyncStorage.removeItem('auth_user');
+      await AsyncStorage.removeItem("auth_token");
+      await AsyncStorage.removeItem("auth_user");
       set({ token: null, user: null });
     } catch (e) {
-      console.error('Erreur lors de la suppression du token:', e);
+      console.error("Erreur lors de la suppression du token:", e);
     }
   },
 
   // Connexion
   login: async (email: string, password: string) => {
     set({ isLoading: true });
-    
+
     try {
       const response = await fetch(`${API_URL}/api/auth/local`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           identifier: email,
@@ -115,7 +118,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const errorData = await response.json();
         return {
           success: false,
-          error: errorData?.error?.message || 'Erreur de connexion',
+          error: errorData?.error?.message || "Erreur de connexion",
         };
       }
 
@@ -123,15 +126,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await get().saveToken(data.jwt, data.user);
 
       // Charger les informations de famille après la connexion
-      const { useFamilyStore } = await import('./familyStore');
+      const { useFamilyStore } = await import("./familyStore");
       await useFamilyStore.getState().fetchFamily();
 
       return { success: true, data };
     } catch (error: unknown) {
-      console.error('Erreur de connexion:', error);
+      console.error("Erreur de connexion:", error);
       return {
         success: false,
-        error: (error as Error).message || 'Erreur de connexion',
+        error: (error as Error).message || "Erreur de connexion",
       };
     } finally {
       set({ isLoading: false });
@@ -143,7 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await get().clearToken();
 
     // Effacer aussi les informations de famille
-    const { useFamilyStore } = await import('./familyStore');
+    const { useFamilyStore } = await import("./familyStore");
     await useFamilyStore.getState().clearFamily();
   },
 
@@ -162,14 +165,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la récupération de l\'utilisateur');
+        throw new Error("Erreur lors de la récupération de l'utilisateur");
       }
 
       const user: User = await response.json();
       set({ user });
       return user;
     } catch (error) {
-      console.error('Erreur lors de la récupération de l\'utilisateur:', error);
+      console.error("Erreur lors de la récupération de l'utilisateur:", error);
       await get().clearToken();
       return null;
     }

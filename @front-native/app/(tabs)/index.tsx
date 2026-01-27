@@ -1,12 +1,50 @@
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Déconnexion',
+      'Êtes-vous sûr de vouloir vous déconnecter ?',
+      [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+        {
+          text: 'Déconnexion',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            router.replace('/login');
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
+      {/* Header avec bouton de déconnexion */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.welcomeText}>Bonjour,</Text>
+          <Text style={styles.userName}>{user?.username || 'Utilisateur'}</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={handleLogout}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="log-out-outline" size={24} color="#EF4444" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.content}>
         {/* Logo / Icône */}
         <View style={styles.logoContainer}>
@@ -61,6 +99,34 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F3F4F6',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 60,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  welcomeText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  logoutButton: {
+    padding: 8,
   },
   content: {
     flex: 1,
