@@ -1,5 +1,6 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { StarRating } from './StarRating';
 import { Badge } from './Badge';
 import type { TransformedGame } from '@/stores/familyStore';
@@ -18,72 +19,82 @@ interface GameCardProps {
 }
 
 export function GameCard({ game, onPress }: GameCardProps) {
+  const router = useRouter();
+
   // Calculer la note moyenne à partir des ratings
   const averageRating = game.ratings && game.ratings.length > 0
     ? game.ratings.reduce((acc, r) => acc + r.rating, 0) / game.ratings.length
     : 0;
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress(game);
+    }
+    router.push(`/games/${game.id}`);
+  };
+
   return (
     <TouchableOpacity
-      className="bg-white rounded-xl mb-4 shadow-md"
-      onPress={() => onPress?.(game)}
+      className="bg-white rounded-lg mb-4 border border-gray-200"
+      onPress={handlePress}
       activeOpacity={0.7}
     >
       <View className="p-4">
-        {/* En-tête avec titre */}
-        <View className="mb-3">
-          <Text className="text-xl font-bold text-gray-900">{game.titre}</Text>
-        </View>
-
-        {/* Image du jeu */}
-        {game.image ? (
-          <Image
-            source={{ uri: game.image }}
-            className="w-full h-52 rounded-lg bg-gray-200"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="w-full h-52 rounded-lg bg-gray-200 justify-center items-center">
-            <Ionicons name="image-outline" size={48} color="#9CA3AF" />
+        <View className="flex-row items-start gap-4">
+          {/* Image du jeu - petite et carrée à gauche */}
+          <View className="w-24 h-24 rounded-lg bg-gray-100 justify-center items-center overflow-hidden shrink-0">
+            {game.image ? (
+              <Image
+                source={{ uri: game.image }}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
+            ) : (
+              <Ionicons name="dice-outline" size={32} color="#9CA3AF" />
+            )}
           </View>
-        )}
 
-        {/* Rating */}
-        {averageRating > 0 && (
-          <View className="mt-3 p-2 bg-blue-50 rounded-lg self-start">
-            <StarRating rating={averageRating} size={18} />
+          {/* Contenu à droite */}
+          <View className="flex-1 min-w-0">
+            {/* Titre */}
+            <View className="mb-2">
+              <Text className="text-lg font-semibold text-gray-900" numberOfLines={2}>
+                {game.titre}
+              </Text>
+            </View>
+
+            {/* Rating */}
+            {averageRating > 0 && (
+              <View className="flex-row items-center gap-2 mb-2">
+                <StarRating rating={averageRating} size={14} />
+              </View>
+            )}
+
+            {/* Top Winner */}
+            {game.topWinner && (
+              <View className="flex-row items-center gap-1 mb-2">
+                <Ionicons name="trophy" size={12} color="#EAB308" />
+                <Text className="text-xs font-bold text-yellow-600">
+                  {game.topWinner.username} ({game.topWinner.wins})
+                </Text>
+              </View>
+            )}
+
+            {/* Badges (Âge et tags) */}
+            <View className="flex-row flex-wrap gap-2 mt-3">
+              <Badge 
+                label={`${game.age_min}${game.age_max ? `-${game.age_max}` : '+'} ans`}
+                backgroundColor="#6B7280"
+              />
+              {game.tags.slice(0, 2).map((tag, index) => (
+                <Badge
+                  key={index}
+                  label={tag}
+                  backgroundColor={tag.includes('joueurs') ? '#3B82F6' : '#8B5CF6'}
+                />
+              ))}
+            </View>
           </View>
-        )}
-
-        {/* Top Winner */}
-        {game.topWinner && (
-          <View className="flex-row items-center mt-2 p-2 bg-yellow-50 rounded-lg">
-            <Ionicons
-              name="trophy"
-              size={16}
-              color="#F59E0B"
-              style={{ marginRight: 6 }}
-            />
-            <Text className="font-bold text-yellow-700 text-sm">
-              {game.topWinner.username} ({game.topWinner.wins}{' '}
-              {game.topWinner.wins > 1 ? 'victoires' : 'victoire'})
-            </Text>
-          </View>
-        )}
-
-        {/* Badges (Âge et tags) */}
-        <View className="flex-row flex-wrap gap-2 mt-3">
-          <Badge 
-            label={`${game.age_min}${game.age_max ? `-${game.age_max}` : '+'} ans`}
-            backgroundColor="#6B7280"
-          />
-          {game.tags.map((tag, index) => (
-            <Badge
-              key={index}
-              label={tag}
-              backgroundColor={tag.includes('joueurs') ? '#3B82F6' : '#8B5CF6'}
-            />
-          ))}
         </View>
       </View>
     </TouchableOpacity>
