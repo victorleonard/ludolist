@@ -30,13 +30,14 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!isReady) return;
 
-    const inAuthGroup = segments[0] === '(tabs)';
+    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'games';
+    const isLoginPage = segments[0] === 'login';
 
     if (!isAuthenticated() && inAuthGroup) {
       // Rediriger vers login si non authentifié
       router.replace('/login');
-    } else if (isAuthenticated() && !inAuthGroup) {
-      // Rediriger vers l'app si authentifié
+    } else if (isAuthenticated() && isLoginPage) {
+      // Rediriger vers l'app si authentifié et sur la page login
       router.replace('/(tabs)');
     }
   }, [isAuthenticated(), segments, isReady]);
@@ -58,6 +59,12 @@ function RootLayoutNav() {
           options={{ 
             headerShown: false,
             gestureEnabled: false,
+          }} 
+        />
+        <Stack.Screen 
+          name="games/[id]" 
+          options={{ 
+            headerShown: false,
           }} 
         />
       </Stack>
