@@ -1,0 +1,68 @@
+{
+  "kind": "collectionType",
+  "collectionName": "books",
+  "info": {
+    "singularName": "book",
+    "pluralName": "books",
+    "displayName": "Book"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "titre": {
+      "type": "string",
+      "required": true
+    },
+    "auteur": {
+      "type": "string"
+    },
+    "description": {
+      "type": "text"
+    },
+    "isbn": {
+      "type": "string"
+    },
+    "annee": {
+      "type": "integer"
+    },
+    "editeur": {
+      "type": "string"
+    },
+    "image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "nombre_pages": {
+      "type": "integer"
+    },
+    "sujets": {
+      "type": "json"
+    },
+    "open_library_key": {
+      "type": "string"
+    },
+    "families": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::family.family",
+      "mappedBy": "books"
+    },
+    "book_readings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::book-reading.book-reading",
+      "mappedBy": "book"
+    }
+  }
+}

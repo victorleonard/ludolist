@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useFamilyStore } from '~/stores/family'
+import { useMemberStore } from '~/stores/member'
 
 const route = useRoute()
 const router = useRouter()
@@ -10,16 +11,18 @@ const { recherche } = useRecherche()
 
 const authStore = useAuthStore()
 const familyStore = useFamilyStore()
+const memberStore = useMemberStore()
 
 const { user } = storeToRefs(authStore)
 const { family } = storeToRefs(familyStore)
+const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 const { logout } = authStore
 
 const isMenuOpen = ref(false)
 const isAddDrawerOpen = ref(false)
-const isSearchDrawerOpen = ref(false)
 const { isOpen: isAddGameModalOpen, selectedGame, openModal: openAddGameModal, closeModal: closeAddGameModal } = useAddGameModal()
 const { openModal: openAddSessionModal } = useAddSessionModal()
+const { isOpen: isAddBookModalOpen, selectedBook, openModal: openAddBookModal, closeModal: closeAddBookModal } = useAddBookModal()
 
 // Détecter si on est sur une page de jeu
 const isGamePage = computed(() => {
@@ -62,6 +65,11 @@ const menuItems = [
     label: 'Accueil',
     icon: 'i-lucide-home',
     to: '/'
+  },
+  {
+    label: 'Ma collection de livres',
+    icon: 'i-lucide-book',
+    to: '/livres/'
   }
 ]
 
@@ -77,6 +85,10 @@ const handleGameAdded = () => {
   familyStore.fetchFamily()
 }
 
+const handleBookAdded = () => {
+  familyStore.fetchFamily()
+}
+
 const openAddDrawer = () => {
   isAddDrawerOpen.value = true
 }
@@ -85,13 +97,6 @@ const closeAddDrawer = () => {
   isAddDrawerOpen.value = false
 }
 
-const openSearchDrawer = () => {
-  isSearchDrawerOpen.value = true
-}
-
-const closeSearchDrawer = () => {
-  isSearchDrawerOpen.value = false
-}
 
 const handleAddGame = () => {
   closeAddDrawer()
@@ -107,6 +112,16 @@ const handleAddSession = () => {
     // Sinon, rediriger vers la page des jeux pour sélectionner un jeu
     navigateTo('/jeux')
   }
+}
+
+const handleAddBook = () => {
+  closeAddDrawer()
+  openAddBookModal()
+}
+
+const handleMemberLogout = () => {
+  memberStore.logoutMember()
+  closeMenu()
 }
 </script>
 
@@ -152,44 +167,25 @@ const handleAddSession = () => {
         <div class="flex items-center gap-3">
           <UButton
             color="neutral"
-            icon="i-lucide-search"
-            size="sm"
-            aria-label="Rechercher"
-            variant="ghost"
-            class="md:hidden"
-            @click="openSearchDrawer"
-          />
-          <div class="relative w-64 hidden md:block">
-            <UInput
-              v-model="recherche"
-              placeholder="Rechercher un jeu..."
-              icon="i-lucide-search"
-              size="sm"
-              class="w-full"
-            >
-              <template
-                v-if="recherche"
-                #trailing
-              >
-                <UButton
-                  color="gray"
-                  variant="ghost"
-                  icon="i-lucide-x"
-                  size="xs"
-                  :padded="false"
-                  @click="recherche = ''"
-                />
-              </template>
-            </UInput>
-          </div>
-          <UButton
-            color="neutral"
             icon="i-lucide-plus"
             size="sm"
             aria-label="Ajouter"
             variant="outline"
             @click="openAddDrawer"
           />
+          <!-- Icône du membre connecté -->
+          <div
+            v-if="isMemberConnected && currentMember"
+            class="relative"
+          >
+            <button
+              :aria-label="`Membre connecté : ${currentMember.username}`"
+              class="w-8 h-8 rounded-full bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm flex items-center justify-center transition-colors shadow-sm"
+              @click="navigateTo('/member-login')"
+            >
+              {{ currentMember.username.charAt(0).toUpperCase() }}
+            </button>
+          </div>
         </div>
       </template>
     </UHeader>
@@ -240,6 +236,16 @@ const handleAddSession = () => {
                     />
                     {{ family.name }}
                   </span>
+                  <span
+                    v-if="isMemberConnected && currentMember"
+                    class="text-sm text-primary-600 dark:text-primary-400 flex items-center gap-1 mt-1"
+                  >
+                    <UIcon
+                      name="i-lucide-user-circle"
+                      class="w-4 h-4"
+                    />
+                    Connecté en tant que : {{ currentMember.username }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -258,6 +264,37 @@ const handleAddSession = () => {
               />
               <span class="font-medium">{{ item.label }}</span>
             </NuxtLink>
+
+            <!-- Séparateur -->
+            <div class="border-t my-2" />
+
+            <!-- Connexion membre -->
+            <NuxtLink
+              v-if="!isMemberConnected"
+              to="/member-login"
+              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              @click="closeMenu"
+            >
+              <UIcon
+                name="i-lucide-user-circle"
+                class="w-5 h-5"
+              />
+              <span class="font-medium">Se connecter en tant que membre</span>
+            </NuxtLink>
+
+            <UButton
+              v-else
+              variant="ghost"
+              color="neutral"
+              class="justify-start px-4 py-3"
+              @click="handleMemberLogout"
+            >
+              <UIcon
+                name="i-lucide-log-out"
+                class="w-5 h-5"
+              />
+              <span class="font-medium">Déconnexion membre ({{ currentMember?.username }})</span>
+            </UButton>
 
             <!-- Séparateur -->
             <div class="border-t my-2" />
@@ -288,52 +325,6 @@ const handleAddSession = () => {
               <span class="font-medium">Déconnexion</span>
             </UButton>
           </div>
-        </div>
-      </template>
-    </UDrawer>
-
-    <!-- Drawer pour la recherche mobile -->
-    <UDrawer
-      :open="isSearchDrawerOpen"
-      direction="top"
-      @update:open="(value) => { isSearchDrawerOpen = value }"
-    >
-      <template #content>
-        <div class="flex flex-col p-4">
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-semibold">
-              Rechercher un jeu
-            </h2>
-            <UButton
-              variant="ghost"
-              color="neutral"
-              icon="i-lucide-x"
-              size="sm"
-              @click="closeSearchDrawer"
-            />
-          </div>
-          <UInput
-            v-model="recherche"
-            placeholder="Rechercher un jeu..."
-            icon="i-lucide-search"
-            size="lg"
-            class="w-full"
-            autofocus
-          >
-            <template
-              v-if="recherche"
-              #trailing
-            >
-              <UButton
-                color="gray"
-                variant="ghost"
-                icon="i-lucide-x"
-                size="xs"
-                :padded="false"
-                @click="recherche = ''"
-              />
-            </template>
-          </UInput>
         </div>
       </template>
     </UDrawer>
@@ -371,6 +362,18 @@ const handleAddSession = () => {
               />
               <span class="font-medium">Nouvelle partie</span>
             </UButton>
+            <UButton
+              color="primary"
+              variant="ghost"
+              class="justify-start px-4 py-3"
+              @click="handleAddBook"
+            >
+              <UIcon
+                name="i-lucide-book"
+                class="w-5 h-5"
+              />
+              <span class="font-medium">Ajouter un livre</span>
+            </UButton>
           </div>
         </div>
       </template>
@@ -381,6 +384,13 @@ const handleAddSession = () => {
       :game="selectedGame"
       @update:model-value="(value) => { if (!value) closeAddGameModal() }"
       @success="handleGameAdded"
+    />
+
+    <AddBookModal
+      :model-value="isAddBookModalOpen"
+      :book="selectedBook"
+      @update:model-value="(value) => { if (!value) closeAddBookModal() }"
+      @success="handleBookAdded"
     />
   </UApp>
 </template>

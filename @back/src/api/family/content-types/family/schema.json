@@ -31,6 +31,12 @@
       "target": "api::game.game",
       "inversedBy": "families"
     },
+    "books": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::book.book",
+      "inversedBy": "families"
+    },
     "game_sessions": {
       "type": "relation",
       "relation": "oneToMany",

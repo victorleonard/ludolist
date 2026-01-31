@@ -430,6 +430,87 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiBookReadingBookReading extends Struct.CollectionTypeSchema {
+  collectionName: 'book_readings';
+  info: {
+    displayName: 'Book Reading';
+    pluralName: 'book-readings';
+    singularName: 'book-reading';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    book: Schema.Attribute.Relation<'manyToOne', 'api::book.book'> &
+      Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    date_debut: Schema.Attribute.Date;
+    date_fin: Schema.Attribute.Date;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-reading.book-reading'
+    > &
+      Schema.Attribute.Private;
+    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'> &
+      Schema.Attribute.Required;
+    note: Schema.Attribute.Decimal &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 0;
+        },
+        number
+      >;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiBookBook extends Struct.CollectionTypeSchema {
+  collectionName: 'books';
+  info: {
+    displayName: 'Book';
+    pluralName: 'books';
+    singularName: 'book';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    annee: Schema.Attribute.Integer;
+    auteur: Schema.Attribute.String;
+    book_readings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-reading.book-reading'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    editeur: Schema.Attribute.String;
+    families: Schema.Attribute.Relation<'manyToMany', 'api::family.family'>;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    image_url: Schema.Attribute.String;
+    isbn: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::book.book'> &
+      Schema.Attribute.Private;
+    nombre_pages: Schema.Attribute.Integer;
+    open_library_key: Schema.Attribute.String;
+    publishedAt: Schema.Attribute.DateTime;
+    sujets: Schema.Attribute.JSON;
+    titre: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
   collectionName: 'families';
   info: {
@@ -441,6 +522,7 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    books: Schema.Attribute.Relation<'manyToMany', 'api::book.book'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -556,6 +638,15 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    book_readings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-reading.book-reading'
+    >;
+    code: Schema.Attribute.String &
+      Schema.Attribute.SetMinMaxLength<{
+        maxLength: 4;
+        minLength: 4;
+      }>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1165,6 +1256,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::book-reading.book-reading': ApiBookReadingBookReading;
+      'api::book.book': ApiBookBook;
       'api::family.family': ApiFamilyFamily;
       'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;

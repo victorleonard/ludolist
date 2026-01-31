@@ -26,12 +26,34 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
           populate: {
             family: {
               populate: {
-                members: true,
+                members: {
+                  populate: {
+                    book_readings: {
+                      populate: {
+                        book: {
+                          populate: {
+                            image: true
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 games: {
                   populate: {
                     image: true,
                     ratings: {
                       populate: ['member']
+                    }
+                  }
+                },
+                books: {
+                  populate: {
+                    image: true,
+                    book_readings: {
+                      populate: {
+                        member: true
+                      }
                     }
                   }
                 }

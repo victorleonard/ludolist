@@ -5,6 +5,7 @@ export default defineNuxtPlugin(() => {
   }
 
   const authStore = useAuthStore()
+  const memberStore = useMemberStore()
   
   // Charger le token depuis le localStorage au démarrage de l'application
   // Ce plugin s'exécute avant les middlewares, garantissant que le token est disponible
@@ -26,5 +27,8 @@ export default defineNuxtPlugin(() => {
         authStore.clearToken()
       }
     }
+
+    // Charger le membre depuis le localStorage
+    memberStore.loadMember()
   }
 })

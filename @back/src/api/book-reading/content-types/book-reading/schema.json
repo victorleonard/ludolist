@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "book_readings",
+  "info": {
+    "singularName": "book-reading",
+    "pluralName": "book-readings",
+    "displayName": "Book Reading"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "member": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member",
+      "required": true
+    },
+    "book": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::book.book",
+      "required": true
+    },
+    "date_debut": {
+      "type": "date"
+    },
+    "date_fin": {
+      "type": "date"
+    },
+    "note": {
+      "type": "decimal",
+      "min": 0,
+      "max": 10
+    }
+  }
+}

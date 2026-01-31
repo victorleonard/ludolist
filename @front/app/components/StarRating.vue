@@ -1,7 +1,7 @@
 <template>
-  <div class="flex items-center gap-1">
+  <div class="flex items-center gap-0.5">
     <button
-      v-for="star in 5"
+      v-for="star in max"
       :key="star"
       type="button"
       class="transition-transform hover:scale-110 focus:outline-none"
@@ -27,11 +27,14 @@ interface Props {
   modelValue: number
   readonly?: boolean
   size?: 'sm' | 'md' | 'lg'
+  /** Nombre d'étoiles (5 par défaut pour les jeux, 10 pour les livres). */
+  max?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   readonly: false,
-  size: 'md'
+  size: 'md',
+  max: 5
 })
 
 const emit = defineEmits<{
