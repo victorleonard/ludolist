@@ -1,15 +1,15 @@
 <template>
-  <UContainer>
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div>
-      <div class="mt-6">
-        <div class="mb-8">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold">
+      <div class="mt-4 sm:mt-6">
+        <div class="mb-6 sm:mb-8">
+          <div class="mb-4 sm:mb-6">
+            <h1 class="text-xl sm:text-2xl font-bold">
               Ma collection de jeux
             </h1>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
             <USelect
               v-model="filtreDuree"
               :items="dureesAvecTous"
@@ -17,7 +17,7 @@
               value-attribute="value"
               placeholder="Toutes les durées"
               size="sm"
-              class="min-w-[160px]"
+              class="min-w-0 w-full sm:w-auto sm:min-w-[160px]"
             />
             <USelect
               v-model="filtreAge"
@@ -26,7 +26,7 @@
               value-attribute="value"
               placeholder="Tous les âges"
               size="sm"
-              class="min-w-[160px]"
+              class="min-w-0 w-full sm:w-auto sm:min-w-[160px]"
             />
           </div>
         </div>

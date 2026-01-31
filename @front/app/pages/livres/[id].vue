@@ -1,6 +1,6 @@
 <template>
-  <UContainer>
-    <div class="py-6">
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div class="py-4 sm:py-6">
       <!-- Loading -->
       <div
         v-if="loading"

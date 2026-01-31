@@ -1,13 +1,13 @@
 <template>
-  <UContainer>
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div>
-      <div class="mt-6">
+      <div class="mt-4 sm:mt-6">
         <!-- Derniers jeux joués -->
         <div
           v-if="latestSessions && latestSessions.length > 0"
-          class="mb-8"
+          class="mb-6 sm:mb-8"
         >
-          <h2 class="text-xl font-bold mb-4">
+          <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
             Dernières parties
           </h2>
           <div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">

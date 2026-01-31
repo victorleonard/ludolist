@@ -1,7 +1,7 @@
 <template>
-  <UContainer>
-    <div class="min-h-screen flex items-center justify-center py-12">
-      <UCard class="w-full max-w-md">
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div class="min-h-screen flex items-center justify-center py-6 sm:py-12">
+      <UCard class="w-full max-w-md mx-4 sm:mx-auto">
         <template #header>
           <div class="flex flex-col items-center gap-4">
             <AppLogo size="lg" />

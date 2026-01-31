@@ -1,13 +1,13 @@
 <template>
-  <UContainer>
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div>
-      <div class="mt-6">
-        <div class="mb-8">
-          <div class="mb-6">
-            <h1 class="text-2xl font-bold">
+      <div class="mt-4 sm:mt-6">
+        <div class="mb-6 sm:mb-8">
+          <div class="mb-4 sm:mb-6">
+            <h1 class="text-xl sm:text-2xl font-bold">
               Ma collection de livres
             </h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-2">
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
               Gérez votre collection de livres ici
             </p>
           </div>

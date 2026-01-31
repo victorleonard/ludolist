@@ -196,7 +196,7 @@ const handleMemberLogout = () => {
       </template>
     </UHeader>
 
-    <UMain class="pb-20 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <UMain class="main-content safe-area-x min-h-screen bg-gray-50 dark:bg-gray-900">
       <slot />
     </UMain>
 

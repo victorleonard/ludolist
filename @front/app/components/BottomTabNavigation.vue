@@ -1,21 +1,21 @@
 <template>
-  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-lg safe-area-inset-bottom">
-    <div class="flex items-center justify-around h-16 px-2 max-w-md mx-auto">
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-lg safe-area-inset-bottom safe-area-x">
+    <div class="flex items-center justify-around h-14 sm:h-16 px-2 w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto">
       <NuxtLink
         v-for="item in tabs"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center justify-center flex-1 h-full transition-all duration-200 relative"
+        class="flex flex-col items-center justify-center flex-1 h-full min-h-[44px] py-2 transition-all duration-200 relative"
         :class="isActive(item.to) ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
         active-class="text-primary-600 dark:text-primary-400"
         @click="handleClick"
       >
         <UIcon
           :name="item.icon"
-          class="w-6 h-6 mb-1 transition-transform"
+          class="w-6 h-6 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 transition-transform shrink-0"
           :class="isActive(item.to) ? 'scale-110' : ''"
         />
-        <span class="text-xs font-medium">{{ item.label }}</span>
+        <span class="text-[10px] sm:text-xs font-medium truncate max-w-full">{{ item.label }}</span>
       </NuxtLink>
     </div>
   </nav>
@@ -56,8 +56,8 @@ const handleClick = () => {
 </script>
 
 <style scoped>
-/* Support pour safe area sur iOS */
+/* Support pour safe area sur iOS / encoches */
 .safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
-  <UContainer>
-    <div class="py-6">
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <div class="py-4 sm:py-6">
       <!-- Loading -->
       <div
         v-if="loading"
@@ -57,7 +57,7 @@
         class="space-y-6"
       >
         <!-- Titre -->
-        <h1 class="text-2xl font-bold wrap-break-word min-w-0 mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold break-words min-w-0 mb-3 sm:mb-4">
           {{ jeu.titre }}
         </h1>
 
