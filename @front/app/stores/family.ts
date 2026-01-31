@@ -119,6 +119,7 @@ interface StrapiBook {
   sujets?: any;
   open_library_key?: string | null;
   book_readings?: BookReading[];
+  added_by?: { id: number; username?: string } | null;
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -342,6 +343,7 @@ export const useFamilyStore = defineStore("family", {
             nombre_pages: strapiBook.nombre_pages || null,
             sujets: strapiBook.sujets || null,
             book_readings: strapiBook.book_readings || [],
+            added_by: strapiBook.added_by || null,
             createdAt: strapiBook.createdAt || new Date().toISOString(),
           });
         } catch (err) {
@@ -972,18 +974,22 @@ export const useFamilyStore = defineStore("family", {
     },
 
     // Ajouter un livre à la famille
-    async addBookToFamily(bookData: {
-      titre: string;
-      auteur?: string;
-      description?: string;
-      isbn?: string;
-      annee?: number;
-      editeur?: string;
-      image_url?: string;
-      nombre_pages?: number;
-      sujets?: any;
-      open_library_key?: string;
-    }) {
+    async addBookToFamily(
+      bookData: {
+        titre: string;
+        auteur?: string;
+        description?: string;
+        isbn?: string;
+        annee?: number;
+        editeur?: string;
+        image_url?: string;
+        nombre_pages?: number;
+        sujets?: any;
+        open_library_key?: string;
+      },
+      /** Si fourni (membre connecté), le livre sera marqué comme ajouté par ce membre. */
+      memberId?: number
+    ) {
       const authStore = useAuthStore();
 
       if (!authStore.token) {
@@ -993,6 +999,8 @@ export const useFamilyStore = defineStore("family", {
       const config = useRuntimeConfig();
 
       try {
+        const body =
+          memberId != null ? { ...bookData, memberId } : bookData;
         const response = await $fetch<{ data: StrapiBook; message: string }>(
           `${config.public.apiUrl}/api/books/add-to-family`,
           {
@@ -1001,7 +1009,7 @@ export const useFamilyStore = defineStore("family", {
               Authorization: `Bearer ${authStore.token}`,
               "Content-Type": "application/json",
             },
-            body: bookData,
+            body,
           },
         );
 

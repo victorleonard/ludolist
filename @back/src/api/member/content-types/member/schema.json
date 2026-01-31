@@ -36,6 +36,13 @@
       "relation": "oneToMany",
       "target": "api::book-reading.book-reading",
       "mappedBy": "member"
+    },
+    "books_added": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::book.book",
+      "mappedBy": "added_by",
+      "description": "Livres ajoutés à la collection par ce membre"
     }
   }
 }

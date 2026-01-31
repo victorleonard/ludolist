@@ -237,7 +237,18 @@ definePageMeta({
 const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
 const { isLoading: loading } = storeToRefs(familyStore)
-const books = computed(() => familyStore.transformedBooks)
+
+/** Livres à afficher : tous si parent, uniquement ceux ajoutés par le membre si membre connecté. */
+const books = computed(() => {
+  const allBooks = familyStore.transformedBooks
+  if (!memberStore.isMemberConnected || !memberStore.currentMember) return allBooks
+  const memberId = memberStore.currentMember.id
+  return allBooks.filter(
+    (book) =>
+      book.added_by != null &&
+      (Number(book.added_by.id) === Number(memberId) || book.added_by.id === memberId)
+  )
+})
 
 /** Map book id / documentId -> lecture du membre connecté (rempli par fetch). */
 const memberReadingsMap = ref<Map<string, BookReading | Record<string, unknown>>>(new Map())

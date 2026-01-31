@@ -45,10 +45,28 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
         nombre_pages,
         sujets,
         open_library_key,
+        memberId,
       } = ctx.request.body;
 
       if (!titre) {
         return ctx.badRequest("Le titre est requis");
+      }
+
+      // Si memberId fourni, vérifier que le membre appartient à la famille
+      let addedByMemberId = null;
+      if (memberId != null) {
+        const familyWithMembers = await strapi.entityService.findOne(
+          "api::family.family",
+          userFamily.id,
+          { populate: { members: true } }
+        );
+        const memberExists = familyWithMembers.members?.some(
+          (m) => m.id === memberId || m.id === Number(memberId)
+        );
+        if (!memberExists) {
+          return ctx.badRequest("Ce membre n'appartient pas à votre famille");
+        }
+        addedByMemberId = Number(memberId);
       }
 
       // Créer le livre
@@ -64,6 +82,7 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
         sujets: sujets || null,
         open_library_key: open_library_key || null,
         publishedAt: new Date().toISOString(),
+        ...(addedByMemberId != null && { added_by: addedByMemberId }),
       };
 
       const createdBook = await strapi.entityService.create("api::book.book", {

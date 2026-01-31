@@ -122,6 +122,7 @@ const handleAddBook = () => {
 const handleMemberLogout = () => {
   memberStore.logoutMember()
   closeMenu()
+  navigateTo('/member-login')
 }
 </script>
 

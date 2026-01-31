@@ -482,6 +482,7 @@ export interface ApiBookBook extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    added_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     annee: Schema.Attribute.Integer;
     auteur: Schema.Attribute.String;
     book_readings: Schema.Attribute.Relation<
@@ -642,6 +643,7 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::book-reading.book-reading'
     >;
+    books_added: Schema.Attribute.Relation<'oneToMany', 'api::book.book'>;
     code: Schema.Attribute.String &
       Schema.Attribute.SetMinMaxLength<{
         maxLength: 4;

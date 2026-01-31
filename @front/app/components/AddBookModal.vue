@@ -686,6 +686,7 @@ const addBookFromPreview = async () => {
 
   try {
     const familyStore = useFamilyStore()
+    const memberStore = useMemberStore()
 
     const bookData = {
       titre: previewBook.value.title.trim(),
@@ -704,8 +705,12 @@ const addBookFromPreview = async () => {
       open_library_key: previewBook.value.key || undefined
     }
 
-    // Ajouter le livre à la famille via l'API
-    const result = await familyStore.addBookToFamily(bookData)
+    // Si membre connecté, passer son id pour marquer le livre comme ajouté par lui
+    const memberId = memberStore.isMemberConnected && memberStore.currentMember
+      ? memberStore.currentMember.id
+      : undefined
+
+    const result = await familyStore.addBookToFamily(bookData, memberId)
 
     if (!result.success) {
       submitError.value = result.error || 'Erreur lors de l\'ajout du livre'
