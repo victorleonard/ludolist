@@ -82,16 +82,16 @@ export function GameCard({ game, onPress }: GameCardProps) {
 
             {/* Badges (Âge et tags) */}
             <View className="flex-row flex-wrap gap-2 mt-3">
-              <Badge 
-                label={`${game.age_min}${game.age_max ? `-${game.age_max}` : '+'} ans`}
-                backgroundColor="#6B7280"
-              />
+              <Badge variant="neutral">
+                {game.age_min}{game.age_max ? `-${game.age_max}` : '+'} ans
+              </Badge>
               {game.tags.slice(0, 2).map((tag, index) => (
                 <Badge
                   key={index}
-                  label={tag}
-                  backgroundColor={tag.includes('joueurs') ? '#3B82F6' : '#8B5CF6'}
-                />
+                  variant={tag.includes('joueurs') ? 'info' : 'primary'}
+                >
+                  {tag}
+                </Badge>
               ))}
             </View>
           </View>

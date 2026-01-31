@@ -72,17 +72,41 @@ interface Family {
   games?: StrapiGame[];
 }
 
+interface PlayerScore {
+  id: number;
+  score: number;
+  is_winner?: boolean;
+  member: Member;
+}
+
+interface GameSession {
+  id: number;
+  played_at: string;
+  notes?: string;
+  player_scores?: PlayerScore[];
+}
+
+interface WinnerData {
+  member: Member;
+  wins: number;
+}
+
 interface FamilyState {
   family: Family | null;
   isLoading: boolean;
 
   // Getters
   getTransformedGames: () => TransformedGame[];
+  getFamilyMembers: () => Member[];
 
   // Actions
   loadFamily: () => Promise<void>;
   fetchFamily: () => Promise<void>;
   clearFamily: () => Promise<void>;
+  setRating: (gameId: number, memberId: number, rating: number) => Promise<{ success: boolean; error?: string }>;
+  fetchGameSessions: (gameId: number) => Promise<{ success: boolean; data?: GameSession[]; error?: string }>;
+  getTop3Winners: (gameId: number) => Promise<{ success: boolean; data?: WinnerData[]; error?: string }>;
+  fetchLatestPlayedGames: () => Promise<{ success: boolean; data?: any[]; error?: string }>;
 }
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:1337";
@@ -90,6 +114,12 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:1337";
 export const useFamilyStore = create<FamilyState>((set, get) => ({
   family: null,
   isLoading: false,
+
+  // Récupérer les membres de la famille
+  getFamilyMembers: (): Member[] => {
+    const state = get();
+    return state.family?.members || [];
+  },
 
   // Transformer les jeux Strapi en format d'affichage
   getTransformedGames: (): TransformedGame[] => {
@@ -236,6 +266,136 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
       set({ family: null });
     } catch (e) {
       console.error("Erreur lors de la suppression de la famille:", e);
+    }
+  },
+
+  // Définir une note pour un jeu
+  setRating: async (gameId: number, memberId: number, rating: number) => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const response = await fetch(`${API_URL}/api/ratings/set`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          gameId,
+          memberId,
+          rating,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'enregistrement de la note");
+      }
+
+      // Recharger la famille pour avoir les notes à jour
+      await get().fetchFamily();
+
+      return { success: true };
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la note:", error);
+      return { success: false, error: "Erreur lors de l'enregistrement de la note" };
+    }
+  },
+
+  // Récupérer les sessions de jeu pour un jeu spécifique
+  fetchGameSessions: async (gameId: number) => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const response = await fetch(`${API_URL}/api/game-sessions/game/${gameId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des parties");
+      }
+
+      const result = await response.json();
+      return { success: true, data: result.data || [] };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des parties:", error);
+      return { success: false, error: "Erreur lors de la récupération des parties" };
+    }
+  },
+
+  // Récupérer le top 3 des gagnants pour un jeu
+  getTop3Winners: async (gameId: number) => {
+    try {
+      // Récupérer toutes les sessions du jeu
+      const sessionsResult = await get().fetchGameSessions(gameId);
+
+      if (!sessionsResult.success || !sessionsResult.data) {
+        return { success: false, error: "Erreur lors de la récupération des sessions" };
+      }
+
+      const sessions = sessionsResult.data;
+      const winnerCounts: Record<number, WinnerData> = {};
+
+      // Compter les victoires pour chaque membre
+      sessions.forEach((session) => {
+        if (session.player_scores && Array.isArray(session.player_scores)) {
+          session.player_scores.forEach((score) => {
+            if (score.is_winner && score.member) {
+              const memberId = score.member.id;
+              if (!winnerCounts[memberId]) {
+                winnerCounts[memberId] = {
+                  member: score.member,
+                  wins: 0,
+                };
+              }
+              winnerCounts[memberId].wins++;
+            }
+          });
+        }
+      });
+
+      // Trier par nombre de victoires et prendre les top 3
+      const winners = Object.values(winnerCounts)
+        .sort((a, b) => b.wins - a.wins)
+        .slice(0, 3);
+
+      return { success: true, data: winners };
+    } catch (error) {
+      console.error("Erreur lors de la récupération du podium:", error);
+      return { success: false, error: "Erreur lors de la récupération du podium" };
+    }
+  },
+
+  // Récupérer les derniers jeux joués (jusqu'à 10)
+  fetchLatestPlayedGames: async () => {
+    try {
+      const token = useAuthStore.getState().token;
+      if (!token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const response = await fetch(`${API_URL}/api/game-sessions/latest`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de la récupération des derniers jeux joués");
+      }
+
+      const result = await response.json();
+      return { success: true, data: result.data || [] };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des derniers jeux joués:", error);
+      return { success: false, error: "Erreur lors de la récupération des derniers jeux joués" };
     }
   },
 }));
