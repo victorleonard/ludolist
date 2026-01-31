@@ -260,9 +260,10 @@
                     <div class="flex items-start justify-between p-4">
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-3">
-                          <div class="w-8 h-8 rounded-full bg-primary-500 text-white font-semibold text-sm flex items-center justify-center">
-                            {{ readingMemberName(reading).charAt(0).toUpperCase() }}
-                          </div>
+                          <MemberAvatar
+                            :member="readingMemberForAvatar(reading)"
+                            size="sm"
+                          />
                           <span class="font-semibold text-lg">{{ readingMemberName(reading) }}</span>
                         </div>
 
@@ -937,6 +938,16 @@ function readingMemberName(reading: Record<string, unknown>): string {
     if (att?.username) return att.username
   }
   return 'Membre'
+}
+
+/** Objet membre pour MemberAvatar (username + id si dispo) */
+function readingMemberForAvatar(reading: Record<string, unknown>): { username: string, id?: number } {
+  const username = readingMemberName(reading)
+  const m = reading?.member
+  const id = m && typeof m === 'object' && 'id' in m && typeof (m as { id: number }).id === 'number'
+    ? (m as { id: number }).id
+    : undefined
+  return { username, id }
 }
 
 function readingDate(reading: Record<string, unknown>, field: 'date_debut' | 'date_fin'): string {

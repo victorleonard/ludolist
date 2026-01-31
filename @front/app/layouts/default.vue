@@ -165,23 +165,30 @@ const handleMemberLogout = () => {
       </template>
 
       <template #right>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <UButton
             color="neutral"
             icon="i-lucide-plus"
             size="sm"
             aria-label="Ajouter"
             variant="outline"
+            class="w-7 h-7 sm:w-9 sm:h-9 p-0 rounded-lg flex items-center justify-center shrink-0 [&_svg]:w-3 [&_svg]:h-3 sm:[&_svg]:w-5 sm:[&_svg]:h-5"
             @click="openAddDrawer"
           />
           <!-- Avatar ou icône choix du membre (toujours vers /member-login) -->
           <UButton
             v-if="isMemberConnected && currentMember"
             :aria-label="`Membre connecté : ${currentMember.username}`"
-            class="w-8 h-8 rounded-full p-0 min-w-0 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm flex items-center justify-center transition-colors shadow-sm"
+            variant="ghost"
+            color="neutral"
+            class="rounded-full p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
             @click="navigateTo('/member-login')"
           >
-            {{ currentMember.username.charAt(0).toUpperCase() }}
+            <MemberAvatar
+              :member="currentMember"
+              size="xs"
+              show-ring
+            />
           </UButton>
           <UButton
             v-else
