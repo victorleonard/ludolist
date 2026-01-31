@@ -423,20 +423,22 @@
               </p>
               <div
                 v-if="coverSuggestions.length > 0"
-                class="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-80 overflow-y-auto"
+                class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[70vh] overflow-y-auto"
               >
                 <button
                   v-for="(item, idx) in coverSuggestions"
                   :key="idx"
                   type="button"
-                  class="aspect-[2/3] rounded-lg overflow-hidden border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                  class="relative block w-full rounded-lg overflow-hidden border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none bg-gray-100 dark:bg-gray-700"
                   :class="selectedCoverUrl === item.url ? 'border-primary-500 ring-2 ring-primary-300' : 'border-gray-200 dark:border-gray-600'"
                   @click="selectedCoverUrl = item.url"
                 >
+                  <!-- Ratio 2:3 (couverture livre) via padding, fiable sur mobile -->
+                  <span class="block w-full pt-[150%]" />
                   <img
                     :src="item.displayUrl"
                     :alt="item.label ?? 'Couverture'"
-                    class="w-full h-full object-cover"
+                    class="absolute inset-0 w-full h-full object-cover"
                   >
                 </button>
               </div>
