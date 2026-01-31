@@ -152,6 +152,7 @@ export interface TransformedBook {
   image: string | null;
   nombre_pages?: number | null;
   sujets?: any;
+  open_library_key?: string | null;
   book_readings?: BookReading[];
   createdAt: string;
 }
@@ -342,6 +343,7 @@ export const useFamilyStore = defineStore("family", {
             image: imageUrl,
             nombre_pages: strapiBook.nombre_pages || null,
             sujets: strapiBook.sujets || null,
+            open_library_key: strapiBook.open_library_key || null,
             book_readings: strapiBook.book_readings || [],
             added_by: strapiBook.added_by || null,
             createdAt: strapiBook.createdAt || new Date().toISOString(),
@@ -1032,6 +1034,48 @@ export const useFamilyStore = defineStore("family", {
           success: false,
           error: errorMessage,
         };
+      }
+    },
+
+    // Mettre à jour un livre (ex. image). Utiliser documentId (Strapi 5) si dispo, sinon id.
+    async updateBook(
+      bookIdOrDocumentId: number | string,
+      data: { image_url?: string | null }
+    ) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+      const identifier = String(bookIdOrDocumentId);
+
+      try {
+        await $fetch(`${config.public.apiUrl}/api/books/${identifier}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+            "Content-Type": "application/json",
+          },
+          body: {
+            data: { image_url: data.image_url ?? null },
+          },
+        });
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la mise à jour du livre:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de la mise à jour du livre";
+        return { success: false, error: errorMessage };
       }
     },
 

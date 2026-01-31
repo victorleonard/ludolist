@@ -80,16 +80,19 @@
                   </div>
                 </template>
                 <div class="flex flex-col gap-4">
-                  <div class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                  <div
+                    class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden relative group"
+                    @click.stop
+                  >
                     <img
                       v-if="book && book.image"
                       :src="book.image"
                       :alt="book.titre || 'Image du livre'"
-                      class="w-full h-full object-contain"
+                      class="w-full h-full object-contain pointer-events-none"
                     >
                     <div
                       v-else
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4 pointer-events-none"
                     >
                       <UIcon
                         name="i-lucide-book"
@@ -97,6 +100,17 @@
                       />
                       <span class="text-xs text-center">Aucune image</span>
                     </div>
+                    <UButton
+                      color="neutral"
+                      variant="solid"
+                      size="xs"
+                      icon="i-lucide-pencil"
+                      class="absolute bottom-2 right-2 opacity-90 pointer-events-auto"
+                      aria-label="Modifier l'image"
+                      @click.stop="openCoverModal"
+                    >
+                      Modifier l'image
+                    </UButton>
                   </div>
 
                   <!-- Informations principales -->
@@ -363,6 +377,117 @@
       @update:model-value="(value) => { isReadingModalOpen = value }"
       @success="handleReadingSuccess"
     />
+
+    <!-- Modal propositions de couverture -->
+    <UModal
+      :open="isCoverModalOpen"
+      :ui="{ width: 'max-w-lg' }"
+      @update:open="(value) => { isCoverModalOpen = value }"
+    >
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">
+                Choisir une couverture
+              </h3>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-x"
+                size="sm"
+                @click="isCoverModalOpen = false"
+              />
+            </div>
+          </template>
+          <div class="space-y-4">
+            <div
+              v-if="loadingCovers"
+              class="flex flex-col items-center justify-center py-12"
+            >
+              <UIcon
+                name="i-lucide-loader-2"
+                class="w-10 h-10 animate-spin text-primary-500 mb-3"
+              />
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Chargement des propositions...
+              </p>
+            </div>
+
+            <template v-else>
+              <p
+                v-if="coverSuggestions.length > 0"
+                class="text-sm text-gray-600 dark:text-gray-400"
+              >
+                Cliquez sur une image pour la sélectionner, puis Enregistrer.
+              </p>
+              <div
+                v-if="coverSuggestions.length > 0"
+                class="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-80 overflow-y-auto"
+              >
+                <button
+                  v-for="(item, idx) in coverSuggestions"
+                  :key="idx"
+                  type="button"
+                  class="aspect-[2/3] rounded-lg overflow-hidden border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                  :class="selectedCoverUrl === item.url ? 'border-primary-500 ring-2 ring-primary-300' : 'border-gray-200 dark:border-gray-600'"
+                  @click="selectedCoverUrl = item.url"
+                >
+                  <img
+                    :src="item.displayUrl"
+                    :alt="item.label ?? 'Couverture'"
+                    class="w-full h-full object-cover"
+                  >
+                </button>
+              </div>
+
+              <div
+                v-else
+                class="py-8 text-center"
+              >
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  {{ coverModalError || 'Aucune couverture disponible pour ce livre.' }}
+                </p>
+                <UButton
+                  v-if="book?.isbn"
+                  type="button"
+                  color="primary"
+                  icon="i-lucide-book-open"
+                  @click="useIsbnCover"
+                >
+                  Utiliser la couverture par ISBN
+                </UButton>
+              </div>
+            </template>
+
+            <p
+              v-if="coverModalError && coverSuggestions.length > 0"
+              class="text-sm text-amber-600 dark:text-amber-400"
+            >
+              {{ coverModalError }}
+            </p>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="isCoverModalOpen = false"
+              >
+                Annuler
+              </UButton>
+              <UButton
+                color="primary"
+                :loading="coverSaving"
+                :disabled="!selectedCoverUrl"
+                @click="saveSelectedCover"
+              >
+                Enregistrer
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+      </template>
+    </UModal>
   </UContainer>
 </template>
 
@@ -407,6 +532,129 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const isReadingModalOpen = ref(false)
 const selectedReading = ref<BookReading | null>(null)
+
+const isCoverModalOpen = ref(false)
+const selectedCoverUrl = ref('')
+const coverSuggestions = ref<Array<{ url: string, displayUrl: string, label?: string }>>([])
+const loadingCovers = ref(false)
+const coverModalError = ref<string | null>(null)
+const coverSaving = ref(false)
+
+function openCoverModal() {
+  selectedCoverUrl.value = book.value?.image ?? ''
+  coverModalError.value = null
+  coverSuggestions.value = []
+  isCoverModalOpen.value = true
+  loadCoverSuggestions()
+}
+
+function openLibraryCoverUrl(isbn: string | number | null | undefined): string {
+  if (isbn == null || String(isbn).trim() === '') return ''
+  return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(String(isbn).trim())}-L.jpg`
+}
+
+function useIsbnCover() {
+  const isbn = book.value?.isbn
+  if (isbn) {
+    selectedCoverUrl.value = openLibraryCoverUrl(isbn)
+  }
+}
+
+async function getWorkIdForBook(): Promise<string | null> {
+  const b = book.value
+  if (!b) return null
+  const key = b.open_library_key?.trim()
+  if (key) {
+    const normalized = key.replace(/^\/works\//i, '').trim()
+    if (normalized) return normalized
+  }
+  const isbn = b.isbn?.trim()
+  if (!isbn) return null
+  try {
+    const res = await $fetch<{ works?: Array<{ key: string }> }>(
+      `https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`
+    )
+    const workKey = res?.works?.[0]?.key
+    if (workKey) return workKey.replace(/^\/works\//i, '').trim()
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+async function loadCoverSuggestions() {
+  const workId = await getWorkIdForBook()
+  if (!workId) {
+    coverModalError.value = 'Impossible de trouver l\'œuvre (ISBN ou clé Open Library requis).'
+    return
+  }
+  loadingCovers.value = true
+  coverModalError.value = null
+  coverSuggestions.value = []
+  const currentImage = book.value?.image?.trim()
+  const list: Array<{ url: string; displayUrl: string; label?: string }> = []
+  if (currentImage) {
+    list.push({ url: currentImage, displayUrl: currentImage, label: 'Actuelle' })
+  }
+  const seen = new Set<string>(currentImage ? [currentImage] : [])
+  try {
+    const res = await $fetch<{ entries?: Array<{ covers?: number[], isbn_13?: string[], isbn_10?: string[], publish_date?: string }> }>(
+      `https://openlibrary.org/works/${workId}/editions.json`,
+      { params: { limit: 24 } }
+    )
+    const entries = res?.entries ?? []
+    for (const entry of entries) {
+      let urlL: string | null = null
+      let displayUrl: string | null = null
+      if (entry.covers?.[0]) {
+        const id = entry.covers[0]
+        urlL = `https://covers.openlibrary.org/b/id/${id}-L.jpg`
+        displayUrl = `https://covers.openlibrary.org/b/id/${id}-M.jpg`
+      } else if (entry.isbn_13?.[0]) {
+        const isbn = entry.isbn_13[0]
+        urlL = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
+        displayUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+      } else if (entry.isbn_10?.[0]) {
+        const isbn = entry.isbn_10[0]
+        urlL = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
+        displayUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+      }
+      if (urlL && displayUrl && !seen.has(urlL)) {
+        seen.add(urlL)
+        list.push({ url: urlL, displayUrl, label: entry.publish_date ? `Éd. ${entry.publish_date}` : undefined })
+      }
+    }
+    coverSuggestions.value = list
+    if (list.length === 0) {
+      coverModalError.value = 'Aucune couverture trouvée pour les éditions.'
+    }
+  } catch (err) {
+    coverModalError.value = err instanceof Error ? err.message : 'Erreur lors du chargement des propositions.'
+  } finally {
+    loadingCovers.value = false
+  }
+}
+
+async function saveSelectedCover() {
+  if (!book.value) return
+  coverModalError.value = null
+  coverSaving.value = true
+  try {
+    const result = await familyStore.updateBook(book.value.documentId ?? book.value.id, {
+      image_url: selectedCoverUrl.value.trim() || null
+    })
+    if (result.success) {
+      isCoverModalOpen.value = false
+      await loadBook()
+    } else {
+      coverModalError.value = result.error ?? 'Erreur lors de la mise à jour'
+    }
+  } catch (err) {
+    coverModalError.value = err instanceof Error ? err.message : 'Erreur lors de la mise à jour'
+  } finally {
+    coverSaving.value = false
+  }
+}
 
 const activeTab = ref('0')
 const tabs = [
@@ -689,7 +937,7 @@ function readingMemberName(reading: Record<string, unknown>): string {
   return 'Membre'
 }
 
-function readingDate (reading: Record<string, unknown>, field: 'date_debut' | 'date_fin'): string {
+function readingDate(reading: Record<string, unknown>, field: 'date_debut' | 'date_fin'): string {
   const v = reading?.[field]
   if (typeof v === 'string') return v
   if (v && typeof v === 'object' && 'attributes' in reading) {
@@ -730,7 +978,6 @@ function readingDurationLabel(reading: Record<string, unknown>): string | null {
   return days <= 1 ? '1 jour' : `${days} jours`
 }
 
-// Recharger quand l'identifiant du livre change
 watch(bookIdentifier, async (newId) => {
   if (newId) {
     book.value = null
