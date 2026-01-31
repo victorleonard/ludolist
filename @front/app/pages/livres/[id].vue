@@ -288,8 +288,8 @@
                           </div>
                         </div>
 
-                        <!-- Statut de lecture -->
-                        <div class="mt-3">
+                        <!-- Statut de lecture et durée -->
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
                           <UBadge
                             v-if="readingDate(reading, 'date_fin')"
                             color="success"
@@ -322,6 +322,17 @@
                               class="w-3 h-3 mr-1"
                             />
                             À lire
+                          </UBadge>
+                          <UBadge
+                            v-if="readingDurationLabel(reading)"
+                            color="primary"
+                            variant="subtle"
+                          >
+                            <UIcon
+                              name="i-lucide-timer"
+                              class="w-3 h-3 mr-1"
+                            />
+                            {{ readingDurationLabel(reading) }}
                           </UBadge>
                         </div>
                       </div>
@@ -698,6 +709,25 @@ function readingNote(reading: Record<string, unknown>): number | null {
     if (n != null) return Number(n)
   }
   return null
+}
+
+/** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */
+function readingDurationDays(reading: Record<string, unknown>): number | null {
+  const debut = readingDate(reading, 'date_debut')
+  const fin = readingDate(reading, 'date_fin')
+  if (!debut || !fin) return null
+  const d1 = new Date(debut).getTime()
+  const d2 = new Date(fin).getTime()
+  if (Number.isNaN(d1) || Number.isNaN(d2)) return null
+  const days = Math.round((d2 - d1) / (24 * 60 * 60 * 1000))
+  return days >= 0 ? days : null
+}
+
+/** Libellé durée pour affichage : "1 jour" ou "X jours". */
+function readingDurationLabel(reading: Record<string, unknown>): string | null {
+  const days = readingDurationDays(reading)
+  if (days == null) return null
+  return days <= 1 ? '1 jour' : `${days} jours`
 }
 
 // Recharger quand l'identifiant du livre change

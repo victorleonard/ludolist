@@ -174,19 +174,24 @@ const handleMemberLogout = () => {
             variant="outline"
             @click="openAddDrawer"
           />
-          <!-- Icône du membre connecté -->
-          <div
+          <!-- Avatar ou icône choix du membre (toujours vers /member-login) -->
+          <UButton
             v-if="isMemberConnected && currentMember"
-            class="relative"
+            :aria-label="`Membre connecté : ${currentMember.username}`"
+            class="w-8 h-8 rounded-full p-0 min-w-0 bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm flex items-center justify-center transition-colors shadow-sm"
+            @click="navigateTo('/member-login')"
           >
-            <button
-              :aria-label="`Membre connecté : ${currentMember.username}`"
-              class="w-8 h-8 rounded-full bg-primary-500 hover:bg-primary-600 text-white font-semibold text-sm flex items-center justify-center transition-colors shadow-sm"
-              @click="navigateTo('/member-login')"
-            >
-              {{ currentMember.username.charAt(0).toUpperCase() }}
-            </button>
-          </div>
+            {{ currentMember.username.charAt(0).toUpperCase() }}
+          </UButton>
+          <UButton
+            v-else
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-user-circle"
+            size="sm"
+            aria-label="Choisir un membre"
+            @click="navigateTo('/member-login')"
+          />
         </div>
       </template>
     </UHeader>

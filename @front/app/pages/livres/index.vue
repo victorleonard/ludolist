@@ -92,7 +92,7 @@
                   {{ book.auteur }}
                 </div>
 
-                <!-- Note et statut (membre connecté : sa lecture ; sinon première lecture) -->
+                <!-- Note, statut et durée (membre connecté : sa lecture ; sinon première lecture) -->
                 <div
                   v-if="showMemberReadingTags(book)"
                   class="flex flex-wrap items-center gap-2"
@@ -111,6 +111,18 @@
                   >
                     {{ getBookStatus(book) }}
                   </UBadge>
+                  <UBadge
+                    v-if="getBookDurationLabel(book)"
+                    color="primary"
+                    variant="subtle"
+                    size="xs"
+                  >
+                    <UIcon
+                      name="i-lucide-timer"
+                      class="w-3 h-3 mr-1"
+                    />
+                    {{ getBookDurationLabel(book) }}
+                  </UBadge>
                 </div>
 
                 <div class="flex flex-wrap gap-2">
@@ -122,12 +134,12 @@
                     {{ book.annee }}
                   </UBadge>
                   <UBadge
-                    v-if="book.isbn"
+                    v-if="getBookFirstCategory(book)"
                     color="primary"
-                    variant="subtle"
-                    class="text-xs"
+                    variant="outline"
+                    size="xs"
                   >
-                    ISBN
+                    {{ getBookFirstCategory(book) }}
                   </UBadge>
                 </div>
               </div>
@@ -172,7 +184,7 @@
                     >
                       {{ book.auteur }}
                     </p>
-                    <!-- Note et statut (membre connecté : sa lecture ; sinon première lecture) -->
+                    <!-- Note, statut et durée (membre connecté : sa lecture ; sinon première lecture) -->
                     <div
                       v-if="showMemberReadingTags(book)"
                       class="flex flex-wrap items-center gap-2 mb-2"
@@ -191,6 +203,18 @@
                       >
                         {{ getBookStatus(book) }}
                       </UBadge>
+                      <UBadge
+                        v-if="getBookDurationLabel(book)"
+                        color="primary"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        <UIcon
+                          name="i-lucide-timer"
+                          class="w-3 h-3 mr-1"
+                        />
+                        {{ getBookDurationLabel(book) }}
+                      </UBadge>
                     </div>
                     <div class="flex flex-wrap gap-2">
                       <UBadge
@@ -202,12 +226,12 @@
                         {{ book.annee }}
                       </UBadge>
                       <UBadge
-                        v-if="book.isbn"
+                        v-if="getBookFirstCategory(book)"
                         color="primary"
-                        variant="subtle"
+                        variant="outline"
                         size="xs"
                       >
-                        ISBN
+                        {{ getBookFirstCategory(book) }}
                       </UBadge>
                     </div>
                   </div>
@@ -309,6 +333,32 @@ function readingHasDate(reading: BookReading | Record<string, unknown> | null, f
   return !!v
 }
 
+function readingDateValue(reading: BookReading | Record<string, unknown> | null, field: 'date_debut' | 'date_fin'): string {
+  if (!reading || typeof reading !== 'object') return ''
+  const r = reading as Record<string, unknown>
+  const v = r[field] ?? (r.attributes as Record<string, unknown> | undefined)?.[field]
+  return typeof v === 'string' ? v : ''
+}
+
+/** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */
+function readingDurationDays(reading: BookReading | Record<string, unknown> | null): number | null {
+  const debut = readingDateValue(reading, 'date_debut')
+  const fin = readingDateValue(reading, 'date_fin')
+  if (!debut || !fin) return null
+  const d1 = new Date(debut).getTime()
+  const d2 = new Date(fin).getTime()
+  if (Number.isNaN(d1) || Number.isNaN(d2)) return null
+  const days = Math.round((d2 - d1) / (24 * 60 * 60 * 1000))
+  return days >= 0 ? days : null
+}
+
+/** Libellé durée pour la carte livre : "1 jour" ou "X jours", ou null. */
+function getBookDurationLabel(book: TransformedBook): string | null {
+  const days = readingDurationDays(getDisplayReading(book))
+  if (days == null) return null
+  return days <= 1 ? '1 jour' : `${days} jours`
+}
+
 /** Note sur 10 pour l'affichage (étoiles). */
 function getBookNoteRaw(book: TransformedBook): number {
   const note = readingNote(getDisplayReading(book))
@@ -332,6 +382,14 @@ function getBookStatus(book: TransformedBook): 'Lu' | 'En cours' | 'À lire' | n
 /** True si on doit afficher la ligne note/statut (membre connecté). */
 function showMemberReadingTags(book: TransformedBook): boolean {
   return memberStore.isMemberConnected || !!getDisplayReading(book)
+}
+
+/** Première catégorie/sujet du livre (API Open Library), si disponible. */
+function getBookFirstCategory(book: TransformedBook): string | null {
+  const sujets = book.sujets
+  if (!sujets || !Array.isArray(sujets) || sujets.length === 0) return null
+  const first = sujets[0]
+  return typeof first === 'string' ? first : null
 }
 
 onMounted(async () => {

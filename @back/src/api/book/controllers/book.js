@@ -69,18 +69,53 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
         addedByMemberId = Number(memberId);
       }
 
+      // Récupérer les catégories (sujets) depuis l'API Open Library si ISBN ou clé fourni
+      let sujetsFromApi = sujets || null;
+      const isbnTrimmed = isbn?.trim();
+      const keyTrimmed = open_library_key?.trim();
+      try {
+        let workKey = null;
+        if (keyTrimmed) {
+          workKey = keyTrimmed.startsWith("/works/") ? keyTrimmed : `/works/${keyTrimmed}`;
+        } else if (isbnTrimmed) {
+          const isbnRes = await fetch(
+            `https://openlibrary.org/isbn/${encodeURIComponent(isbnTrimmed)}.json`
+          );
+          if (isbnRes.ok) {
+            const isbnData = await isbnRes.json();
+            const works = isbnData.works;
+            if (Array.isArray(works) && works.length > 0 && works[0].key) {
+              workKey = works[0].key;
+            }
+          }
+        }
+        if (workKey) {
+          const workRes = await fetch(
+            `https://openlibrary.org${workKey}.json`
+          );
+          if (workRes.ok) {
+            const workData = await workRes.json();
+            if (Array.isArray(workData.subjects) && workData.subjects.length > 0) {
+              sujetsFromApi = workData.subjects.slice(0, 10);
+            }
+          }
+        }
+      } catch (apiErr) {
+        strapi.log.warn("Open Library API (catégories):", apiErr?.message || apiErr);
+      }
+
       // Créer le livre
       const bookData = {
         titre: titre.trim(),
         auteur: auteur?.trim() || null,
         description: description?.trim() || null,
-        isbn: isbn?.trim() || null,
+        isbn: isbnTrimmed || null,
         annee: annee || null,
         editeur: editeur?.trim() || null,
         image_url: image_url || null,
         nombre_pages: nombre_pages || null,
-        sujets: sujets || null,
-        open_library_key: open_library_key || null,
+        sujets: sujetsFromApi,
+        open_library_key: keyTrimmed || null,
         publishedAt: new Date().toISOString(),
         ...(addedByMemberId != null && { added_by: addedByMemberId }),
       };

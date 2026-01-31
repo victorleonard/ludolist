@@ -84,6 +84,23 @@
             Se connecter
           </UButton>
 
+          <!-- Mode famille : tout voir sans code -->
+          <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-3">
+              Ou accédez à toute la collection sans code
+            </p>
+            <UButton
+              variant="outline"
+              color="neutral"
+              size="lg"
+              block
+              icon="i-lucide-users"
+              @click="handleFamilyMode"
+            >
+              Mode famille — tout voir
+            </UButton>
+          </div>
+
           <!-- Lien retour -->
           <div class="text-center">
             <UButton
@@ -161,6 +178,12 @@ const handleLogin = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+/** Mode famille : aucun membre sélectionné, voir toute la collection. */
+const handleFamilyMode = () => {
+  memberStore.clearMember()
+  navigateTo('/')
 }
 
 onMounted(async () => {
