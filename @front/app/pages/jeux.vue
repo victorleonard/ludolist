@@ -10,21 +10,23 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-            <USelect
+            <SelectWithModal
               v-model="filtreDuree"
               :items="dureesAvecTous"
               option-attribute="label"
               value-attribute="value"
               placeholder="Toutes les durées"
+              modal-title="Durée de jeu"
               size="sm"
               class="min-w-0 w-full sm:w-auto sm:min-w-[160px]"
             />
-            <USelect
+            <SelectWithModal
               v-model="filtreAge"
               :items="agesAvecTous"
               option-attribute="label"
               value-attribute="value"
               placeholder="Tous les âges"
+              modal-title="Âge minimum"
               size="sm"
               class="min-w-0 w-full sm:w-auto sm:min-w-[160px]"
             />

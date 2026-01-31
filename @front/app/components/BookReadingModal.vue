@@ -39,12 +39,14 @@
               />
               Membre <span class="text-red-500">*</span>
             </label>
-            <USelect
+            <SelectWithModal
               id="member"
               v-model="state.memberId"
               :items="memberOptions"
               option-attribute="label"
               value-attribute="value"
+              placeholder="Choisir un membre"
+              modal-title="Choisir un membre"
               :disabled="submitting || !!reading"
               :error="!!errors.memberId"
               class="w-full"

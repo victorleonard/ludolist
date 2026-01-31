@@ -240,12 +240,14 @@
                 >
                   Âge minimum <span class="text-red-500">*</span>
                 </label>
-                <USelect
+                <SelectWithModal
                   id="age_min"
                   v-model="state.age_min"
                   :items="ageOptions"
                   option-attribute="label"
                   value-attribute="value"
+                  placeholder="Âge minimum"
+                  modal-title="Âge minimum"
                   :disabled="submitting"
                   :error="!!errors.age_min"
                   class="w-full"
@@ -264,12 +266,14 @@
                 >
                   Âge maximum
                 </label>
-                <USelect
+                <SelectWithModal
                   id="age_max"
                   v-model="state.age_max"
                   :items="filteredAgeMaxOptions"
                   option-attribute="label"
                   value-attribute="value"
+                  placeholder="Âge maximum"
+                  modal-title="Âge maximum"
                   :disabled="submitting"
                   :error="!!errors.age_max"
                   class="w-full"
@@ -330,12 +334,14 @@
                 >
                   Nombre minimum <span class="text-red-500">*</span>
                 </label>
-                <USelect
+                <SelectWithModal
                   id="player_min"
                   v-model="state.player_min"
                   :items="playerMinOptions"
                   option-attribute="label"
                   value-attribute="value"
+                  placeholder="Minimum"
+                  modal-title="Nombre minimum de joueurs"
                   :disabled="submitting"
                   :error="!!errors.player_min"
                   class="w-full"
@@ -354,12 +360,14 @@
                 >
                   Nombre maximum
                 </label>
-                <USelect
+                <SelectWithModal
                   id="player_max"
                   v-model="state.player_max"
                   :items="filteredPlayerMaxOptions"
                   option-attribute="label"
                   value-attribute="value"
+                  placeholder="Maximum"
+                  modal-title="Nombre maximum de joueurs"
                   :disabled="submitting"
                   :error="!!errors.player_max"
                   class="w-full"

@@ -23,13 +23,14 @@
             >
               Membre
             </label>
-            <USelect
+            <SelectWithModal
               id="member"
               v-model="selectedMemberId"
               :items="memberOptions"
               option-attribute="label"
               value-attribute="value"
               placeholder="Choisissez un membre"
+              modal-title="Choisir un membre"
               :disabled="isLoading"
               size="lg"
               class="w-full"
