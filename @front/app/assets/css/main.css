@@ -4,7 +4,7 @@
 @theme static {
   --font-sans: "Public Sans", sans-serif;
 
-  /* Palette primaire pastel dans le style du logo (cyan/bleu ciel doux) */
+  /* Palette primaire */
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
   --color-primary-200: #bae6fd;
@@ -19,51 +19,59 @@
 }
 
 /* --- Responsive & safe-area (mobile / tablette) --- */
+/* Conserver vos noms de variables existants et fournir fallback via env() */
 :root {
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
+  /* alias courts utilisés dans mes exemples précédents */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 /* Conteneur de page : padding horizontal + safe-area (mobile / tablette) */
 .page-container {
   width: 100%;
   max-width: 100%;
-  padding-left: max(1rem, env(safe-area-inset-left, 0px));
-  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  background-color: #f9fafb;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
   .page-container {
-    padding-left: max(1.5rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1.5rem, env(safe-area-inset-right, 0px));
+    padding-left: max(1.5rem, var(--safe-area-inset-left));
+    padding-right: max(1.5rem, var(--safe-area-inset-right));
   }
 }
 
 @media (min-width: 1024px) {
   .page-container {
-    padding-left: max(2rem, env(safe-area-inset-left, 0px));
-    padding-right: max(2rem, env(safe-area-inset-right, 0px));
+    padding-left: max(2rem, var(--safe-area-inset-left));
+    padding-right: max(2rem, var(--safe-area-inset-right));
   }
 }
 
 /* Zone de contenu : espace pour la barre de navigation basse + safe-area */
 .main-content {
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(5rem + var(--safe-area-inset-bottom));
+  margin-top: 0; /* retirer margin-top négatif qui posait problème */
+  padding-top: 0; /* le padding-top est géré via .app-wrapper ou .main-content selon header */
 }
 
 /* Safe-area horizontale uniquement (pour header, main, bottom nav) */
 .safe-area-x {
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: var(--safe-area-inset-left);
+  padding-right: var(--safe-area-inset-right);
 }
 
-/* Safe-area haute (encoche / statut) */
+/* Safe-area haute (encoche / statut) : utilitaire (ne change pas le flux) */
 .safe-area-t {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--safe-area-inset-top);
 }
-
 
 /* Zones tactiles minimales pour mobile (44px recommandé) */
 @media (max-width: 767px) {
@@ -90,16 +98,16 @@ header [data-slot="right"] button[aria-label*="Menu"] {
   display: none !important;
 }
 
-/* Fond gris léger pour améliorer le contraste */
+/* Fond blanc / thèmes — conservez vos règles existantes */
 body {
-  background-color: #f9fafb;
+  background-color: #ffffff;
+  /* Ne pas appliquer padding-top global sur body (génère transparence derrière notch) */
 }
 
 .dark body {
   background-color: #111827;
 }
 
-/* Fond blanc pour les cartes UCard */
 /* Forcer le fond blanc sur tous les éléments avec bg-white */
 .bg-white,
 [class*="bg-white"] {
@@ -132,4 +140,77 @@ div[class*="rounded"][class*="border"]:not([class*="bg-gray"]):not(
     [class*="bg-primary"]
   ):not([class*="bg-yellow"]) {
   background-color: #1f2937 !important;
+}
+
+/* ------------------ Header safe-area handling ------------------ */
+/* Remplacez 56px par la hauteur visuelle réelle de votre header si nécessaire */
+:root { --header-visual-height: 56px; }
+
+/* Classe conservée .header-fixed (vous l'utilisiez déjà) */
+.header-fixed,
+.safe-header {
+  position: sticky; /* ou fixed si vous préférez */
+  top: 0;              /* impératif : garder top:0 */
+  left: 0;
+  right: 0;
+  z-index: 50;
+  box-sizing: border-box;
+
+  /* hauteur totale = hauteur visuelle + safe-area */
+  height: calc(var(--header-visual-height) + var(--safe-top));
+  /* pousser le contenu interne sous l'encoche */
+  padding-top: var(--safe-top);
+
+  display: flex;
+  align-items: center; /* centre verticalement le contenu visuel */
+  background-color: rgba(255,255,255,0.97); /* évite transparence visible */
+  backdrop-filter: blur(8px); /* optionnel */
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Variante dark (conserver cohérence avec vos couleurs) */
+.dark .header-fixed,
+.dark .safe-header {
+  background-color: rgba(17,24,39,0.97);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+/* Peindre explicitement la safe-area (utile si header semi-translucide) */
+.header-fixed::before,
+.safe-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--safe-top);
+  background: inherit;
+  pointer-events: none;
+  z-index: -1;
+}
+.header-logo {
+  top: var(--safe-area-inset-top);
+}
+
+/* Empêcher le contenu principal de défiler sous le header.
+   Appliquez cette règle au wrapper principal ou au main. */
+.main-content,
+.app-wrapper,
+.page-container {
+  /*padding-top: calc(var(--header-visual-height) + var(--safe-top));*/
+  box-sizing: border-box;
+}
+
+/* Si vous souhaitez n'appliquer la compensation que sur l'app-wrapper : */
+/*
+.app-wrapper {
+  padding-top: calc(var(--header-visual-height) + var(--safe-top));
+}
+*/
+
+/* Si votre UHeader ou éléments internes utilisent transform pour centrer,
+   neutralisez-le ici pour éviter décalages visuels */
+.header-fixed > * ,
+.safe-header > * {
+  transform: none !important;
 }

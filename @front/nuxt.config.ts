@@ -11,6 +11,17 @@ export default defineNuxtConfig({
     enabled: true
   },
 
+  app: {
+    head: {
+      meta: [
+        { name: 'viewport', content: 'width=device-width,initial-scale=1,viewport-fit=cover' },
+        { name: 'apple-mobile-web-app-capable', content: 'yes' },
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        { name: 'theme-color', content: '#f9fafb' }
+      ]
+    }
+  },
+
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
@@ -26,6 +37,15 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2025-01-15',
+
+  nitro: {
+    publicAssets: [
+      {
+        dir: 'public',
+        maxAge: 60 * 60 * 24 * 365 // 1 an pour les assets statiques
+      }
+    ]
+  },
 
   eslint: {
     config: {
@@ -140,14 +160,5 @@ export default defineNuxtConfig({
     client: {
       installPrompt: true
     }
-  },
-
-  nitro: {
-    publicAssets: [
-      {
-        dir: 'public',
-        maxAge: 60 * 60 * 24 * 365 // 1 an pour les assets statiques
-      }
-    ]
   }
 })

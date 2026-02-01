@@ -97,7 +97,6 @@ const closeAddDrawer = () => {
   isAddDrawerOpen.value = false
 }
 
-
 const handleAddGame = () => {
   closeAddDrawer()
   openAddGameModal()
@@ -127,10 +126,10 @@ const handleMemberLogout = () => {
 </script>
 
 <template>
-  <UApp>
+  <UApp class="app-wrapper">
     <UHeader
       :mobile="false"
-      class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/30 shadow-lg shadow-black/5"
+      class="header-fixed bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-lg safe-header"
     >
       <template #left>
         <div class="relative z-10">
@@ -159,7 +158,9 @@ const handleMemberLogout = () => {
             />
           </UButton>
         </div>
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+        <div
+          class="absolute left-1/2 transform -translate-x-1/2 inset-y-0 flex items-center pointer-events-none header-logo"
+        >
           <AppLogo class="pointer-events-auto" />
         </div>
       </template>
