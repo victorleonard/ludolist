@@ -37,64 +37,117 @@ export default defineNuxtConfig({
   },
 
   pwa: {
+    disable: process.env.NODE_ENV === 'production',
     registerType: 'autoUpdate',
     manifest: {
-      name: 'LudoList',
+      name: 'LudoList - Gestion de Jeux de Société',
       short_name: 'LudoList',
-      description: 'Application de gestion de jeux de société',
+      description: 'Application complète pour gérer votre collection de jeux de société, organiser des sessions de jeu et suivre vos parties en famille',
       theme_color: '#16a34a',
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',
       scope: '/',
       start_url: '/',
+      lang: 'fr',
+      dir: 'ltr',
+      categories: ['games', 'lifestyle', 'entertainment'],
       icons: [
         {
           src: '/favicon.ico',
           sizes: '64x64 32x32 24x24 16x16',
           type: 'image/x-icon'
+        },
+        {
+          src: '/icons/icon-72x72.png',
+          sizes: '72x72',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-96x96.png',
+          sizes: '96x96',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-128x128.png',
+          sizes: '128x128',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-144x144.png',
+          sizes: '144x144',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-152x152.png',
+          sizes: '152x152',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-384x384.png',
+          sizes: '384x384',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: '/icons/maskable-icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable'
+        }
+      ],
+      shortcuts: [
+        {
+          name: 'Mes Jeux',
+          short_name: 'Jeux',
+          description: 'Accéder à ma collection de jeux',
+          url: '/jeux',
+          icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
+        },
+        {
+          name: 'Mes Livres',
+          short_name: 'Livres',
+          description: 'Accéder à ma liste de livres',
+          url: '/livres',
+          icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
         }
       ]
     },
     workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-      runtimeCaching: [
-        {
-          urlPattern: /\/api\/.*/i,
-          handler: 'NetworkFirst',
-          options: {
-            cacheName: 'api-cache',
-            expiration: {
-              maxEntries: 50,
-              maxAgeSeconds: 60 * 60 * 24 // 24 heures
-            },
-            networkTimeoutSeconds: 10
-          }
-        },
-        {
-          urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'images-cache',
-            expiration: {
-              maxEntries: 100,
-              maxAgeSeconds: 60 * 60 * 24 * 30 // 30 jours
-            }
-          }
-        }
-      ]
-    },
-    client: {
-      installPrompt: true,
-      periodicSyncForUpdates: 20
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}']
     },
     devOptions: {
       enabled: true,
-      suppressWarnings: true,
-      navigateFallback: '/',
-      navigateFallbackAllowlist: [/^\/$/],
       type: 'module'
+    },
+    client: {
+      installPrompt: true
     }
+  },
+
+  nitro: {
+    publicAssets: [
+      {
+        dir: 'public',
+        maxAge: 60 * 60 * 24 * 365 // 1 an pour les assets statiques
+      }
+    ]
   }
 })

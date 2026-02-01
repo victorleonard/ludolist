@@ -209,6 +209,10 @@ const handleMemberLogout = () => {
 
     <BottomTabNavigation />
 
+    <!-- PWA Components -->
+    <PwaInstallPrompt />
+    <PwaUpdatePrompt />
+
     <UDrawer
       :open="isMenuOpen"
       direction="left"
