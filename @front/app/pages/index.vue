@@ -52,9 +52,9 @@
               </div>
               <!-- Overlay gradient pour lisibilité du texte -->
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <!-- Infos par-dessus -->
-              <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
-                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md">
+              <!-- Infos par-dessus, calé à gauche -->
+              <div class="absolute inset-0 flex flex-col justify-end items-start text-left p-3 text-white">
+                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md w-full">
                   {{ session.game.name }}
                 </h3>
                 <p class="text-xs opacity-90 mt-1 flex items-center gap-1">
@@ -131,23 +131,26 @@
                 />
               </div>
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
-                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md">
+              <div class="absolute inset-0 flex flex-col justify-end items-start text-left p-3 text-white">
+                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md w-full">
                   {{ item.book.titre }}
                 </h3>
-                <p class="text-xs opacity-90 mt-1">
-                  {{ item.reading.member?.username ?? 'Membre' }}
-                </p>
-                <p
-                  v-if="getReadingDebutLabel(item.reading)"
-                  class="text-xs opacity-90 mt-0.5 flex items-center gap-1"
-                >
-                  <UIcon
-                    name="i-lucide-calendar"
-                    class="w-3 h-3 shrink-0"
+                <div class="mt-1 flex items-center gap-2">
+                  <MemberAvatar
+                    :member="{ id: item.reading.member?.id, username: item.reading.member?.username ?? 'Membre' }"
+                    size="xs"
                   />
-                  Depuis {{ getReadingDebutLabel(item.reading) }}
-                </p>
+                  <p
+                    v-if="getReadingDebutLabel(item.reading)"
+                    class="text-xs opacity-90 flex items-center gap-1"
+                  >
+                    <UIcon
+                      name="i-lucide-calendar"
+                      class="w-3 h-3 shrink-0"
+                    />
+                    Depuis {{ getReadingDebutLabel(item.reading) }}
+                  </p>
+                </div>
               </div>
             </button>
           </div>
