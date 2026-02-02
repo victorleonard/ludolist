@@ -27,7 +27,7 @@ const sizeClasses = {
       props.class
     ]"
     style="font-family: 'Audiowide', cursive;"
-    class="text-violet-500 dark:text-violet-300"
+    class="text-primary-700 dark:text-primary-500"
   >
     <span class="shrink-0">TribuList</span>
   </NuxtLink>
