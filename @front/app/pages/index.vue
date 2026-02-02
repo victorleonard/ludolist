@@ -2,7 +2,7 @@
   <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div>
       <div class="mt-4 sm:mt-6">
-        <!-- Derniers jeux joués -->
+        <!-- Dernières parties : carousel horizontal, cartes carrées, image en fond + infos en overlay -->
         <div
           v-if="latestSessions && latestSessions.length > 0"
           class="mb-6 sm:mb-8"
@@ -10,149 +10,65 @@
           <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
             Dernières parties
           </h2>
-          <div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-            <UCard
+          <!-- Sur mobile : pas de marge négative à gauche pour garder l'espace du container ; spacer pour décaler la 1ère carte -->
+          <div class="flex flex-nowrap justify-start gap-4 overflow-x-auto pb-2 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div class="shrink-0 w-5 sm:w-6" aria-hidden="true" style="min-width: 20px;" />
+            <button
               v-for="session in latestSessions"
               :key="session.id"
-              class="cursor-pointer hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-800"
+              type="button"
+              class="relative shrink-0 w-[min(180px,45vw)] aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 snap-start cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
               @click="navigateTo(`/game/${session.game.id}`)"
             >
-              <template #header>
-                <div class="flex items-start justify-between gap-2">
-                  <h2 class="text-xl font-bold wrap-break-word min-w-0 flex-1">
-                    {{ session.game.name }}
-                  </h2>
-                </div>
-              </template>
-
-              <div class="flex flex-col gap-4">
-                <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                  <img
-                    v-if="getSessionGameImage(session)"
-                    :src="getSessionGameImage(session) ?? ''"
-                    :alt="session.game.name"
-                    class="w-full h-full object-contain"
-                  >
-                  <div
-                    v-else
-                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-16 h-16 mb-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                      />
-                    </svg>
-                    <span class="text-xs text-center">Aucune image</span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <!-- Fond : image du jeu -->
+              <img
+                v-if="getSessionGameImage(session)"
+                :src="getSessionGameImage(session) ?? ''"
+                :alt="session.game.name"
+                class="absolute inset-0 w-full h-full object-cover"
+              >
+              <div
+                v-else
+                class="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-600"
+              >
+                <UIcon
+                  name="i-lucide-dice-6"
+                  class="w-12 h-12 text-gray-500 dark:text-gray-400"
+                />
+              </div>
+              <!-- Overlay gradient pour lisibilité du texte -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <!-- Infos par-dessus -->
+              <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
+                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md">
+                  {{ session.game.name }}
+                </h3>
+                <p class="text-xs opacity-90 mt-1 flex items-center gap-1">
                   <UIcon
                     name="i-lucide-calendar"
-                    class="w-4 h-4 text-gray-500"
+                    class="w-3 h-3 shrink-0"
                   />
-                  <span class="text-xs text-gray-600 dark:text-gray-400">
-                    {{ formatDate(session.played_at) }}
-                  </span>
-                </div>
-                <div
+                  {{ formatDateShort(session.played_at) }}
+                </p>
+                <p
                   v-if="getSessionWinner(session)"
-                  class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
+                  class="text-xs mt-1 flex items-center gap-1 font-semibold text-amber-300"
                 >
                   <UIcon
                     name="i-lucide-crown"
-                    class="w-4 h-4 text-yellow-500"
+                    class="w-3 h-3 shrink-0"
                   />
-                  <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
-                    {{ getSessionWinner(session)?.member.username }}
-                    <span
-                      v-if="getSessionWinner(session)?.score !== undefined"
-                      class="text-gray-600 dark:text-gray-400 font-normal"
-                    >
-                      ({{ getSessionWinner(session)?.score }} pts)
-                    </span>
+                  {{ getSessionWinner(session)?.member.username }}
+                  <span
+                    v-if="getSessionWinner(session)?.score !== undefined"
+                    class="font-normal opacity-90"
+                  >
+                    ({{ getSessionWinner(session)?.score }} pts)
                   </span>
-                </div>
+                </p>
               </div>
-            </UCard>
+            </button>
           </div>
-
-          <!-- Vue mobile : liste avec UPageList -->
-          <UPageList class="md:hidden space-y-4">
-            <UPageCard
-              v-for="session in latestSessions"
-              :key="session.id"
-              variant="ghost"
-              class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer"
-              @click="navigateTo(`/game/${session.game.id}`)"
-            >
-              <template #body>
-                <div class="flex items-start gap-4 w-full">
-                  <div class="w-24 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0">
-                    <img
-                      v-if="getSessionGameImage(session)"
-                      :src="getSessionGameImage(session) ?? ''"
-                      :alt="session.game.name"
-                      class="w-full h-full object-contain"
-                    >
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
-                    >
-                      <UIcon
-                        name="i-lucide-dice-6"
-                        class="w-8 h-8"
-                      />
-                    </div>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                      <div class="flex-1 min-w-0">
-                        <h3 class="text-lg font-semibold wrap-break-word">
-                          {{ session.game.name }}
-                        </h3>
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-1 mb-2">
-                      <UIcon
-                        name="i-lucide-calendar"
-                        class="w-3 h-3 text-gray-500"
-                      />
-                      <span class="text-xs text-gray-600 dark:text-gray-400">
-                        {{ formatDate(session.played_at) }}
-                      </span>
-                    </div>
-                    <div
-                      v-if="getSessionWinner(session)"
-                      class="flex items-center gap-1 mb-2"
-                    >
-                      <UIcon
-                        name="i-lucide-crown"
-                        class="w-3 h-3 text-yellow-500"
-                      />
-                      <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
-                        {{ getSessionWinner(session)?.member.username }}
-                        <span
-                          v-if="getSessionWinner(session)?.score !== undefined"
-                          class="text-gray-600 dark:text-gray-400 font-normal"
-                        >
-                          ({{ getSessionWinner(session)?.score }} pts)
-                        </span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </UPageCard>
-          </UPageList>
         </div>
 
         <div
@@ -167,24 +83,230 @@
             Aucun jeu joué récemment
           </p>
         </div>
+
+        <!-- Lectures en cours : carousel horizontal -->
+        <div
+          v-if="readingsInProgress.length > 0"
+          class="mb-6 sm:mb-8"
+        >
+          <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+            Lectures en cours
+          </h2>
+          <div class="flex flex-nowrap justify-start gap-4 overflow-x-auto pb-2 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div class="shrink-0 w-5 sm:w-6" aria-hidden="true" style="min-width: 20px;" />
+            <button
+              v-for="item in readingsInProgress"
+              :key="item.reading.id + '-' + item.book.id"
+              type="button"
+              class="relative shrink-0 w-[min(180px,45vw)] aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 snap-start cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              @click="navigateTo(`/livres/${item.book.documentId || item.book.id}`)"
+            >
+              <img
+                v-if="item.book.image"
+                :src="item.book.image"
+                :alt="item.book.titre"
+                class="absolute inset-0 w-full h-full object-cover"
+              >
+              <div
+                v-else
+                class="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-600"
+              >
+                <UIcon
+                  name="i-lucide-book-open"
+                  class="w-12 h-12 text-gray-500 dark:text-gray-400"
+                />
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div class="absolute inset-0 flex flex-col justify-end p-3 text-white">
+                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md">
+                  {{ item.book.titre }}
+                </h3>
+                <p class="text-xs opacity-90 mt-1">
+                  {{ item.reading.member?.username ?? 'Membre' }}
+                </p>
+                <p
+                  v-if="getReadingDebutLabel(item.reading)"
+                  class="text-xs opacity-90 mt-0.5 flex items-center gap-1"
+                >
+                  <UIcon
+                    name="i-lucide-calendar"
+                    class="w-3 h-3 shrink-0"
+                  />
+                  Depuis {{ getReadingDebutLabel(item.reading) }}
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </UContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useFamilyStore, type GameSession } from '~/stores/family'
+import { ref, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useFamilyStore, type GameSession, type BookReading } from '~/stores/family'
+import { useMemberStore } from '~/stores/member'
 
 definePageMeta({
   layout: 'default',
   middleware: 'auth'
 })
 
-// Charger la famille au montage de la page
 const familyStore = useFamilyStore()
+const memberStore = useMemberStore()
+const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 
 const latestSessions = ref<GameSession[]>([])
+
+type BookForDisplay = { id: number, documentId?: string, titre: string, image: string | null }
+type ReadingInProgressItem = { book: BookForDisplay, reading: BookReading }
+
+const readingsInProgress = ref<ReadingInProgressItem[]>([])
+
+function isReadingInProgress(r: Record<string, unknown>): boolean {
+  const debut = r.date_debut ?? (r.attributes as Record<string, unknown> | undefined)?.date_debut
+  const fin = r.date_fin ?? (r.attributes as Record<string, unknown> | undefined)?.date_fin
+  if (!debut || (typeof debut !== 'string' && typeof debut !== 'number')) return false
+  if (fin !== undefined && fin !== null && String(fin).trim() !== '') return false
+  return true
+}
+
+function normalizeBookFromApi(book: Record<string, unknown>): BookForDisplay {
+  const config = useRuntimeConfig()
+  const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+  let imageUrl: string | null = null
+  const imageUrlDirect = (book.image_url as string)
+  if (imageUrlDirect && typeof imageUrlDirect === 'string') {
+    imageUrl = imageUrlDirect
+  } else {
+    const img = book.image as { url?: string, formats?: { medium?: { url?: string } } } | undefined
+    if (img && typeof img === 'object' && img.url) {
+      imageUrl = img.formats?.medium?.url ? `${apiUrl}${img.formats.medium.url}` : `${apiUrl}${img.url}`
+    }
+  }
+  return {
+    id: (book.id as number),
+    documentId: book.documentId as string | undefined,
+    titre: (book.titre as string) ?? '',
+    image: imageUrl
+  }
+}
+
+/** Mode famille : toutes les lectures en cours de la famille (tous les membres), à partir des livres déjà chargés. */
+function buildFromFamilyBooks(): ReadingInProgressItem[] {
+  const books = familyStore.transformedBooks
+  const list: ReadingInProgressItem[] = []
+  for (const book of books) {
+    const readings = book.book_readings ?? []
+    for (const r of readings) {
+      const reading = r as Record<string, unknown>
+      if (!isReadingInProgress(reading)) continue
+      list.push({
+        book: { id: book.id, documentId: book.documentId, titre: book.titre, image: book.image },
+        reading: r as unknown as BookReading
+      })
+    }
+  }
+  list.sort((a, b) => {
+    const da = readingDateDebut(a.reading)
+    const db = readingDateDebut(b.reading)
+    if (!da) return 1
+    if (!db) return -1
+    return new Date(db).getTime() - new Date(da).getTime()
+  })
+  return list
+}
+
+/** Mode famille : récupère toutes les lectures en cours via l’API par livre (fallback si book_readings non populés). */
+async function fetchAllFamilyReadingsInProgress(): Promise<ReadingInProgressItem[]> {
+  const books = familyStore.transformedBooks
+  const list: ReadingInProgressItem[] = []
+  for (const book of books) {
+    const result = await familyStore.fetchBookReadings(book.id)
+    const raw = result.success && Array.isArray(result.data) ? result.data : []
+    for (const r of raw) {
+      const reading = r as Record<string, unknown>
+      if (!isReadingInProgress(reading)) continue
+      const bookFromApi = reading.book
+      if (bookFromApi && typeof bookFromApi === 'object') {
+        list.push({
+          book: normalizeBookFromApi(bookFromApi as Record<string, unknown>),
+          reading: r as unknown as BookReading
+        })
+      } else {
+        list.push({
+          book: { id: book.id, documentId: book.documentId, titre: book.titre, image: book.image },
+          reading: r as unknown as BookReading
+        })
+      }
+    }
+  }
+  list.sort((a, b) => {
+    const da = readingDateDebut(a.reading)
+    const db = readingDateDebut(b.reading)
+    if (!da) return 1
+    if (!db) return -1
+    return new Date(db).getTime() - new Date(da).getTime()
+  })
+  return list
+}
+
+async function loadReadingsInProgress() {
+  if (isMemberConnected.value && currentMember.value) {
+    const result = await familyStore.fetchMemberBookReadings(currentMember.value.id)
+    const raw = result.success && Array.isArray(result.data) ? result.data : []
+    const list: ReadingInProgressItem[] = []
+    for (const r of raw) {
+      const reading = r as Record<string, unknown>
+      if (!isReadingInProgress(reading)) continue
+      const book = reading.book
+      if (!book || typeof book !== 'object') continue
+      list.push({
+        book: normalizeBookFromApi(book as Record<string, unknown>),
+        reading: r as unknown as BookReading
+      })
+    }
+    list.sort((a, b) => {
+      const da = readingDateDebut(a.reading)
+      const db = readingDateDebut(b.reading)
+      if (!da) return 1
+      if (!db) return -1
+      return new Date(db).getTime() - new Date(da).getTime()
+    })
+    readingsInProgress.value = list
+  } else {
+    // Mode famille : afficher toutes les lectures en cours de la famille (tous les membres)
+    const fromBooks = buildFromFamilyBooks()
+    if (fromBooks.length > 0) {
+      readingsInProgress.value = fromBooks
+    } else {
+      // Fallback : récupérer via l’API par livre si book_readings n’étaient pas populés
+      readingsInProgress.value = await fetchAllFamilyReadingsInProgress()
+    }
+  }
+}
+
+function readingDateDebut(reading: BookReading | Record<string, unknown>): string | null {
+  if (!reading || typeof reading !== 'object') return null
+  const r = reading as Record<string, unknown>
+  const v = r.date_debut ?? (r.attributes as Record<string, unknown> | undefined)?.date_debut
+  return typeof v === 'string' ? v : null
+}
+
+const formatDateDebutShort = (dateString: string) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short'
+  }).format(date)
+}
+
+function getReadingDebutLabel(reading: BookReading | Record<string, unknown>): string {
+  const debut = readingDateDebut(reading)
+  return debut ? formatDateDebutShort(debut) : ''
+}
 
 const loadLatestSessions = async () => {
   const result = await familyStore.getLatest10Sessions()
@@ -194,12 +316,19 @@ const loadLatestSessions = async () => {
 }
 
 onMounted(async () => {
-  // Recharger la famille depuis l'API pour avoir les données à jour
   await familyStore.fetchFamily()
   await loadLatestSessions()
+  await loadReadingsInProgress()
 })
 
-const formatDate = (dateString: string) => {
+watch(
+  () => currentMember.value?.id,
+  () => {
+    loadReadingsInProgress()
+  }
+)
+
+const _formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
@@ -210,25 +339,44 @@ const formatDate = (dateString: string) => {
   }).format(date)
 }
 
+const formatDateShort = (dateString: string) => {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date)
+}
+
 const getSessionGameImage = (session: GameSession): string | undefined => {
-  if (!session?.game?.image) return undefined
+  const game = session?.game
+  if (!game) return undefined
+
+  // Image provenant d'une URL externe (ex. BGG)
+  const imageUrl = (game as { image_url?: string | null }).image_url
+  if (imageUrl && typeof imageUrl === 'string' && imageUrl.trim()) {
+    return imageUrl.trim()
+  }
+
+  // Image Strapi (objet avec formats)
+  const imageData = game.image
+  if (!imageData || typeof imageData !== 'object') return undefined
 
   const config = useRuntimeConfig()
   const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
-  const imageData = session.game.image
-
-  if (imageData && typeof imageData === 'object') {
-    if (imageData.formats?.medium?.url) {
-      return `${apiUrl}${imageData.formats.medium.url}`
-    } else if (imageData.formats?.small?.url) {
-      return `${apiUrl}${imageData.formats.small.url}`
-    } else if (imageData.formats?.thumbnail?.url) {
-      return `${apiUrl}${imageData.formats.thumbnail.url}`
-    } else if (imageData.url) {
-      return `${apiUrl}${imageData.url}`
-    }
+  if (imageData.formats?.medium?.url) {
+    return `${apiUrl}${imageData.formats.medium.url}`
   }
-
+  if (imageData.formats?.small?.url) {
+    return `${apiUrl}${imageData.formats.small.url}`
+  }
+  if (imageData.formats?.thumbnail?.url) {
+    return `${apiUrl}${imageData.formats.thumbnail.url}`
+  }
+  if (imageData.url) {
+    return `${apiUrl}${imageData.url}`
+  }
   return undefined
 }
 

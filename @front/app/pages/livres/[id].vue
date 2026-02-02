@@ -793,7 +793,8 @@ async function fetchReadingsForLecturesTab() {
       readings.value = [...filtered]
     }
   } else {
-    console.log('[livres] onglet Lectures: GET /api/book-readings/book/' + bookId)
+    // Mode famille : afficher toutes les lectures de la famille pour ce livre
+    console.log('[livres] onglet Lectures: GET /api/book-readings/book/' + bookId + ' (mode famille)')
     const result = await familyStore.fetchBookReadings(bookId)
     console.log('[livres] onglet Lectures: réponse API livre', {
       success: result.success,
@@ -802,12 +803,25 @@ async function fetchReadingsForLecturesTab() {
       data: result.success && result.data ? result.data : null
     })
     const list = result.success && Array.isArray(result.data) ? result.data : []
-    if (list.length === 0 && Array.isArray(book.value.book_readings)) {
-      console.log('[livres] onglet Lectures: fallback famille (tous)', { count: book.value.book_readings.length })
-      readings.value = [...book.value.book_readings]
-    } else {
-      readings.value = [...list]
+    const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
+    // Fusionner API + book_readings pour avoir toutes les lectures de la famille (dédupliquées par id)
+    const seenIds = new Set<string | number>()
+    const merged: typeof list = []
+    for (const r of list) {
+      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+      if (id != null && !seenIds.has(id)) {
+        seenIds.add(id)
+        merged.push(r)
+      }
     }
+    for (const r of fromBook) {
+      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+      if (id != null && !seenIds.has(id)) {
+        seenIds.add(id)
+        merged.push(r)
+      }
+    }
+    readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
   }
 
   const finalReadings = readings.value

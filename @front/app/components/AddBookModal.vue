@@ -12,6 +12,7 @@
           </h3>
           <div class="flex items-center gap-2">
             <UButton
+              v-if="editingBook || showManualForm"
               type="submit"
               form="book-form"
               color="primary"
