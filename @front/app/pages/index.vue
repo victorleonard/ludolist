@@ -1,6 +1,20 @@
 <template>
   <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <div>
+    <!-- Loader pendant le chargement initial -->
+    <div
+      v-if="pageLoading"
+      class="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+    >
+      <UIcon
+        name="i-lucide-loader-2"
+        class="w-12 h-12 text-primary-500 animate-spin"
+      />
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Chargement…
+      </p>
+    </div>
+
+    <div v-else>
       <div class="mt-4 sm:mt-6">
         <!-- Dernières parties : carousel horizontal, cartes carrées, image en fond + infos en overlay -->
         <div
@@ -158,6 +172,7 @@ const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
 const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 
+const pageLoading = ref(true)
 const latestSessions = ref<GameSession[]>([])
 
 type BookForDisplay = { id: number, documentId?: string, titre: string, image: string | null }
@@ -316,9 +331,14 @@ const loadLatestSessions = async () => {
 }
 
 onMounted(async () => {
-  await familyStore.fetchFamily()
-  await loadLatestSessions()
-  await loadReadingsInProgress()
+  pageLoading.value = true
+  try {
+    await familyStore.fetchFamily()
+    await loadLatestSessions()
+    await loadReadingsInProgress()
+  } finally {
+    pageLoading.value = false
+  }
 })
 
 watch(
