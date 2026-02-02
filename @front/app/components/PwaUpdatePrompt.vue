@@ -57,7 +57,7 @@ function dismissUpdate() {
           Mise à jour disponible
         </h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Une nouvelle version de LudoList est disponible
+          Une nouvelle version de TribuList est disponible
         </p>
         
         <div class="mt-4 flex gap-2">

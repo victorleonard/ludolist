@@ -2,13 +2,13 @@
 useHead({
   meta: [
     { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no' },
-    { name: 'theme-color', content: '#16a34a' },
+    { name: 'theme-color', content: '#0284c7' },
     { name: 'apple-mobile-web-app-capable', content: 'yes' },
     { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
-    { name: 'apple-mobile-web-app-title', content: 'LudoList' },
+    { name: 'apple-mobile-web-app-title', content: 'TribuList' },
     { name: 'mobile-web-app-capable', content: 'yes' },
-    { name: 'application-name', content: 'LudoList' },
-    { name: 'msapplication-TileColor', content: '#16a34a' },
+    { name: 'application-name', content: 'TribuList' },
+    { name: 'msapplication-TileColor', content: '#0284c7' },
     { name: 'msapplication-config', content: '/browserconfig.xml' }
   ],
   link: [
@@ -29,7 +29,7 @@ useHead({
   }
 })
 
-const title = 'LudoList - Gestion de Jeux de Société'
+const title = 'TribuList - Listes pour la tribu'
 const description = 'Application complète pour gérer votre collection de jeux de société, organiser des sessions de jeu et suivre vos parties en famille'
 
 useSeoMeta({

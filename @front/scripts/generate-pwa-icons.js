@@ -42,7 +42,7 @@ async function generateIcons() {
       await sharp(sourceIcon)
         .resize(size, size, {
           fit: 'contain',
-          background: { r: 22, g: 163, b: 74, alpha: 1 } // #16a34a
+          background: { r: 2, g: 132, b: 199, alpha: 1 } // #0284c7 primary-700
         })
         .png()
         .toFile(join(iconsDir, name))
@@ -72,7 +72,7 @@ async function generateIcons() {
         width: maskableSize,
         height: maskableSize,
         channels: 4,
-        background: { r: 22, g: 163, b: 74, alpha: 1 }
+        background: { r: 2, g: 132, b: 199, alpha: 1 }
       }
     })
       .composite([{

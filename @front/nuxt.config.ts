@@ -60,10 +60,10 @@ export default defineNuxtConfig({
     disable: process.env.NODE_ENV === 'production',
     registerType: 'autoUpdate',
     manifest: {
-      name: 'LudoList - Gestion de Jeux de Société',
-      short_name: 'LudoList',
+      name: 'TribuList - Listes pour la tribu',
+      short_name: 'TribuList',
       description: 'Application complète pour gérer votre collection de jeux de société, organiser des sessions de jeu et suivre vos parties en famille',
-      theme_color: '#16a34a',
+      theme_color: '#0284c7',
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',

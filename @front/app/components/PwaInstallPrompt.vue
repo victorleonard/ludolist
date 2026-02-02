@@ -74,7 +74,7 @@ function dismissPrompt() {
       
       <div class="flex-1">
         <h3 class="font-semibold text-gray-900 dark:text-white">
-          Installer LudoList
+          Installer TribuList
         </h3>
         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Installez l'application pour un accès rapide et une meilleure expérience
