@@ -39,6 +39,11 @@ const tabs = [
     label: 'Livres',
     icon: 'i-lucide-book',
     to: '/livres/'
+  },
+  {
+    label: 'Plats',
+    icon: 'i-lucide-chef-hat',
+    to: '/plats/'
   }
 ]
 

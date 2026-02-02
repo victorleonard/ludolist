@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "dish_ratings",
+  "info": {
+    "singularName": "dish-rating",
+    "pluralName": "dish-ratings",
+    "displayName": "Dish Rating",
+    "description": "Member ratings for dishes (1-10)"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "rating": {
+      "type": "integer",
+      "min": 1,
+      "max": 10,
+      "required": true
+    },
+    "member": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member"
+    },
+    "dish": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::dish.dish",
+      "inversedBy": "ratings"
+    },
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family"
+    }
+  }
+}

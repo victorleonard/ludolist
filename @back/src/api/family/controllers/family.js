@@ -57,6 +57,14 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
                       }
                     }
                   }
+                },
+                dishes: {
+                  populate: {
+                    image: true,
+                    ratings: {
+                      populate: ['member']
+                    }
+                  }
                 }
               }
             }

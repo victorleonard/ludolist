@@ -512,6 +512,79 @@ export interface ApiBookBook extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDishRatingDishRating extends Struct.CollectionTypeSchema {
+  collectionName: 'dish_ratings';
+  info: {
+    description: 'Member ratings for dishes (1-10)';
+    displayName: 'Dish Rating';
+    pluralName: 'dish-ratings';
+    singularName: 'dish-rating';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dish: Schema.Attribute.Relation<'manyToOne', 'api::dish.dish'>;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dish-rating.dish-rating'
+    > &
+      Schema.Attribute.Private;
+    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiDishDish extends Struct.CollectionTypeSchema {
+  collectionName: 'dishes';
+  info: {
+    displayName: 'Dish';
+    pluralName: 'dishes';
+    singularName: 'dish';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.Text;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'>;
+    image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
+    image_url: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::dish.dish'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    ratings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::dish-rating.dish-rating'
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
   collectionName: 'families';
   info: {
@@ -527,6 +600,7 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    dishes: Schema.Attribute.Relation<'oneToMany', 'api::dish.dish'>;
     game_sessions: Schema.Attribute.Relation<
       'oneToMany',
       'api::game-session.game-session'
@@ -1260,6 +1334,8 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::book-reading.book-reading': ApiBookReadingBookReading;
       'api::book.book': ApiBookBook;
+      'api::dish-rating.dish-rating': ApiDishRatingDishRating;
+      'api::dish.dish': ApiDishDish;
       'api::family.family': ApiFamilyFamily;
       'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;

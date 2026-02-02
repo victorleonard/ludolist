@@ -26,7 +26,11 @@
           </h2>
           <!-- Sur mobile : pas de marge négative à gauche pour garder l'espace du container ; spacer pour décaler la 1ère carte -->
           <div class="flex flex-nowrap justify-start gap-4 overflow-x-auto pb-2 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-            <div class="shrink-0 w-5 sm:w-6" aria-hidden="true" style="min-width: 20px;" />
+            <div
+              class="shrink-0 w-5 sm:w-6"
+              aria-hidden="true"
+              style="min-width: 20px;"
+            />
             <button
               v-for="session in latestSessions"
               :key="session.id"
@@ -107,7 +111,11 @@
             Lectures en cours
           </h2>
           <div class="flex flex-nowrap justify-start gap-4 overflow-x-auto pb-2 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-            <div class="shrink-0 w-5 sm:w-6" aria-hidden="true" style="min-width: 20px;" />
+            <div
+              class="shrink-0 w-5 sm:w-6"
+              aria-hidden="true"
+              style="min-width: 20px;"
+            />
             <button
               v-for="item in readingsInProgress"
               :key="item.reading.id + '-' + item.book.id"
@@ -155,15 +163,86 @@
             </button>
           </div>
         </div>
+
+        <!-- Derniers plats ajoutés : carousel horizontal -->
+        <div
+          v-if="latestDishes.length > 0"
+          class="mb-6 sm:mb-8"
+        >
+          <h2 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">
+            Derniers plats ajoutés
+          </h2>
+          <div class="flex flex-nowrap justify-start gap-4 overflow-x-auto pb-2 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div
+              class="shrink-0 w-5 sm:w-6"
+              aria-hidden="true"
+              style="min-width: 20px;"
+            />
+            <button
+              v-for="dish in latestDishes"
+              :key="dish.id"
+              type="button"
+              class="relative shrink-0 w-[min(180px,45vw)] aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-700 snap-start cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              @click="navigateTo(`/plat/${dish.documentId || dish.id}`)"
+            >
+              <img
+                v-if="dish.image"
+                :src="dish.image"
+                :alt="dish.name"
+                class="absolute inset-0 w-full h-full object-cover"
+              >
+              <div
+                v-else
+                class="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-600"
+              >
+                <UIcon
+                  name="i-lucide-chef-hat"
+                  class="w-12 h-12 text-gray-500 dark:text-gray-400"
+                />
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div class="absolute inset-0 flex flex-col justify-end items-start text-left p-3 text-white">
+                <h3 class="font-bold text-sm line-clamp-2 drop-shadow-md w-full">
+                  {{ dish.name }}
+                </h3>
+                <div
+                  v-if="getDishAverageRating(dish) > 0"
+                  class="mt-1 flex items-center gap-1"
+                >
+                  <UIcon
+                    name="i-lucide-star"
+                    class="w-3 h-3 shrink-0 text-amber-300 fill-amber-300"
+                  />
+                  <span class="text-xs opacity-90">
+                    {{ getDishAverageRating(dish).toFixed(1) }} / 10
+                  </span>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div
+          v-else-if="!pageLoading && familyStore.transformedDishes.length === 0"
+          class="flex flex-col items-center justify-center py-8"
+        >
+          <UIcon
+            name="i-lucide-chef-hat"
+            class="w-12 h-12 text-gray-400 dark:text-gray-500 mb-2"
+          />
+          <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+            Aucun plat pour l'instant
+          </p>
+        </div>
       </div>
     </div>
   </UContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useFamilyStore, type GameSession, type BookReading } from '~/stores/family'
+import { useFamilyStore, type GameSession, type BookReading, type TransformedDish, type DishRating } from '~/stores/family'
 import { useMemberStore } from '~/stores/member'
 
 definePageMeta({
@@ -183,6 +262,20 @@ type ReadingInProgressItem = { book: BookForDisplay, reading: BookReading }
 
 const readingsInProgress = ref<ReadingInProgressItem[]>([])
 
+/** Derniers plats ajoutés (déjà triés par createdAt desc dans le store), limités à 10 */
+const latestDishes = computed(() => {
+  const dishes = familyStore.transformedDishes
+  return dishes.slice(0, 10)
+})
+
+function getDishAverageRating(dish: TransformedDish): number {
+  if (!dish.ratings || dish.ratings.length === 0) return 0
+  const ratings = dish.ratings.filter((r: DishRating) => r.rating > 0)
+  if (ratings.length === 0) return 0
+  const sum = ratings.reduce((acc: number, r: DishRating) => acc + r.rating, 0)
+  return sum / ratings.length
+}
+
 function isReadingInProgress(r: Record<string, unknown>): boolean {
   const debut = r.date_debut ?? (r.attributes as Record<string, unknown> | undefined)?.date_debut
   const fin = r.date_fin ?? (r.attributes as Record<string, unknown> | undefined)?.date_fin
@@ -195,7 +288,7 @@ function normalizeBookFromApi(book: Record<string, unknown>): BookForDisplay {
   const config = useRuntimeConfig()
   const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
   let imageUrl: string | null = null
-  const imageUrlDirect = (book.image_url as string)
+  const imageUrlDirect = book.image_url as string
   if (imageUrlDirect && typeof imageUrlDirect === 'string') {
     imageUrl = imageUrlDirect
   } else {

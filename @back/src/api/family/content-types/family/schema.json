@@ -42,6 +42,12 @@
       "relation": "oneToMany",
       "target": "api::game-session.game-session",
       "mappedBy": "family"
+    },
+    "dishes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::dish.dish",
+      "mappedBy": "family"
     }
   }
 }

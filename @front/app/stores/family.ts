@@ -18,6 +18,17 @@ export interface Rating {
   };
 }
 
+export interface DishRating {
+  id: number;
+  rating: number;
+  member: {
+    id: number;
+  };
+  dish: {
+    id: number;
+  };
+}
+
 export interface PlayerScore {
   id: number;
   score: number;
@@ -157,12 +168,36 @@ export interface TransformedBook {
   createdAt: string;
 }
 
+interface StrapiDish {
+  id: number;
+  documentId?: string;
+  name: string;
+  description?: string | null;
+  image?: StrapiImage | null;
+  image_url?: string | null;
+  ratings?: DishRating[];
+  publishedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface TransformedDish {
+  id: number;
+  documentId?: string;
+  name: string;
+  description: string;
+  image: string | null;
+  ratings?: DishRating[];
+  createdAt: string;
+}
+
 interface Family {
   id: number;
   name: string;
   members?: Member[];
   games?: StrapiGame[];
   books?: StrapiBook[];
+  dishes?: StrapiDish[];
 }
 
 export const useFamilyStore = defineStore("family", {
@@ -178,9 +213,12 @@ export const useFamilyStore = defineStore("family", {
     familyGamesCount: (state) => state.family?.games?.length || 0,
     familyBooks: (state) => state.family?.books || [],
     familyBooksCount: (state) => state.family?.books?.length || 0,
+    familyDishes: (state) => state.family?.dishes || [],
+    familyDishesCount: (state) => state.family?.dishes?.length || 0,
     hasFamily: (state) => !!state.family,
     hasFamilyGames: (state) => (state.family?.games?.length || 0) > 0,
     hasFamilyBooks: (state) => (state.family?.books?.length || 0) > 0,
+    hasFamilyDishes: (state) => (state.family?.dishes?.length || 0) > 0,
 
     // Getter pour les jeux transformés
     transformedGames(state): TransformedGame[] {
@@ -362,6 +400,72 @@ export const useFamilyStore = defineStore("family", {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();
         return dateB - dateA; // Ordre décroissant
+      });
+    },
+
+    // Getter pour les plats transformés
+    transformedDishes(state): TransformedDish[] {
+      if (!state.family?.dishes || !Array.isArray(state.family.dishes)) {
+        return [];
+      }
+
+      const config = useRuntimeConfig();
+      const apiUrl =
+        (config.public.apiUrl as string) || "http://localhost:1337";
+
+      const result: TransformedDish[] = [];
+
+      for (const strapiDish of state.family.dishes) {
+        try {
+          if (!strapiDish) {
+            continue;
+          }
+
+          let imageUrl: string | null = null;
+
+          if (strapiDish.image_url) {
+            imageUrl = strapiDish.image_url;
+          } else {
+            const imageData = strapiDish.image;
+            if (
+              imageData &&
+              imageData !== null &&
+              typeof imageData === "object"
+            ) {
+              if (imageData.formats?.medium?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.medium.url}`;
+              } else if (imageData.formats?.small?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.small.url}`;
+              } else if (imageData.formats?.thumbnail?.url) {
+                imageUrl = `${apiUrl}${imageData.formats.thumbnail.url}`;
+              } else if (imageData.url) {
+                imageUrl = `${apiUrl}${imageData.url}`;
+              }
+            }
+          }
+
+          result.push({
+            id: strapiDish.id,
+            documentId: strapiDish.documentId,
+            name: strapiDish.name,
+            description: strapiDish.description || "",
+            image: imageUrl,
+            ratings: strapiDish.ratings || [],
+            createdAt: strapiDish.createdAt || new Date().toISOString(),
+          });
+        } catch (err) {
+          console.error(
+            "Erreur lors de la transformation du plat:",
+            err,
+            strapiDish,
+          );
+        }
+      }
+
+      return result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
       });
     },
   },
@@ -640,6 +744,186 @@ export const useFamilyStore = defineStore("family", {
           success: false,
           error: errorMessage,
         };
+      }
+    },
+
+    // Ajouter un plat à la famille
+    async addDishToFamily(payload: {
+      name: string;
+      description?: string;
+      image_url?: string;
+      image?: number;
+    }) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        const response = await $fetch<{ data: StrapiDish; message: string }>(
+          `${config.public.apiUrl}/api/dishes/add-to-family`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+              "Content-Type": "application/json",
+            },
+            body: payload,
+          },
+        );
+
+        await this.fetchFamily();
+        return { success: true, data: response.data };
+      } catch (error: unknown) {
+        console.error("Erreur lors de l'ajout du plat:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de l'ajout du plat";
+        return { success: false, error: errorMessage };
+      }
+    },
+
+    // Mettre à jour un plat
+    async updateDish(
+      dishId: number | string,
+      data: {
+        name?: string;
+        description?: string;
+        image_url?: string | null;
+        image?: number | null;
+      },
+    ) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+      const identifier = String(dishId);
+
+      try {
+        await $fetch(`${config.public.apiUrl}/api/dishes/${identifier}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+            "Content-Type": "application/json",
+          },
+          body: {
+            data: {
+              ...(data.name !== undefined && { name: data.name }),
+              ...(data.description !== undefined && { description: data.description }),
+              ...(data.image_url !== undefined && { image_url: data.image_url ?? null }),
+              ...(data.image !== undefined && { image: data.image ?? null }),
+            },
+          },
+        });
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la mise à jour du plat:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de la mise à jour du plat";
+        return { success: false, error: errorMessage };
+      }
+    },
+
+    // Retirer un plat de la famille (supprime le plat). identifier: documentId ou id.
+    async removeDishFromFamily(identifier: number | string) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: "Aucune famille trouvée" };
+      }
+
+      const config = useRuntimeConfig();
+      const idOrDocId = String(identifier);
+
+      try {
+        await $fetch(`${config.public.apiUrl}/api/dishes/${idOrDocId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la suppression du plat:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de la suppression";
+        return { success: false, error: errorMessage };
+      }
+    },
+
+    // Définir la note d'un membre sur un plat (1-10, 0 pour supprimer). dishIdentifier: documentId ou id.
+    async setDishRating(
+      dishIdentifier: number | string,
+      memberId: number,
+      rating: number,
+    ) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: "Aucune famille trouvée" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        const response = await $fetch<{ data: DishRating | null }>(
+          `${config.public.apiUrl}/api/dish-ratings/set`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+            body: {
+              dishId:
+                typeof dishIdentifier === "number"
+                  ? dishIdentifier
+                  : dishIdentifier,
+              memberId,
+              rating,
+            },
+          },
+        );
+
+        await this.fetchFamily();
+        return { success: true, data: response.data || null };
+      } catch (error: unknown) {
+        console.error("Erreur lors de l'enregistrement de la note:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de l'enregistrement";
+        return { success: false, error: errorMessage };
       }
     },
 
