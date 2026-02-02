@@ -14,15 +14,18 @@ const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
 
 const { user } = storeToRefs(authStore)
-const { family } = storeToRefs(familyStore)
+const { family, familyMembers } = storeToRefs(familyStore)
 const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 const { logout } = authStore
 
 const isMenuOpen = ref(false)
-const isAddDrawerOpen = ref(false)
-const { isOpen: isAddGameModalOpen, selectedGame, openModal: openAddGameModal, closeModal: closeAddGameModal } = useAddGameModal()
-const { openModal: openAddSessionModal } = useAddSessionModal()
-const { isOpen: isAddBookModalOpen, selectedBook, openModal: openAddBookModal, closeModal: closeAddBookModal } = useAddBookModal()
+const isMemberDrawerOpen = ref(false)
+const memberForCode = ref(null)
+const memberCode = ref('')
+const memberCodeError = ref(null)
+const memberCodeLoading = ref(false)
+const { isOpen: isAddGameModalOpen, selectedGame, closeModal: closeAddGameModal } = useAddGameModal()
+const { isOpen: isAddBookModalOpen, selectedBook, closeModal: closeAddBookModal } = useAddBookModal()
 
 // Détecter si on est sur une page de jeu
 const isGamePage = computed(() => {
@@ -89,39 +92,80 @@ const handleBookAdded = () => {
   familyStore.fetchFamily()
 }
 
-const openAddDrawer = () => {
-  isAddDrawerOpen.value = true
+const openMemberDrawer = async () => {
+  if (familyMembers.value.length === 0) {
+    await familyStore.fetchFamily()
+  }
+  isMemberDrawerOpen.value = true
 }
 
-const closeAddDrawer = () => {
-  isAddDrawerOpen.value = false
+const closeMemberDrawer = () => {
+  isMemberDrawerOpen.value = false
+  memberForCode.value = null
+  memberCode.value = ''
+  memberCodeError.value = null
 }
 
-const handleAddGame = () => {
-  closeAddDrawer()
-  openAddGameModal()
-}
-
-const handleAddSession = () => {
-  closeAddDrawer()
-  // Si on est sur une page de jeu, ouvrir directement le modal
-  if (isGamePage.value) {
-    openAddSessionModal()
-  } else {
-    // Sinon, rediriger vers la page des jeux pour sélectionner un jeu
-    navigateTo('/jeux')
+const onMemberDrawerOpenChange = (value) => {
+  isMemberDrawerOpen.value = value
+  if (!value) {
+    memberForCode.value = null
+    memberCode.value = ''
+    memberCodeError.value = null
   }
 }
 
-const handleAddBook = () => {
-  closeAddDrawer()
-  openAddBookModal()
+const handleSelectMember = (member) => {
+  if (currentMember.value?.id === member.id) {
+    closeMemberDrawer()
+    return
+  }
+  memberForCode.value = member
+  memberCode.value = ''
+  memberCodeError.value = null
+}
+
+const cancelMemberCode = () => {
+  memberForCode.value = null
+  memberCode.value = ''
+  memberCodeError.value = null
+}
+
+const handleMemberCodeInput = (e) => {
+  const raw = e?.target?.value ?? (typeof e === 'string' ? e : '')
+  const v = String(raw).replace(/\D/g, '').slice(0, 4)
+  memberCode.value = v
+  if (memberCodeError.value) memberCodeError.value = null
+}
+
+const submitMemberCode = async () => {
+  if (!memberForCode.value || memberCode.value.length !== 4) return
+  memberCodeLoading.value = true
+  memberCodeError.value = null
+  try {
+    const result = await memberStore.loginAsMember(memberForCode.value.id, memberCode.value)
+    if (result.success) {
+      closeMemberDrawer()
+    } else {
+      memberCodeError.value = result.error || 'Code incorrect'
+      memberCode.value = ''
+    }
+  } catch {
+    memberCodeError.value = 'Une erreur est survenue'
+    memberCode.value = ''
+  } finally {
+    memberCodeLoading.value = false
+  }
+}
+
+const handleFamilyMode = () => {
+  memberStore.logoutMember()
+  closeMemberDrawer()
 }
 
 const handleMemberLogout = () => {
   memberStore.logoutMember()
   closeMenu()
-  navigateTo('/member-login')
 }
 </script>
 
@@ -137,13 +181,12 @@ const handleMemberLogout = () => {
             v-if="isGamePage"
             variant="ghost"
             color="neutral"
-            size="sm"
-            icon="i-lucide-arrow-left"
+            size="lg"
+            icon="i-lucide-chevron-left"
             aria-label="Retour"
+            class="w-11 h-11 min-w-11 [&_svg]:w-6 [&_svg]:h-6 -ml-1"
             @click="handleBackFromGame"
-          >
-            Retour
-          </UButton>
+          />
           <UButton
             v-else
             variant="ghost"
@@ -167,23 +210,14 @@ const handleMemberLogout = () => {
 
       <template #right>
         <div class="flex items-center gap-2 sm:gap-3">
-          <UButton
-            color="neutral"
-            icon="i-lucide-plus"
-            size="sm"
-            aria-label="Ajouter"
-            variant="outline"
-            class="w-7 h-7 sm:w-9 sm:h-9 p-0 rounded-lg flex items-center justify-center shrink-0 [&_svg]:w-3 [&_svg]:h-3 sm:[&_svg]:w-5 sm:[&_svg]:h-5"
-            @click="openAddDrawer"
-          />
-          <!-- Avatar ou icône choix du membre (toujours vers /member-login) -->
+          <!-- Avatar ou icône choix du membre → drawer liste des membres -->
           <UButton
             v-if="isMemberConnected && currentMember"
             :aria-label="`Membre connecté : ${currentMember.username}`"
             variant="ghost"
             color="neutral"
             class="rounded-full p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
-            @click="navigateTo('/member-login')"
+            @click="openMemberDrawer"
           >
             <MemberAvatar
               :member="currentMember"
@@ -198,7 +232,7 @@ const handleMemberLogout = () => {
             icon="i-lucide-user-circle"
             size="sm"
             aria-label="Choisir un membre"
-            @click="navigateTo('/member-login')"
+            @click="openMemberDrawer"
           />
         </div>
       </template>
@@ -286,19 +320,20 @@ const handleMemberLogout = () => {
             <!-- Séparateur -->
             <div class="border-t my-2" />
 
-            <!-- Connexion membre -->
-            <NuxtLink
+            <!-- Connexion membre (ouvre le drawer) -->
+            <UButton
               v-if="!isMemberConnected"
-              to="/member-login"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              @click="closeMenu"
+              variant="ghost"
+              color="neutral"
+              class="justify-start px-4 py-3 w-full"
+              @click="closeMenu(); openMemberDrawer()"
             >
               <UIcon
                 name="i-lucide-user-circle"
                 class="w-5 h-5"
               />
               <span class="font-medium">Se connecter en tant que membre</span>
-            </NuxtLink>
+            </UButton>
 
             <UButton
               v-else
@@ -347,52 +382,116 @@ const handleMemberLogout = () => {
       </template>
     </UDrawer>
 
-    <!-- Drawer pour ajouter (jeu ou partie) -->
+    <!-- Drawer choix du membre / mode famille / saisie code -->
     <UDrawer
-      :open="isAddDrawerOpen"
+      :open="isMemberDrawerOpen"
       direction="bottom"
-      @update:open="(value) => { isAddDrawerOpen = value }"
+      @update:open="onMemberDrawerOpenChange"
     >
       <template #content>
-        <div class="flex flex-col">
-          <div class="flex flex-col gap-2 p-4">
-            <UButton
-              color="primary"
-              variant="ghost"
-              class="justify-start px-4 py-3"
-              @click="handleAddGame"
-            >
-              <UIcon
-                name="i-lucide-dice-6"
-                class="w-5 h-5"
+        <div class="flex flex-col p-4 pb-safe">
+          <!-- Vue liste des membres -->
+          <template v-if="!memberForCode">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-lg font-semibold">
+                Choisir un membre
+              </h2>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-x"
+                size="sm"
+                @click="closeMemberDrawer"
               />
-              <span class="font-medium">Ajouter un jeu</span>
-            </UButton>
-            <UButton
-              color="primary"
-              variant="ghost"
-              class="justify-start px-4 py-3"
-              @click="handleAddSession"
-            >
-              <UIcon
-                name="i-lucide-gamepad-2"
-                class="w-5 h-5"
+            </div>
+            <div class="flex flex-col gap-1 max-h-[60vh] overflow-y-auto">
+              <button
+                v-for="member in familyMembers"
+                :key="member.id"
+                type="button"
+                class="flex items-center gap-3 px-4 py-3 rounded-xl text-left hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors"
+                @click="handleSelectMember(member)"
+              >
+                <MemberAvatar
+                  :member="member"
+                  size="md"
+                  :show-ring="isMemberConnected && currentMember?.id === member.id"
+                />
+                <span class="font-medium">{{ member.username }}</span>
+                <span
+                  v-if="isMemberConnected && currentMember?.id === member.id"
+                  class="text-xs text-primary-600 dark:text-primary-400 ml-auto"
+                >
+                  Connecté
+                </span>
+              </button>
+            </div>
+            <div class="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
+              <UButton
+                variant="outline"
+                color="neutral"
+                class="w-full justify-center"
+                icon="i-lucide-users"
+                @click="handleFamilyMode"
+              >
+                Mode famille — tout voir
+              </UButton>
+            </div>
+          </template>
+
+          <!-- Vue saisie du code pour le membre sélectionné -->
+          <template v-else>
+            <div class="flex items-center gap-2 mb-4">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-chevron-left"
+                size="sm"
+                @click="cancelMemberCode"
               />
-              <span class="font-medium">Nouvelle partie</span>
-            </UButton>
-            <UButton
-              color="primary"
-              variant="ghost"
-              class="justify-start px-4 py-3"
-              @click="handleAddBook"
-            >
-              <UIcon
-                name="i-lucide-book"
-                class="w-5 h-5"
+              <h2 class="text-lg font-semibold flex-1">
+                Code pour {{ memberForCode.username }}
+              </h2>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-lucide-x"
+                size="sm"
+                @click="closeMemberDrawer"
               />
-              <span class="font-medium">Ajouter un livre</span>
-            </UButton>
-          </div>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <UInput
+                  :model-value="memberCode"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="4"
+                  placeholder="0000"
+                  size="lg"
+                  class="w-full text-center text-2xl tracking-widest font-mono"
+                  :disabled="memberCodeLoading"
+                  @update:model-value="(v) => handleMemberCodeInput(v ?? '')"
+                />
+              </div>
+              <p
+                v-if="memberCodeError"
+                class="text-sm text-red-600 dark:text-red-400 text-center"
+              >
+                {{ memberCodeError }}
+              </p>
+              <UButton
+                color="primary"
+                size="lg"
+                block
+                :loading="memberCodeLoading"
+                :disabled="memberCode.length !== 4"
+                @click="submitMemberCode"
+              >
+                Se connecter
+              </UButton>
+            </div>
+          </template>
         </div>
       </template>
     </UDrawer>

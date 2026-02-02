@@ -1,30 +1,27 @@
 <template>
-  <UModal
+  <UDrawer
     :open="isOpen"
-    :fullscreen="isMobile"
+    direction="bottom"
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <UCard class="w-full md:max-w-lg flex flex-col bg-white dark:bg-gray-800">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">
-              {{ reading ? 'Modifier ma lecture' : 'Ajouter ma lecture' }}
-            </h3>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-lucide-x"
-              size="sm"
-              class="-my-1"
-              :disabled="submitting"
-              @click="closeModal"
-            />
-          </div>
-        </template>
+      <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-lg font-semibold">
+            {{ reading ? 'Modifier ma lecture' : 'Ajouter ma lecture' }}
+          </h3>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-lucide-x"
+            size="sm"
+            :disabled="submitting"
+            @click="closeModal"
+          />
+        </div>
 
         <form
-          class="space-y-4 overflow-y-auto flex-1"
+          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
           @submit.prevent="handleSubmit"
         >
           <!-- Champ membre - masqué si un membre est connecté -->
@@ -164,18 +161,15 @@
             </UButton>
           </div>
         </form>
-      </UCard>
+      </div>
     </template>
-  </UModal>
+  </UDrawer>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
-import { useMediaQuery } from '@vueuse/core'
 import { useFamilyStore, type BookReading } from '~/stores/family'
 import { useMemberStore } from '~/stores/member'
-
-const isMobile = useMediaQuery('(max-width: 767px)')
 
 interface Props {
   modelValue: boolean

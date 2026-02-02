@@ -117,44 +117,41 @@
       </UCard>
     </div>
 
-    <UModal
+    <UDrawer
       :open="isAddModalOpen"
-      :fullscreen="isMobile"
+      direction="bottom"
       @update:open="(value) => { if (!value) closeAddSessionModal() }"
     >
       <template #content>
-        <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold">
-                Ajouter une partie
-              </h3>
-              <div class="flex items-center gap-2">
-                <UButton
-                  type="submit"
-                  form="session-form"
-                  color="primary"
-                  size="sm"
-                  :loading="isSubmitting"
-                >
-                  Enregistrer
-                </UButton>
-                <UButton
-                  color="neutral"
-                  variant="ghost"
-                  icon="i-lucide-x"
-                  size="sm"
-                  class="-my-1"
-                  :disabled="isSubmitting"
-                  @click="closeModal"
-                />
-              </div>
+        <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900">
+          <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+            <h3 class="text-lg font-semibold">
+              Ajouter une partie
+            </h3>
+            <div class="flex items-center gap-2">
+              <UButton
+                type="submit"
+                form="session-form"
+                color="primary"
+                size="sm"
+                :loading="isSubmitting"
+              >
+                Enregistrer
+              </UButton>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-lucide-x"
+                size="sm"
+                :disabled="isSubmitting"
+                @click="closeModal"
+              />
             </div>
-          </template>
+          </div>
 
           <form
             id="session-form"
-            class="space-y-4 overflow-y-auto flex-1"
+            class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
             @submit.prevent="handleAddSession"
           >
             <div>
@@ -186,27 +183,6 @@
             </div>
 
             <div>
-              <label
-                for="notes"
-                class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-              >
-                <UIcon
-                  name="i-lucide-file-text"
-                  class="w-4 h-4"
-                />
-                Notes (optionnel)
-              </label>
-              <UTextarea
-                id="notes"
-                v-model="newSession.notes"
-                placeholder="Ajouter des notes sur cette partie..."
-                rows="3"
-                :disabled="isSubmitting"
-                class="w-full"
-              />
-            </div>
-
-            <div>
               <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 <UIcon
                   name="i-lucide-users"
@@ -220,11 +196,10 @@
                   :key="member.id"
                   class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
                 >
-                  <div :class="['w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0', getMemberAvatarColor(member.id).bg]">
-                    <span :class="['text-xs font-semibold', getMemberAvatarColor(member.id).text]">
-                      {{ member.username.charAt(0).toUpperCase() }}
-                    </span>
-                  </div>
+                  <MemberAvatar
+                    :member="member"
+                    size="sm"
+                  />
                   <span class="flex-1 font-medium">{{ member.username }}</span>
                   <UInput
                     v-model.number="newSession.scores[member.id]"
@@ -254,19 +229,16 @@
               </p>
             </div>
           </form>
-        </UCard>
+        </div>
       </template>
-    </UModal>
+    </UDrawer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue'
-import { useMediaQuery } from '@vueuse/core'
 import { useFamilyStore, type GameSession, type PlayerScore } from '~/stores/family'
 import { useAddSessionModal } from '~/composables/useAddSessionModal'
-
-const isMobile = useMediaQuery('(max-width: 767px)')
 
 const props = defineProps<{
   gameId: number

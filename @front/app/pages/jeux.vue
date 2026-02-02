@@ -3,10 +3,19 @@
     <div>
       <div class="mt-4 sm:mt-6">
         <div class="mb-6 sm:mb-8">
-          <div class="mb-4 sm:mb-6">
+          <div class="mb-4 sm:mb-6 flex items-center justify-between gap-4">
             <h1 class="text-xl sm:text-2xl font-bold">
               Ma collection de jeux
             </h1>
+            <UButton
+              color="primary"
+              icon="i-lucide-plus"
+              size="sm"
+              aria-label="Ajouter un jeu"
+              @click="openModal()"
+            >
+              Ajouter un jeu
+            </UButton>
           </div>
 
           <div class="flex flex-wrap items-center gap-2 sm:gap-3">

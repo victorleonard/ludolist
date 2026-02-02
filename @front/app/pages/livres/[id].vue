@@ -595,7 +595,7 @@ async function loadCoverSuggestions() {
   coverModalError.value = null
   coverSuggestions.value = []
   const currentImage = book.value?.image?.trim()
-  const list: Array<{ url: string; displayUrl: string; label?: string }> = []
+  const list: Array<{ url: string, displayUrl: string, label?: string }> = []
   if (currentImage) {
     list.push({ url: currentImage, displayUrl: currentImage, label: 'Actuelle' })
   }

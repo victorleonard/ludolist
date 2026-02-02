@@ -3,13 +3,24 @@
     <div>
       <div class="mt-4 sm:mt-6">
         <div class="mb-6 sm:mb-8">
-          <div class="mb-4 sm:mb-6">
-            <h1 class="text-xl sm:text-2xl font-bold">
-              Ma collection de livres
-            </h1>
-            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
-              Gérez votre collection de livres ici
-            </p>
+          <div class="mb-4 sm:mb-6 flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <h1 class="text-xl sm:text-2xl font-bold">
+                Ma collection de livres
+              </h1>
+              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+                Gérez votre collection de livres ici
+              </p>
+            </div>
+            <UButton
+              color="primary"
+              icon="i-lucide-plus"
+              size="sm"
+              aria-label="Ajouter un livre"
+              @click="openAddBookModal()"
+            >
+              Ajouter un livre
+            </UButton>
           </div>
         </div>
 
@@ -260,6 +271,7 @@ definePageMeta({
 
 const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
+const { openModal: openAddBookModal } = useAddBookModal()
 const { isLoading: loading } = storeToRefs(familyStore)
 
 /** Livres à afficher : tous si parent, uniquement ceux ajoutés par le membre si membre connecté. */

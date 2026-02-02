@@ -265,10 +265,11 @@
                     <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
                       <span class="medal-emoji">🥈</span>
                     </div>
-                    <div :class="['w-18 h-18 rounded-full flex items-center justify-center mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }, getMemberAvatarColor(top3Winners[1].member.id).bg]">
-                      <span :class="['text-lg font-bold', getMemberAvatarColor(top3Winners[1].member.id).text]">
-                        {{ top3Winners[1].member.username.charAt(0).toUpperCase() }}
-                      </span>
+                    <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
+                      <MemberAvatar
+                        :member="top3Winners[1].member"
+                        size="xl"
+                      />
                     </div>
                     <div
                       class="w-full bg-gradient-to-b from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"
@@ -332,10 +333,11 @@
                     <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
                       <span class="medal-emoji">🥉</span>
                     </div>
-                    <div :class="['w-18 h-18 rounded-full flex items-center justify-center mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }, getMemberAvatarColor(top3Winners[2].member.id).bg]">
-                      <span :class="['text-lg font-bold', getMemberAvatarColor(top3Winners[2].member.id).text]">
-                        {{ top3Winners[2].member.username.charAt(0).toUpperCase() }}
-                      </span>
+                    <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
+                      <MemberAvatar
+                        :member="top3Winners[2].member"
+                        size="xl"
+                      />
                     </div>
                     <div
                       class="w-full bg-gradient-to-b from-amber-300 to-amber-400 dark:from-amber-600 dark:to-amber-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"

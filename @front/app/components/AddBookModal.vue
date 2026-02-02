@@ -1,44 +1,40 @@
 <template>
-  <UModal
+  <UDrawer
     :open="isOpen"
-    :fullscreen="isMobile"
+    direction="bottom"
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <UCard class="w-full md:max-w-2xl md:max-h-[90vh] flex flex-col bg-white dark:bg-gray-800 overflow-hidden">
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">
-              {{ editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre' }}
-            </h3>
-            <div class="flex items-center gap-2">
-              <UButton
-                type="submit"
-                form="book-form"
-                color="primary"
-                size="sm"
-                :loading="submitting"
-              >
-                {{ editingBook ? 'Enregistrer' : 'Ajouter le livre' }}
-              </UButton>
-              <UButton
-                color="neutral"
-                variant="ghost"
-                icon="i-lucide-x"
-                size="sm"
-                class="-my-1"
-                :disabled="submitting"
-                @click="closeModal"
-              />
-            </div>
+      <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900 overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-lg font-semibold">
+            {{ editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre' }}
+          </h3>
+          <div class="flex items-center gap-2">
+            <UButton
+              type="submit"
+              form="book-form"
+              color="primary"
+              size="sm"
+              :loading="submitting"
+            >
+              {{ editingBook ? 'Enregistrer' : 'Ajouter le livre' }}
+            </UButton>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              icon="i-lucide-x"
+              size="sm"
+              :disabled="submitting"
+              @click="closeModal"
+            />
           </div>
-        </template>
+        </div>
 
         <!-- Mode prévisualisation -->
         <div
           v-if="showPreview && previewBook"
-          class="space-y-4 overflow-y-auto flex-1 min-h-0"
-          :style="{ height: isMobile ? 'calc(100vh - 61px)' : 'calc(100vh - 180px)' }"
+          class="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[70vh] p-4 pb-safe"
         >
           <div class="mb-4">
             <UButton
@@ -217,7 +213,7 @@
         <!-- Mode recherche Open Library (par défaut pour l'ajout) -->
         <div
           v-else-if="!editingBook && !showManualForm"
-          class="space-y-4 overflow-y-auto flex-1"
+          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
@@ -363,7 +359,7 @@
         <form
           v-else
           id="book-form"
-          class="space-y-4 overflow-y-auto flex-1"
+          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
@@ -499,18 +495,15 @@
             </p>
           </div>
         </form>
-      </UCard>
+      </div>
     </template>
-  </UModal>
+  </UDrawer>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, watch, computed } from 'vue'
-import { useMediaQuery } from '@vueuse/core'
 import { useFamilyStore } from '~/stores/family'
 import type { Book } from '~/composables/useAddBookModal'
-
-const isMobile = useMediaQuery('(max-width: 767px)')
 
 interface Props {
   modelValue: boolean
