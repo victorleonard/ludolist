@@ -24,7 +24,7 @@
             <UButton
               color="neutral"
               variant="ghost"
-              icon="i-lucide-x"
+              icon="i-ion-close"
               size="sm"
               :disabled="submitting"
               @click="closeModal"
@@ -42,7 +42,7 @@
               type="button"
               color="neutral"
               variant="ghost"
-              icon="i-lucide-arrow-left"
+              icon="i-ion-arrow-back"
               size="sm"
               @click="backToSearch"
             >
@@ -67,7 +67,7 @@
                     class="w-full h-full flex items-center justify-center"
                   >
                     <UIcon
-                      name="i-lucide-book"
+                      name="i-ion-book"
                       class="w-20 h-20 text-gray-400"
                     />
                   </div>
@@ -85,7 +85,7 @@
                     class="text-lg text-gray-600 dark:text-gray-400 flex items-center gap-2"
                   >
                     <UIcon
-                      name="i-lucide-user"
+                      name="i-ion-person"
                       class="w-4 h-4"
                     />
                     {{ previewBook.author_name }}
@@ -100,7 +100,7 @@
                     variant="subtle"
                   >
                     <UIcon
-                      name="i-lucide-calendar"
+                      name="i-ion-calendar"
                       class="w-3 h-3 mr-1"
                     />
                     {{ previewBook.first_publish_year }}
@@ -111,7 +111,7 @@
                     variant="subtle"
                   >
                     <UIcon
-                      name="i-lucide-hash"
+                      name="i-ion-hash"
                       class="w-3 h-3 mr-1"
                     />
                     ISBN: {{ Array.isArray(previewBook.isbn) ? previewBook.isbn[0] : previewBook.isbn }}
@@ -122,7 +122,7 @@
                     variant="subtle"
                   >
                     <UIcon
-                      name="i-lucide-building"
+                      name="i-ion-business"
                       class="w-3 h-3 mr-1"
                     />
                     {{ Array.isArray(previewBook.publisher) ? previewBook.publisher[0] : previewBook.publisher }}
@@ -133,7 +133,7 @@
                     variant="subtle"
                   >
                     <UIcon
-                      name="i-lucide-file-text"
+                      name="i-ion-document-text"
                       class="w-3 h-3 mr-1"
                     />
                     {{ previewBook.number_of_pages }} pages
@@ -147,7 +147,7 @@
                 >
                   <h3 class="font-semibold mb-2 flex items-center gap-2">
                     <UIcon
-                      name="i-lucide-align-left"
+                      name="i-ion-text"
                       class="w-4 h-4"
                     />
                     Description
@@ -164,7 +164,7 @@
                 >
                   <h3 class="font-semibold mb-2 flex items-center gap-2">
                     <UIcon
-                      name="i-lucide-tag"
+                      name="i-ion-pricetag"
                       class="w-4 h-4"
                     />
                     Catégories
@@ -200,7 +200,7 @@
                 color="primary"
                 size="lg"
                 block
-                icon="i-lucide-plus"
+                icon="i-ion-add"
                 :loading="submitting"
                 :disabled="submitting"
                 @click="addBookFromPreview"
@@ -218,7 +218,7 @@
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
-              name="i-lucide-search"
+              name="i-ion-search"
               class="w-5 h-5"
             />
             <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
@@ -287,7 +287,7 @@
                     class="w-full h-full flex items-center justify-center"
                   >
                     <UIcon
-                      name="i-lucide-book"
+                      name="i-ion-book"
                       class="w-6 h-6 text-gray-400"
                     />
                   </div>
@@ -348,7 +348,7 @@
               color="neutral"
               variant="outline"
               block
-              icon="i-lucide-plus"
+              icon="i-ion-add"
               @click="showManualForm = true"
             >
               Ajouter manuellement
@@ -372,7 +372,7 @@
               type="button"
               color="neutral"
               variant="ghost"
-              icon="i-lucide-arrow-left"
+              icon="i-ion-arrow-back"
               size="sm"
               @click="showManualForm = false"
             >
@@ -386,7 +386,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-book"
+                name="i-ion-book"
                 class="w-4 h-4"
               />
               Titre du livre <span class="text-red-500">*</span>
@@ -412,7 +412,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-user"
+                name="i-ion-person"
                 class="w-4 h-4"
               />
               Auteur
@@ -431,7 +431,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-hash"
+                name="i-ion-hash"
                 class="w-4 h-4"
               />
               ISBN
@@ -451,7 +451,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-calendar"
+                name="i-ion-calendar"
                 class="w-4 h-4"
               />
               Année de publication
@@ -473,7 +473,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-file-text"
+                name="i-ion-document-text"
                 class="w-4 h-4"
               />
               Description

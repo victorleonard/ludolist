@@ -10,7 +10,7 @@
             </h1>
             <UButton
               color="primary"
-              icon="i-lucide-plus"
+              icon="i-ion-add"
               size="sm"
               aria-label="Ajouter un plat"
               @click="openModal()"
@@ -25,7 +25,7 @@
           class="flex justify-center items-center py-12"
         >
           <UIcon
-            name="i-lucide-loader-2"
+            name="i-ion-refresh-circle"
             class="w-8 h-8 animate-spin text-primary-500"
           />
         </div>
@@ -72,8 +72,9 @@
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-edit"
+                      icon="i-ion-create-outline"
                       size="sm"
+                      class="flex-shrink-0"
                       @click.stop="openEditModal(dish)"
                     />
                   </div>
@@ -93,7 +94,7 @@
                     class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
                   >
                     <UIcon
-                      name="i-lucide-utensils-cross"
+                      name="i-ion-restaurant"
                       class="w-16 h-16 mb-2"
                     />
                     <span class="text-xs text-center">Aucune image</span>
@@ -137,7 +138,7 @@
                       class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
                     >
                       <UIcon
-                        name="i-lucide-utensils-cross"
+                        name="i-ion-restaurant"
                         class="w-8 h-8"
                       />
                     </div>
@@ -152,7 +153,7 @@
                       <UButton
                         color="neutral"
                         variant="ghost"
-                        icon="i-lucide-edit"
+                        icon="i-ion-create-outline"
                         size="xs"
                         :padded="false"
                         class="shrink-0"

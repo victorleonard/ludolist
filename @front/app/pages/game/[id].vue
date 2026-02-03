@@ -7,7 +7,7 @@
         class="flex justify-center items-center py-12"
       >
         <UIcon
-          name="i-lucide-loader-2"
+          name="i-ion-refresh"
           class="w-8 h-8 animate-spin text-primary-500"
         />
       </div>
@@ -34,7 +34,7 @@
         class="flex flex-col items-center justify-center py-12"
       >
         <UIcon
-          name="i-lucide-alert-circle"
+          name="i-ion-alert-circle"
           class="w-16 h-16 text-gray-400 mb-4"
         />
         <h2 class="text-2xl font-bold mb-2">
@@ -54,7 +54,7 @@
       <!-- Détails du jeu -->
       <div
         v-else
-        class="space-y-6"
+        class="space-y-4 sm:space-y-6"
       >
         <!-- Titre -->
         <h1 class="text-xl sm:text-2xl font-bold break-words min-w-0 mb-3 sm:mb-4">
@@ -62,74 +62,74 @@
         </h1>
 
         <!-- Navigation par segments -->
-        <div class="mb-6">
-          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+        <div class="mb-2 sm:mb-4">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 sm:p-1.5 w-full gap-1">
             <button
               :class="[
-                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                'flex-1 px-2 sm:px-4 py-3 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'detail'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'detail'"
             >
-              <div class="flex items-center justify-center gap-1 sm:gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-1.5 sm:flex-row">
                 <UIcon
-                  name="i-lucide-info"
-                  class="w-3 h-3 sm:w-4 sm:h-4"
+                  name="i-ion-information-circle"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span class="hidden sm:inline">Détail</span>
+                <span class="text-[10px] sm:text-xs leading-tight">Détail</span>
               </div>
             </button>
             <button
               :class="[
-                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                'flex-1 px-2 sm:px-4 py-3 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'notes'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'notes'"
             >
-              <div class="flex items-center justify-center gap-1 sm:gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-1.5 sm:flex-row">
                 <UIcon
-                  name="i-lucide-star"
-                  class="w-3 h-3 sm:w-4 sm:h-4"
+                  name="i-ion-star"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span class="hidden sm:inline">Notes</span>
+                <span class="text-[10px] sm:text-xs leading-tight">Notes</span>
               </div>
             </button>
             <button
               :class="[
-                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                'flex-1 px-2 sm:px-4 py-3 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'parties'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'parties'"
             >
-              <div class="flex items-center justify-center gap-1 sm:gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-1.5 sm:flex-row">
                 <UIcon
-                  name="i-lucide-gamepad-2"
-                  class="w-3 h-3 sm:w-4 sm:h-4"
+                  name="i-ion-game-controller"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span class="hidden sm:inline">Parties</span>
+                <span class="text-[10px] sm:text-xs leading-tight">Parties</span>
               </div>
             </button>
             <button
               :class="[
-                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                'flex-1 px-2 sm:px-4 py-3 sm:py-2.5 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'podium'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'podium'"
             >
-              <div class="flex items-center justify-center gap-1 sm:gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-1.5 sm:flex-row">
                 <UIcon
-                  name="i-lucide-trophy"
-                  class="w-3 h-3 sm:w-4 sm:h-4"
+                  name="i-ion-trophy"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span class="hidden sm:inline">Podium</span>
+                <span class="text-[10px] sm:text-xs leading-tight">Podium</span>
               </div>
             </button>
           </div>
@@ -140,86 +140,99 @@
           <!-- Section Détail -->
           <div
             v-show="activeTab === 'detail'"
-            class="space-y-6 py-6"
+            class="space-y-4 sm:space-y-6 py-2 sm:py-6"
           >
-              <!-- Card avec image et infos synthétiques -->
-              <UCard class="bg-white dark:bg-gray-800">
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <span class="font-semibold">Détails</span>
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-edit"
-                      size="sm"
-                      @click="openEditModal"
-                    />
-                  </div>
-                </template>
-                <div class="flex flex-col gap-4">
-                  <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                    <img
-                      v-if="jeu && jeu.image"
-                      :src="jeu.image"
-                      :alt="jeu.titre || 'Image du jeu'"
-                      class="w-full h-full object-contain"
-                    >
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-16 h-16 mb-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="1.5"
-                          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                        />
-                      </svg>
-                      <span class="text-xs text-center">Aucune image</span>
-                    </div>
-                  </div>
-                  <div
-                    v-if="averageRating > 0"
-                    class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
+            <!-- Card avec image et infos synthétiques -->
+            <UCard class="bg-white dark:bg-gray-800 overflow-hidden">
+              <div class="flex flex-col">
+                <!-- Image du jeu -->
+                <div class="w-full">
+                  <img
+                    v-if="jeu && jeu.image"
+                    :src="jeu.image"
+                    :alt="jeu.titre || 'Image du jeu'"
+                    class="w-full h-full object-contain p-2 sm:p-4"
                   >
-                    <StarRating
-                      :model-value="averageRating"
-                      size="sm"
-                      readonly
+                  <div
+                    v-else
+                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-8"
+                  >
+                    <UIcon
+                      name="i-ion-game-controller"
+                      class="w-20 h-20 sm:w-24 sm:h-24 mb-3 opacity-50"
                     />
+                    <span class="text-sm text-center font-medium">Aucune image</span>
                   </div>
-                  <div class="flex flex-wrap gap-2">
+                </div>
+
+                <!-- Informations du jeu -->
+                <div class="space-y-3 mt-3">
+                  <div class="flex flex-wrap gap-2 sm:gap-3">
                     <UBadge
                       color="neutral"
                       variant="subtle"
-                      class="whitespace-nowrap"
+                      size="md"
+                      class="px-3 py-1.5"
                     >
-                      {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
+                      <div class="flex items-center gap-1.5">
+                        <UIcon
+                          name="i-ion-person"
+                          class="w-4 h-4"
+                        />
+                        <span>{{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans</span>
+                      </div>
                     </UBadge>
                     <UBadge
                       v-for="tag in jeu.tags"
                       :key="tag"
-                      :color="tag.includes('joueurs') ? 'info' : 'primary'"
+                      :color="tag.includes('joueurs') ? 'info' : tag.includes('min') ? 'warning' : 'primary'"
                       variant="subtle"
+                      size="md"
+                      class="px-3 py-1.5"
                     >
-                      {{ tag }}
+                      <div class="flex items-center gap-1.5">
+                        <UIcon
+                          v-if="tag.includes('joueurs')"
+                          name="i-ion-people"
+                          class="w-4 h-4"
+                        />
+                        <UIcon
+                          v-else-if="tag.includes('min')"
+                          name="i-ion-time"
+                          class="w-4 h-4"
+                        />
+                        <UIcon
+                          v-else
+                          name="i-ion-information-circle"
+                          class="w-4 h-4"
+                        />
+                        <span>{{ tag }}</span>
+                      </div>
                     </UBadge>
                   </div>
                 </div>
-              </UCard>
+
+                <!-- Bouton Modifier en bas -->
+                <div class="pt-4">
+                  <UButton
+                    color="primary"
+                    variant="outline"
+                    icon="i-ion-create-outline"
+                    size="md"
+                    class="w-full min-h-[44px] sm:min-h-0"
+                    @click="openEditModal"
+                  >
+                    Modifier les détails
+                  </UButton>
+                </div>
+              </div>
+            </UCard>
           </div>
 
           <!-- Section Notes -->
           <div
             v-show="activeTab === 'notes'"
-            class="py-6"
+            class="py-2 sm:py-6"
           >
             <MemberRatingsTab
               :members="familyMembers"
@@ -233,7 +246,7 @@
           <!-- Section Parties -->
           <div
             v-show="activeTab === 'parties'"
-            class="space-y-6 py-6"
+            class="space-y-3 sm:space-y-4 py-2 sm:py-6"
           >
             <!-- Liste des parties -->
             <GameSessions
@@ -245,152 +258,152 @@
           <!-- Section Podium -->
           <div
             v-show="activeTab === 'podium'"
-            class="space-y-6 py-6"
+            class="space-y-4 sm:space-y-6 py-2 sm:py-6"
           >
-              <!-- Podium des top 3 -->
-              <UCard
-                v-if="top3Winners.length > 0"
-                class="bg-white dark:bg-gray-800 mb-6 overflow-hidden podium-card"
-              >
-                <div class="relative flex items-end justify-center gap-3 px-4 pt-6 pb-0">
-                  <!-- Confettis pour le 1er -->
-                  <div
-                    v-if="top3Winners[0]"
-                    :class="['absolute top-0 left-0 right-0 h-full pointer-events-none overflow-hidden confetti-container', { 'show-confetti': showPodiumAnimation }]"
-                  >
-                    <div class="confetti confetti-1">
-                      🎉
-                    </div>
-                    <div class="confetti confetti-2">
-                      ⭐
-                    </div>
-                    <div class="confetti confetti-3">
-                      ✨
-                    </div>
-                    <div class="confetti confetti-4">
-                      🎊
-                    </div>
-                    <div class="confetti confetti-5">
-                      🌟
-                    </div>
+            <!-- Podium des top 3 -->
+            <UCard
+              v-if="top3Winners.length > 0"
+              class="bg-white dark:bg-gray-800 mb-6 overflow-hidden podium-card"
+            >
+              <div class="relative flex items-end justify-center gap-3 px-4 pt-6 pb-0">
+                <!-- Confettis pour le 1er -->
+                <div
+                  v-if="top3Winners[0]"
+                  :class="['absolute top-0 left-0 right-0 h-full pointer-events-none overflow-hidden confetti-container', { 'show-confetti': showPodiumAnimation }]"
+                >
+                  <div class="confetti confetti-1">
+                    🎉
                   </div>
-
-                  <!-- 2ème place -->
-                  <div
-                    v-if="top3Winners[1]"
-                    class="flex flex-col items-center flex-1 max-w-[120px] podium-second"
-                  >
-                    <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                      <span class="medal-emoji">🥈</span>
-                    </div>
-                    <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
-                      <MemberAvatar
-                        :member="top3Winners[1].member"
-                        size="xl"
-                      />
-                    </div>
-                    <div
-                      class="w-full bg-gradient-to-b from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"
-                      style="height: 90px;"
-                    >
-                      <div class="flex flex-col items-center justify-center h-full">
-                        <span :class="['text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 podium-text', { 'reveal-text': showPodiumAnimation }]">2ème</span>
-                        <span :class="['text-xs font-bold text-slate-900 dark:text-slate-50 truncate w-full podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[1].member.username }}
-                        </span>
-                        <span :class="['text-xs text-slate-700 dark:text-slate-300 mt-1 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
-                        </span>
-                      </div>
-                    </div>
+                  <div class="confetti confetti-2">
+                    ⭐
                   </div>
-
-                  <!-- 1ère place -->
-                  <div
-                    v-if="top3Winners[0]"
-                    class="flex flex-col items-center flex-1 max-w-[140px] podium-first"
-                  >
-                    <div :class="['crown-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                      <UIcon
-                        name="i-lucide-crown"
-                        class="w-8 h-8 text-yellow-400 animate-bounce"
-                      />
-                      <div class="stars">
-                        <span class="star star-1">⭐</span>
-                        <span class="star star-2">⭐</span>
-                        <span class="star star-3">⭐</span>
-                      </div>
-                    </div>
-                    <div :class="['mb-3 border-4 border-yellow-400 shadow-2xl glow-gold rounded-full transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
-                      <MemberAvatar
-                        :member="top3Winners[0].member"
-                        size="2xl"
-                      />
-                    </div>
-                    <div
-                      class="w-full bg-gradient-to-b from-yellow-400 via-yellow-500 to-yellow-600 dark:from-yellow-500 dark:via-yellow-600 dark:to-yellow-700 rounded-t-2xl p-4 text-center shadow-2xl podium-base podium-gold"
-                      style="height: 120px;"
-                    >
-                      <div class="flex flex-col items-center justify-center h-full">
-                        <span :class="['text-sm font-bold text-yellow-900 dark:text-yellow-50 mb-1 podium-text', { 'reveal-text': showPodiumAnimation }]">🏆 1er 🏆</span>
-                        <span :class="['text-lg font-bold text-yellow-900 dark:text-yellow-50 truncate w-full podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[0].member.username }}
-                        </span>
-                        <span :class="['text-xs text-yellow-800 dark:text-yellow-100 mt-1 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
-                        </span>
-                      </div>
-                    </div>
+                  <div class="confetti confetti-3">
+                    ✨
                   </div>
+                  <div class="confetti confetti-4">
+                    🎊
+                  </div>
+                  <div class="confetti confetti-5">
+                    🌟
+                  </div>
+                </div>
 
-                  <!-- 3ème place -->
+                <!-- 2ème place -->
+                <div
+                  v-if="top3Winners[1]"
+                  class="flex flex-col items-center flex-1 max-w-[120px] podium-second"
+                >
+                  <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                    <span class="medal-emoji">🥈</span>
+                  </div>
+                  <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
+                    <MemberAvatar
+                      :member="top3Winners[1].member"
+                      size="xl"
+                    />
+                  </div>
                   <div
-                    v-if="top3Winners[2]"
-                    class="flex flex-col items-center flex-1 max-w-[120px] podium-third"
+                    class="w-full bg-gradient-to-b from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"
+                    style="height: 90px;"
                   >
-                    <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                      <span class="medal-emoji">🥉</span>
-                    </div>
-                    <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
-                      <MemberAvatar
-                        :member="top3Winners[2].member"
-                        size="xl"
-                      />
-                    </div>
-                    <div
-                      class="w-full bg-gradient-to-b from-amber-300 to-amber-400 dark:from-amber-600 dark:to-amber-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"
-                      style="height: 80px;"
-                    >
-                      <div class="flex flex-col items-center justify-center h-full">
-                        <span :class="['text-xs font-bold text-amber-900 dark:text-amber-50 mb-0.5 podium-text', { 'reveal-text': showPodiumAnimation }]">3ème</span>
-                        <span :class="['text-sm font-bold text-amber-900 dark:text-amber-50 truncate w-full leading-tight podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[2].member.username }}
-                        </span>
-                        <span :class="['text-xs text-amber-800 dark:text-amber-100 mt-0.5 podium-text', { 'reveal-text': showPodiumAnimation }]">
-                          {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
-                        </span>
-                      </div>
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span :class="['text-xs font-bold text-slate-800 dark:text-slate-100 mb-1 podium-text', { 'reveal-text': showPodiumAnimation }]">2ème</span>
+                      <span :class="['text-xs font-bold text-slate-900 dark:text-slate-50 truncate w-full podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[1].member.username }}
+                      </span>
+                      <span :class="['text-xs text-slate-700 dark:text-slate-300 mt-1 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </UCard>
 
-              <!-- Message si aucun gagnant -->
-              <div
-                v-else
-                class="text-center py-12 text-gray-500 dark:text-gray-400"
-              >
-                <UIcon
-                  name="i-lucide-trophy"
-                  class="w-16 h-16 mx-auto mb-4 opacity-50"
-                />
-                <p>
-                  Aucun gagnant pour le moment
-                </p>
-                <p class="text-sm mt-2">
-                  Jouez des parties pour voir le podium !
-                </p>
+                <!-- 1ère place -->
+                <div
+                  v-if="top3Winners[0]"
+                  class="flex flex-col items-center flex-1 max-w-[140px] podium-first"
+                >
+                  <div :class="['crown-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                    <UIcon
+                      name="i-ion-trophy"
+                      class="w-8 h-8 text-yellow-400 animate-bounce"
+                    />
+                    <div class="stars">
+                      <span class="star star-1">⭐</span>
+                      <span class="star star-2">⭐</span>
+                      <span class="star star-3">⭐</span>
+                    </div>
+                  </div>
+                  <div :class="['mb-3 border-4 border-yellow-400 shadow-2xl glow-gold rounded-full transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
+                    <MemberAvatar
+                      :member="top3Winners[0].member"
+                      size="2xl"
+                    />
+                  </div>
+                  <div
+                    class="w-full bg-gradient-to-b from-yellow-400 via-yellow-500 to-yellow-600 dark:from-yellow-500 dark:via-yellow-600 dark:to-yellow-700 rounded-t-2xl p-4 text-center shadow-2xl podium-base podium-gold"
+                    style="height: 120px;"
+                  >
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span :class="['text-sm font-bold text-yellow-900 dark:text-yellow-50 mb-1 podium-text', { 'reveal-text': showPodiumAnimation }]">🏆 1er 🏆</span>
+                      <span :class="['text-lg font-bold text-yellow-900 dark:text-yellow-50 truncate w-full podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[0].member.username }}
+                      </span>
+                      <span :class="['text-xs text-yellow-800 dark:text-yellow-100 mt-1 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3ème place -->
+                <div
+                  v-if="top3Winners[2]"
+                  class="flex flex-col items-center flex-1 max-w-[120px] podium-third"
+                >
+                  <div :class="['medal-container mb-2 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                    <span class="medal-emoji">🥉</span>
+                  </div>
+                  <div :class="['mb-3 shadow-lg transform hover:scale-110 transition-transform podium-avatar', { 'reveal-avatar': showPodiumAnimation }]">
+                    <MemberAvatar
+                      :member="top3Winners[2].member"
+                      size="xl"
+                    />
+                  </div>
+                  <div
+                    class="w-full bg-gradient-to-b from-amber-300 to-amber-400 dark:from-amber-600 dark:to-amber-700 rounded-t-2xl p-3 text-center shadow-lg podium-base"
+                    style="height: 80px;"
+                  >
+                    <div class="flex flex-col items-center justify-center h-full">
+                      <span :class="['text-xs font-bold text-amber-900 dark:text-amber-50 mb-0.5 podium-text', { 'reveal-text': showPodiumAnimation }]">3ème</span>
+                      <span :class="['text-sm font-bold text-amber-900 dark:text-amber-50 truncate w-full leading-tight podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[2].member.username }}
+                      </span>
+                      <span :class="['text-xs text-amber-800 dark:text-amber-100 mt-0.5 podium-text', { 'reveal-text': showPodiumAnimation }]">
+                        {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </UCard>
+
+            <!-- Message si aucun gagnant -->
+            <div
+              v-else
+              class="text-center py-12 text-gray-500 dark:text-gray-400"
+            >
+              <UIcon
+                name="i-ion-trophy"
+                class="w-16 h-16 mx-auto mb-4 opacity-50"
+              />
+              <p>
+                Aucun gagnant pour le moment
+              </p>
+              <p class="text-sm mt-2">
+                Jouez des parties pour voir le podium !
+              </p>
+            </div>
           </div>
         </div>
       </div>

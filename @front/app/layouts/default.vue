@@ -138,12 +138,12 @@ const handleBackFromDish = () => {
 const menuItems = [
   {
     label: 'Accueil',
-    icon: 'i-lucide-home',
+    icon: 'i-ion-home',
     to: '/'
   },
   {
     label: 'Ma collection de livres',
-    icon: 'i-lucide-book',
+    icon: 'i-ion-book',
     to: '/livres/'
   }
 ]
@@ -254,7 +254,7 @@ const handleMemberLogout = () => {
             variant="ghost"
             color="neutral"
             size="lg"
-            icon="i-lucide-chevron-left"
+            icon="i-ion-chevron-back"
             aria-label="Retour"
             class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromGame"
@@ -264,7 +264,7 @@ const handleMemberLogout = () => {
             variant="ghost"
             color="neutral"
             size="lg"
-            icon="i-lucide-chevron-left"
+            icon="i-ion-chevron-back"
             aria-label="Retour"
             class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromBook"
@@ -274,7 +274,7 @@ const handleMemberLogout = () => {
             variant="ghost"
             color="neutral"
             size="lg"
-            icon="i-lucide-chevron-left"
+            icon="i-ion-chevron-back"
             aria-label="Retour"
             class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromDish"
@@ -288,7 +288,7 @@ const handleMemberLogout = () => {
             @click="toggleMenu"
           >
             <UIcon
-              name="i-lucide-align-justify"
+              name="i-ion-menu"
               class="w-5 h-5"
             />
           </UButton>
@@ -346,7 +346,7 @@ const handleMemberLogout = () => {
             v-else
             color="neutral"
             variant="ghost"
-            icon="i-lucide-user-circle"
+            icon="i-ion-person-circle"
             size="sm"
             aria-label="Choisir un membre"
             @click="openMemberDrawer"
@@ -379,7 +379,7 @@ const handleMemberLogout = () => {
             <UButton
               variant="ghost"
               color="neutral"
-              icon="i-lucide-x"
+              icon="i-ion-close"
               size="sm"
               @click="closeMenu"
             />
@@ -390,7 +390,7 @@ const handleMemberLogout = () => {
             <div class="px-4 py-3 mb-2 border-b">
               <div class="flex items-center gap-3">
                 <UIcon
-                  name="i-lucide-user"
+                  name="i-ion-person"
                   class="w-5 h-5 text-gray-500"
                 />
                 <div class="flex flex-col">
@@ -400,7 +400,7 @@ const handleMemberLogout = () => {
                     class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"
                   >
                     <UIcon
-                      name="i-lucide-users"
+                      name="i-ion-persons"
                       class="w-4 h-4"
                     />
                     {{ family.name }}
@@ -410,7 +410,7 @@ const handleMemberLogout = () => {
                     class="text-sm text-primary-600 dark:text-primary-400 flex items-center gap-1 mt-1"
                   >
                     <UIcon
-                      name="i-lucide-user-circle"
+                      name="i-ion-person-circle"
                       class="w-4 h-4"
                     />
                     Connecté en tant que : {{ currentMember.username }}
@@ -446,7 +446,7 @@ const handleMemberLogout = () => {
               @click="closeMenu(); openMemberDrawer()"
             >
               <UIcon
-                name="i-lucide-user-circle"
+                name="i-ion-person-circle"
                 class="w-5 h-5"
               />
               <span class="font-medium">Se connecter en tant que membre</span>
@@ -460,7 +460,7 @@ const handleMemberLogout = () => {
               @click="handleMemberLogout"
             >
               <UIcon
-                name="i-lucide-log-out"
+                name="i-ion-log-out"
                 class="w-5 h-5"
               />
               <span class="font-medium">Déconnexion membre ({{ currentMember?.username }})</span>
@@ -473,7 +473,7 @@ const handleMemberLogout = () => {
             <div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               <div class="flex items-center gap-3">
                 <UIcon
-                  name="i-lucide-moon"
+                  name="i-ion-moon"
                   class="w-5 h-5"
                 />
                 <span class="font-medium">Mode sombre</span>
@@ -489,7 +489,7 @@ const handleMemberLogout = () => {
               @click="logout"
             >
               <UIcon
-                name="i-lucide-log-out"
+                name="i-ion-log-out"
                 class="w-5 h-5"
               />
               <span class="font-medium">Déconnexion</span>
@@ -516,7 +516,7 @@ const handleMemberLogout = () => {
               <UButton
                 variant="ghost"
                 color="neutral"
-                icon="i-lucide-x"
+                icon="i-ion-close"
                 size="sm"
                 @click="closeMemberDrawer"
               />
@@ -548,7 +548,7 @@ const handleMemberLogout = () => {
                 variant="outline"
                 color="neutral"
                 class="w-full justify-center"
-                icon="i-lucide-users"
+                icon="i-ion-persons"
                 @click="handleFamilyMode"
               >
                 Mode famille — tout voir
@@ -562,7 +562,7 @@ const handleMemberLogout = () => {
               <UButton
                 variant="ghost"
                 color="neutral"
-                icon="i-lucide-chevron-left"
+                icon="i-ion-chevron-back"
                 size="sm"
                 @click="cancelMemberCode"
               />
@@ -572,7 +572,7 @@ const handleMemberLogout = () => {
               <UButton
                 variant="ghost"
                 color="neutral"
-                icon="i-lucide-x"
+                icon="i-ion-close"
                 size="sm"
                 @click="closeMemberDrawer"
               />

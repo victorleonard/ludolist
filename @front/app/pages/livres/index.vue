@@ -14,7 +14,7 @@
             </div>
             <UButton
               color="primary"
-              icon="i-lucide-plus"
+              icon="i-ion-add"
               size="sm"
               aria-label="Ajouter un livre"
               @click="openAddBookModal()"
@@ -30,7 +30,7 @@
           class="flex flex-col items-center justify-center py-24"
         >
           <UIcon
-            name="i-lucide-loader-2"
+            name="i-ion-refresh-circle"
             class="w-12 h-12 animate-spin text-primary-500 mb-4"
           />
           <p class="text-gray-600 dark:text-gray-400">
@@ -44,7 +44,7 @@
           class="flex flex-col items-center justify-center py-24"
         >
           <UIcon
-            name="i-lucide-book-open"
+            name="i-ion-book-open"
             class="w-24 h-24 text-gray-300 dark:text-gray-600 mb-4"
           />
           <p class="text-lg text-gray-500 dark:text-gray-400 text-center mb-4">
@@ -85,7 +85,7 @@
                     class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
                   >
                     <UIcon
-                      name="i-lucide-book"
+                      name="i-ion-book"
                       class="w-16 h-16 mb-2"
                     />
                     <span class="text-xs text-center">Aucune image</span>
@@ -97,7 +97,7 @@
                   class="text-sm text-gray-600 dark:text-gray-400"
                 >
                   <UIcon
-                    name="i-lucide-user"
+                    name="i-ion-person"
                     class="w-3 h-3 inline mr-1"
                   />
                   {{ book.auteur }}
@@ -129,7 +129,7 @@
                     size="xs"
                   >
                     <UIcon
-                      name="i-lucide-timer"
+                      name="i-ion-time"
                       class="w-3 h-3 mr-1"
                     />
                     {{ getBookDurationLabel(book) }}
@@ -180,7 +180,7 @@
                       class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
                     >
                       <UIcon
-                        name="i-lucide-book"
+                        name="i-ion-book"
                         class="w-8 h-8"
                       />
                     </div>
@@ -221,7 +221,7 @@
                         size="xs"
                       >
                         <UIcon
-                          name="i-lucide-timer"
+                          name="i-ion-time"
                           class="w-3 h-3 mr-1"
                         />
                         {{ getBookDurationLabel(book) }}

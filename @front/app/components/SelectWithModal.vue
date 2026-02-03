@@ -19,7 +19,7 @@
         {{ selectedLabel || placeholder }}
       </span>
       <UIcon
-        name="i-lucide-chevron-down"
+        name="i-ion-chevron-down"
         class="w-4 h-4 shrink-0 text-gray-500 dark:text-gray-400"
       />
     </button>
@@ -38,7 +38,7 @@
             <UButton
               variant="ghost"
               color="neutral"
-              icon="i-lucide-x"
+              icon="i-ion-close"
               size="sm"
               aria-label="Fermer"
               @click="modalOpen = false"
@@ -60,7 +60,7 @@
               <span class="font-medium">{{ getItemLabel(item) }}</span>
               <UIcon
                 v-if="isSelected(item)"
-                name="i-lucide-check"
+                name="i-ion-checkmark"
                 class="w-5 h-5 ml-auto text-primary-600 dark:text-primary-400 shrink-0"
               />
             </button>

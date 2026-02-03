@@ -7,7 +7,7 @@
         class="flex justify-center items-center py-12"
       >
         <UIcon
-          name="i-lucide-loader-2"
+          name="i-ion-refresh"
           class="w-8 h-8 animate-spin text-primary-500"
         />
       </div>
@@ -34,7 +34,7 @@
         class="flex flex-col items-center justify-center py-12"
       >
         <UIcon
-          name="i-lucide-alert-circle"
+          name="i-ion-alert-circle"
           class="w-16 h-16 text-gray-400 mb-4"
         />
         <h2 class="text-2xl font-bold mb-2">
@@ -54,47 +54,47 @@
       <!-- Détails du plat -->
       <div
         v-else
-        class="space-y-6"
+        class="space-y-4 sm:space-y-6"
       >
         <h1 class="text-xl sm:text-2xl font-bold break-words min-w-0 mb-3 sm:mb-4">
           {{ dish.name }}
         </h1>
 
         <!-- Navigation par segments -->
-        <div class="mb-6">
-          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+        <div class="mb-2 sm:mb-4">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 sm:p-1.5 w-full gap-1">
             <button
               :class="[
-                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                'flex-1 px-3 sm:px-4 py-3 sm:py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'detail'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'detail'"
             >
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex items-center justify-center gap-2 sm:gap-2">
                 <UIcon
-                  name="i-lucide-info"
-                  class="w-4 h-4"
+                  name="i-ion-information-circle"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
                 <span>Détail</span>
               </div>
             </button>
             <button
               :class="[
-                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                'flex-1 px-3 sm:px-4 py-3 sm:py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'notes'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'notes'"
             >
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-2 sm:flex-row">
                 <UIcon
-                  name="i-lucide-star"
-                  class="w-4 h-4"
+                  name="i-ion-star"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span>Notes</span>
+                <span class="text-[10px] sm:text-sm leading-tight">Notes</span>
               </div>
             </button>
           </div>
@@ -105,22 +105,10 @@
           <!-- Section Détail -->
           <div
             v-show="activeTab === 'detail'"
-            class="space-y-6 py-6"
+            class="space-y-4 sm:space-y-6 py-2 sm:py-6"
           >
               <UCard class="bg-white dark:bg-gray-800">
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <span class="font-semibold">Détails</span>
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-lucide-edit"
-                      size="sm"
-                      @click="openEditModal"
-                    />
-                  </div>
-                </template>
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 p-4 sm:p-6">
                   <div class="w-full h-48 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
                     <img
                       v-if="dish && dish.image"
@@ -133,31 +121,31 @@
                       class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
                     >
                       <UIcon
-                        name="i-lucide-utensils-cross"
+                        name="i-ion-restaurant"
                         class="w-16 h-16 mb-2"
                       />
                       <span class="text-xs text-center">Aucune image</span>
                     </div>
                   </div>
                   <div
-                    v-if="averageRating > 0"
-                    class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
-                  >
-                    <StarRating
-                      :model-value="averageRating"
-                      :max="10"
-                      size="sm"
-                      readonly
-                    />
-                    <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
-                      {{ averageRating.toFixed(1) }} / 10
-                    </span>
-                  </div>
-                  <div
                     v-if="dish.description"
                     class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap"
                   >
                     {{ dish.description }}
+                  </div>
+
+                  <!-- Bouton Modifier en bas -->
+                  <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <UButton
+                      color="primary"
+                      variant="outline"
+                      icon="i-ion-create-outline"
+                      size="md"
+                      class="w-full min-h-[44px] sm:min-h-0"
+                      @click="openEditModal"
+                    >
+                      Modifier les détails
+                    </UButton>
                   </div>
                 </div>
               </UCard>
@@ -166,7 +154,7 @@
           <!-- Section Notes -->
           <div
             v-show="activeTab === 'notes'"
-            class="py-6"
+            class="py-2 sm:py-6"
           >
             <MemberRatingsTab
               :members="familyMembers"

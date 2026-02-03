@@ -15,7 +15,7 @@
               v-if="editingDish"
               color="red"
               variant="outline"
-              icon="i-lucide-trash-2"
+              icon="i-ion-trash"
               size="sm"
               :loading="deleting"
               :disabled="submitting"
@@ -36,7 +36,7 @@
             <UButton
               color="neutral"
               variant="ghost"
-              icon="i-lucide-x"
+              icon="i-ion-close"
               size="sm"
               :disabled="submitting || deleting"
               @click="closeModal"
@@ -55,7 +55,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-utensils-cross"
+                name="i-ion-restaurant"
                 class="w-4 h-4"
               />
               Nom du plat <span class="text-red-500">*</span>
@@ -82,7 +82,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-file-text"
+                name="i-ion-document-text"
                 class="w-4 h-4"
               />
               Description
@@ -100,7 +100,7 @@
           <div>
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               <UIcon
-                name="i-lucide-image"
+                name="i-ion-image"
                 class="w-4 h-4"
               />
               Photo du plat

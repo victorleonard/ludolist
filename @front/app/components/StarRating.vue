@@ -46,14 +46,17 @@ const hoverRating = ref(0)
 const currentRating = computed(() => hoverRating.value || props.modelValue)
 
 const getStarIcon = (star: number) => {
-  return currentRating.value >= star ? 'i-lucide-star' : 'i-lucide-star'
+  // Utiliser l'icône star pour toutes les étoiles
+  return 'i-ion-star'
 }
 
 const getStarClass = (star: number) => {
   if (currentRating.value >= star) {
-    return 'text-yellow-400 fill-yellow-400'
+    // Étoile pleine (sélectionnée) - jaune avec remplissage complet
+    return 'text-yellow-500 dark:text-yellow-400 fill-yellow-500 dark:fill-yellow-400'
   }
-  return 'text-gray-300 dark:text-gray-600'
+  // Étoile vide (non sélectionnée) - gris sans remplissage
+  return 'text-gray-300 dark:text-gray-600 fill-transparent'
 }
 
 const getSizeClass = () => {

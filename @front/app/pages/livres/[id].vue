@@ -7,7 +7,7 @@
         class="flex justify-center items-center py-12"
       >
         <UIcon
-          name="i-lucide-loader-2"
+          name="i-ion-refresh"
           class="w-8 h-8 animate-spin text-primary-500"
         />
       </div>
@@ -34,7 +34,7 @@
         class="flex flex-col items-center justify-center py-12"
       >
         <UIcon
-          name="i-lucide-alert-circle"
+          name="i-ion-alert-circle"
           class="w-16 h-16 text-gray-400 mb-4"
         />
         <h2 class="text-2xl font-bold mb-2">
@@ -57,48 +57,48 @@
       <!-- Détails du livre -->
       <div
         v-else
-        class="space-y-6"
+        class="space-y-4 sm:space-y-6"
       >
         <!-- Titre -->
-        <h1 class="text-2xl font-bold wrap-break-word min-w-0 mb-4">
+        <h1 class="text-xl sm:text-2xl font-bold wrap-break-word min-w-0 mb-3 sm:mb-4">
           {{ book.titre }}
         </h1>
 
         <!-- Navigation par segments -->
-        <div class="mb-6">
-          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+        <div class="mb-2 sm:mb-4">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 sm:p-1.5 w-full gap-1">
             <button
               :class="[
-                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                'flex-1 px-3 sm:px-4 py-3 sm:py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'detail'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'detail'"
             >
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex items-center justify-center gap-2 sm:gap-2">
                 <UIcon
-                  name="i-lucide-info"
-                  class="w-4 h-4"
+                  name="i-ion-information-circle"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
                 <span>Détail</span>
               </div>
             </button>
             <button
               :class="[
-                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                'flex-1 px-3 sm:px-4 py-3 sm:py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
                 activeTab === 'lectures'
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
               @click="activeTab = 'lectures'"
             >
-              <div class="flex items-center justify-center gap-2">
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-2 sm:flex-row">
                 <UIcon
-                  name="i-lucide-book-open"
-                  class="w-4 h-4"
+                  name="i-ion-book"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
                 />
-                <span>Lectures</span>
+                <span class="text-[10px] sm:text-sm leading-tight">Lectures</span>
               </div>
             </button>
           </div>
@@ -112,150 +112,159 @@
             class="space-y-6 py-6"
           >
             <UCard class="bg-white dark:bg-gray-800">
-                <template #header>
-                  <div class="flex items-center justify-between">
-                    <span class="font-semibold">Détails</span>
-                  </div>
-                </template>
-                <div class="flex flex-col gap-4">
-                  <div
-                    class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden relative group"
-                    @click.stop
+              <div class="flex flex-col gap-4 p-4 sm:p-6">
+                <div
+                  class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden relative group"
+                  @click.stop
+                >
+                  <img
+                    v-if="book && book.image"
+                    :src="book.image"
+                    :alt="book.titre || 'Image du livre'"
+                    class="w-full h-full object-contain pointer-events-none"
                   >
-                    <img
-                      v-if="book && book.image"
-                      :src="book.image"
-                      :alt="book.titre || 'Image du livre'"
-                      class="w-full h-full object-contain pointer-events-none"
-                    >
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4 pointer-events-none"
-                    >
-                      <UIcon
-                        name="i-lucide-book"
-                        class="w-16 h-16 mb-2"
-                      />
-                      <span class="text-xs text-center">Aucune image</span>
-                    </div>
-                    <UButton
-                      color="neutral"
-                      variant="solid"
-                      size="xs"
-                      icon="i-lucide-pencil"
-                      class="absolute bottom-2 right-2 opacity-90 pointer-events-auto"
-                      aria-label="Modifier l'image"
-                      @click.stop="openCoverModal"
-                    >
-                      Modifier l'image
-                    </UButton>
-                  </div>
-
-                  <!-- Informations principales -->
-                  <div class="space-y-3">
-                    <div
-                      v-if="book.auteur"
-                      class="flex items-center gap-2"
-                    >
-                      <UIcon
-                        name="i-lucide-user"
-                        class="w-4 h-4 text-gray-500"
-                      />
-                      <span class="font-medium">Auteur :</span>
-                      <span>{{ book.auteur }}</span>
-                    </div>
-
-                    <div
-                      v-if="book.annee"
-                      class="flex items-center gap-2"
-                    >
-                      <UIcon
-                        name="i-lucide-calendar"
-                        class="w-4 h-4 text-gray-500"
-                      />
-                      <span class="font-medium">Année :</span>
-                      <span>{{ book.annee }}</span>
-                    </div>
-
-                    <div
-                      v-if="book.isbn"
-                      class="flex items-center gap-2"
-                    >
-                      <UIcon
-                        name="i-lucide-hash"
-                        class="w-4 h-4 text-gray-500"
-                      />
-                      <span class="font-medium">ISBN :</span>
-                      <span>{{ book.isbn }}</span>
-                    </div>
-
-                    <div
-                      v-if="book.editeur"
-                      class="flex items-center gap-2"
-                    >
-                      <UIcon
-                        name="i-lucide-building"
-                        class="w-4 h-4 text-gray-500"
-                      />
-                      <span class="font-medium">Éditeur :</span>
-                      <span>{{ book.editeur }}</span>
-                    </div>
-
-                    <div
-                      v-if="book.nombre_pages"
-                      class="flex items-center gap-2"
-                    >
-                      <UIcon
-                        name="i-lucide-file-text"
-                        class="w-4 h-4 text-gray-500"
-                      />
-                      <span class="font-medium">Nombre de pages :</span>
-                      <span>{{ book.nombre_pages }}</span>
-                    </div>
-                  </div>
-
-                  <!-- Description -->
                   <div
-                    v-if="book.description"
-                    class="mt-4"
+                    v-else
+                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4 pointer-events-none"
                   >
-                    <h3 class="font-semibold mb-2">
-                      Description
-                    </h3>
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {{ book.description }}
-                    </p>
+                    <UIcon
+                      name="i-ion-book"
+                      class="w-16 h-16 mb-2"
+                    />
+                    <span class="text-xs text-center">Aucune image</span>
+                  </div>
+                  <UButton
+                    color="neutral"
+                    variant="solid"
+                    size="xs"
+                    icon="i-ion-create-outline"
+                    class="absolute top-2 right-2 opacity-90 pointer-events-auto"
+                    aria-label="Modifier l'image"
+                    @click.stop="openCoverModal"
+                  >
+                    Modifier l'image
+                  </UButton>
+                </div>
+
+                <!-- Informations principales -->
+                <div class="space-y-3">
+                  <div
+                    v-if="book.auteur"
+                    class="flex items-center gap-2"
+                  >
+                    <UIcon
+                      name="i-ion-person"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Auteur :</span>
+                    <span>{{ book.auteur }}</span>
                   </div>
 
-                  <!-- Sujets/Catégories -->
                   <div
-                    v-if="book.sujets && Array.isArray(book.sujets) && book.sujets.length > 0"
-                    class="mt-4"
+                    v-if="book.annee"
+                    class="flex items-center gap-2"
                   >
-                    <h3 class="font-semibold mb-2">
-                      Catégories
-                    </h3>
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        v-for="(subject, index) in book.sujets.slice(0, 10)"
-                        :key="index"
-                        color="primary"
-                        variant="outline"
-                        size="xs"
-                      >
-                        {{ subject }}
-                      </UBadge>
-                    </div>
+                    <UIcon
+                      name="i-ion-calendar"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Année :</span>
+                    <span>{{ book.annee }}</span>
+                  </div>
+
+                  <div
+                    v-if="book.isbn"
+                    class="flex items-center gap-2"
+                  >
+                    <UIcon
+                      name="i-ion-hash"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">ISBN :</span>
+                    <span>{{ book.isbn }}</span>
+                  </div>
+
+                  <div
+                    v-if="book.editeur"
+                    class="flex items-center gap-2"
+                  >
+                    <UIcon
+                      name="i-ion-business"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Éditeur :</span>
+                    <span>{{ book.editeur }}</span>
+                  </div>
+
+                  <div
+                    v-if="book.nombre_pages"
+                    class="flex items-center gap-2"
+                  >
+                    <UIcon
+                      name="i-ion-document-text"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Nombre de pages :</span>
+                    <span>{{ book.nombre_pages }}</span>
                   </div>
                 </div>
-              </UCard>
+
+                <!-- Description -->
+                <div
+                  v-if="book.description"
+                  class="mt-4"
+                >
+                  <h3 class="font-semibold mb-2">
+                    Description
+                  </h3>
+                  <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    {{ book.description }}
+                  </p>
+                </div>
+
+                <!-- Sujets/Catégories -->
+                <div
+                  v-if="book.sujets && Array.isArray(book.sujets) && book.sujets.length > 0"
+                  class="mt-4"
+                >
+                  <h3 class="font-semibold mb-2">
+                    Catégories
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    <UBadge
+                      v-for="(subject, index) in book.sujets.slice(0, 10)"
+                      :key="index"
+                      color="primary"
+                      variant="outline"
+                      size="xs"
+                    >
+                      {{ subject }}
+                    </UBadge>
+                  </div>
+                </div>
+
+                <!-- Bouton Modifier en bas -->
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <UButton
+                    color="primary"
+                    variant="outline"
+                    icon="i-ion-create-outline"
+                    size="md"
+                    class="w-full min-h-[44px] sm:min-h-0"
+                    @click="handleEditBook"
+                  >
+                    Modifier les détails
+                  </UButton>
+                </div>
+              </div>
+            </UCard>
           </div>
 
           <!-- Section Lectures -->
           <div
             v-show="activeTab === 'lectures'"
             :key="'section-lectures-' + readingsList.length"
-            class="space-y-4 py-6"
+            class="space-y-3 sm:space-y-4 py-2 sm:py-6"
           >
             <div class="flex items-center justify-between">
               <h2 class="text-xl font-bold">
@@ -263,7 +272,7 @@
               </h2>
               <UButton
                 color="primary"
-                icon="i-lucide-plus"
+                icon="i-ion-add"
                 @click="openReadingModal()"
               >
                 Ajouter ma lecture
@@ -278,7 +287,7 @@
                 class="text-center py-12 text-gray-500 dark:text-gray-400"
               >
                 <UIcon
-                  name="i-lucide-book-open"
+                  name="i-ion-book"
                   class="w-16 h-16 mx-auto mb-4 opacity-50"
                 />
                 <p>Aucune lecture enregistrée</p>
@@ -311,7 +320,7 @@
                           class="flex items-center gap-1"
                         >
                           <UIcon
-                            name="i-lucide-calendar"
+                            name="i-ion-calendar"
                             class="w-4 h-4"
                           />
                           <span class="font-medium">Début :</span>
@@ -322,7 +331,7 @@
                           class="flex items-center gap-1"
                         >
                           <UIcon
-                            name="i-lucide-calendar-check"
+                            name="i-ion-calendar"
                             class="w-4 h-4"
                           />
                           <span class="font-medium">Fin :</span>
@@ -333,7 +342,7 @@
                           class="flex items-center gap-1"
                         >
                           <UIcon
-                            name="i-lucide-star"
+                            name="i-ion-star"
                             class="w-4 h-4 text-yellow-500"
                           />
                           <span class="font-medium">Note :</span>
@@ -349,7 +358,7 @@
                           variant="subtle"
                         >
                           <UIcon
-                            name="i-lucide-check-circle"
+                            name="i-ion-checkmark-circle"
                             class="w-3 h-3 mr-1"
                           />
                           Terminé
@@ -360,7 +369,7 @@
                           variant="subtle"
                         >
                           <UIcon
-                            name="i-lucide-clock"
+                            name="i-ion-time"
                             class="w-3 h-3 mr-1"
                           />
                           En cours
@@ -371,7 +380,7 @@
                           variant="subtle"
                         >
                           <UIcon
-                            name="i-lucide-bookmark"
+                            name="i-ion-bookmark"
                             class="w-3 h-3 mr-1"
                           />
                           À lire
@@ -382,7 +391,7 @@
                           variant="subtle"
                         >
                           <UIcon
-                            name="i-lucide-timer"
+                            name="i-ion-time"
                             class="w-3 h-3 mr-1"
                           />
                           {{ readingDurationLabel(reading) }}
@@ -393,8 +402,9 @@
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-edit"
+                      icon="i-ion-create-outline"
                       size="sm"
+                      class="flex-shrink-0"
                       @click="openReadingModal(reading)"
                     />
                   </div>
@@ -432,7 +442,7 @@
               <UButton
                 variant="ghost"
                 color="neutral"
-                icon="i-lucide-x"
+                icon="i-ion-close"
                 size="sm"
                 @click="isCoverModalOpen = false"
               />
@@ -444,7 +454,7 @@
               class="flex flex-col items-center justify-center py-12"
             >
               <UIcon
-                name="i-lucide-loader-2"
+                name="i-ion-refresh"
                 class="w-10 h-10 animate-spin text-primary-500 mb-3"
               />
               <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -492,7 +502,7 @@
                   v-if="book?.isbn"
                   type="button"
                   color="primary"
-                  icon="i-lucide-book-open"
+                  icon="i-ion-book"
                   @click="useIsbnCover"
                 >
                   Utiliser la couverture par ISBN
@@ -535,6 +545,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores/family'
 import { useMemberStore } from '~/stores/member'
+import { useAddBookModal } from '~/composables/useAddBookModal'
 import BookReadingModal from '~/components/BookReadingModal.vue'
 
 definePageMeta({
@@ -1057,6 +1068,33 @@ watch(() => memberStore.currentMember, async () => {
     applyReadingsFromBook(book.value)
   }
 })
+
+// Recharger le livre quand il est modifié via la modal globale
+watch(() => familyStore.transformedBooks, async () => {
+  if (book.value) {
+    const updatedBook = familyStore.transformedBooks.find(b =>
+      b.documentId === book.value?.documentId || b.id === book.value?.id
+    )
+    if (updatedBook) {
+      book.value = updatedBook
+    }
+  }
+}, { deep: true })
+
+const handleEditBook = () => {
+  if (book.value) {
+    openEditBookModal({
+      id: book.value.id,
+      titre: book.value.titre,
+      auteur: book.value.auteur,
+      description: book.value.description,
+      isbn: book.value.isbn,
+      image: book.value.image || undefined,
+      annee: book.value.annee,
+      editeur: book.value.editeur
+    })
+  }
+}
 
 onMounted(async () => {
   await loadBook()

@@ -15,7 +15,7 @@
               v-if="editingGame"
               color="red"
               variant="outline"
-              icon="i-lucide-trash-2"
+              icon="i-ion-trash"
               size="sm"
               :loading="deleting"
               :disabled="submitting"
@@ -37,7 +37,7 @@
             <UButton
               color="neutral"
               variant="ghost"
-              icon="i-lucide-x"
+              icon="i-ion-close"
               size="sm"
               :disabled="submitting || deleting"
               @click="closeModal"
@@ -52,7 +52,7 @@
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
-              name="i-lucide-search"
+              name="i-ion-search"
               class="w-5 h-5"
             />
             <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
@@ -121,7 +121,7 @@
                     class="w-full h-full flex items-center justify-center"
                   >
                     <UIcon
-                      name="i-lucide-image"
+                      name="i-ion-image"
                       class="w-8 h-8 text-gray-400"
                     />
                   </div>
@@ -164,7 +164,7 @@
               color="neutral"
               variant="outline"
               block
-              icon="i-lucide-plus"
+              icon="i-ion-add"
               @click="showManualForm = true"
             >
               Ajouter manuellement
@@ -188,7 +188,7 @@
               type="button"
               color="neutral"
               variant="ghost"
-              icon="i-lucide-arrow-left"
+              icon="i-ion-arrow-back"
               size="sm"
               @click="showManualForm = false"
             >
@@ -202,7 +202,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-gamepad-2"
+                name="i-ion-game-controller"
                 class="w-4 h-4"
               />
               Titre du jeu <span class="text-red-500">*</span>
@@ -225,7 +225,7 @@
           <div>
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <UIcon
-                name="i-lucide-calendar"
+                name="i-ion-calendar"
                 class="w-4 h-4"
               />
               Âge
@@ -292,7 +292,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-clock"
+                name="i-ion-time"
                 class="w-4 h-4"
               />
               Durée de jeu (en minutes) <span class="text-red-500">*</span>
@@ -319,7 +319,7 @@
           <div>
             <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
               <UIcon
-                name="i-lucide-users"
+                name="i-ion-persons"
                 class="w-4 h-4"
               />
               Nombre de joueurs

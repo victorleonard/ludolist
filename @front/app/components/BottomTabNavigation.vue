@@ -1,21 +1,21 @@
 <template>
   <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 shadow-lg safe-area-inset-bottom safe-area-x">
-    <div class="flex items-center justify-around h-14 sm:h-16 px-2 w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto">
+    <div class="flex items-center justify-around min-h-[64px] md:min-h-[56px] px-2 w-full max-w-md sm:max-w-xl md:max-w-2xl mx-auto">
       <NuxtLink
         v-for="item in tabs"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center justify-center flex-1 h-full min-h-[44px] py-2 transition-all duration-200 relative"
+        class="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 flex-1 h-full min-h-[44px] py-1.5 md:py-2 px-2 transition-all duration-200 relative"
         :class="isActive(item.to) ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'"
         active-class="text-primary-600 dark:text-primary-400"
         @click="handleClick"
       >
         <UIcon
           :name="item.icon"
-          class="w-6 h-6 sm:w-6 sm:h-6 mb-0.5 sm:mb-1 transition-transform shrink-0"
+          class="w-5 h-5 sm:w-[22px] sm:h-[22px] md:w-5 md:h-5 lg:w-6 lg:h-6 transition-transform shrink-0"
           :class="isActive(item.to) ? 'scale-110' : ''"
         />
-        <span class="text-[10px] sm:text-xs font-medium truncate max-w-full">{{ item.label }}</span>
+        <span class="text-[10px] sm:text-[11px] md:text-xs lg:text-sm font-medium leading-tight text-center whitespace-nowrap">{{ item.label }}</span>
       </NuxtLink>
     </div>
   </nav>
@@ -27,22 +27,22 @@ const route = useRoute()
 const tabs = [
   {
     label: 'Home',
-    icon: 'i-lucide-home',
+    icon: 'i-ion-home',
     to: '/'
   },
   {
     label: 'Jeux',
-    icon: 'i-lucide-dice-6',
+    icon: 'i-ion-dice',
     to: '/jeux'
   },
   {
     label: 'Livres',
-    icon: 'i-lucide-book',
+    icon: 'i-ion-book',
     to: '/livres/'
   },
   {
     label: 'Plats',
-    icon: 'i-lucide-chef-hat',
+    icon: 'i-ion-restaurant',
     to: '/plats/'
   }
 ]

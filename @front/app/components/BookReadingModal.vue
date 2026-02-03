@@ -13,7 +13,7 @@
           <UButton
             color="neutral"
             variant="ghost"
-            icon="i-lucide-x"
+            icon="i-ion-close"
             size="sm"
             :disabled="submitting"
             @click="closeModal"
@@ -31,7 +31,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-user"
+                name="i-ion-person"
                 class="w-4 h-4"
               />
               Membre <span class="text-red-500">*</span>
@@ -63,7 +63,7 @@
           >
             <div class="flex items-center gap-2">
               <UIcon
-                name="i-lucide-user-circle"
+                name="i-ion-person-circle"
                 class="w-4 h-4 text-primary-600 dark:text-primary-400"
               />
               <span class="text-sm text-primary-700 dark:text-primary-300">
@@ -78,7 +78,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-calendar"
+                name="i-ion-calendar"
                 class="w-4 h-4"
               />
               Date de début de lecture
@@ -98,7 +98,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-calendar-check"
+                name="i-ion-calendar-check"
                 class="w-4 h-4"
               />
               Date de fin de lecture
@@ -119,7 +119,7 @@
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               <UIcon
-                name="i-lucide-star"
+                name="i-ion-star"
                 class="w-4 h-4"
               />
               Note (sur 10)

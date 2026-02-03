@@ -9,7 +9,7 @@
             </h1>
             <UButton
               color="primary"
-              icon="i-lucide-plus"
+              icon="i-ion-add"
               size="sm"
               aria-label="Ajouter un jeu"
               @click="openModal()"
@@ -47,7 +47,7 @@
           class="flex justify-center items-center py-12"
         >
           <UIcon
-            name="i-lucide-loader-2"
+            name="i-ion-refresh-circle"
             class="w-8 h-8 animate-spin text-primary-500"
           />
         </div>
@@ -94,8 +94,9 @@
                     <UButton
                       color="neutral"
                       variant="ghost"
-                      icon="i-lucide-edit"
+                      icon="i-ion-create-outline"
                       size="sm"
+                      class="flex-shrink-0"
                       @click.stop="openEditModal(jeu)"
                     />
                   </div>
@@ -146,7 +147,7 @@
                   class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                 >
                   <UIcon
-                    name="i-lucide-crown"
+                    name="i-ion-trophy"
                     class="w-4 h-4 text-yellow-500"
                   />
                   <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
@@ -197,7 +198,7 @@
                       class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
                     >
                       <UIcon
-                        name="i-lucide-dice-6"
+                        name="i-ion-dice"
                         class="w-8 h-8"
                       />
                     </div>
@@ -212,7 +213,7 @@
                       <UButton
                         color="neutral"
                         variant="ghost"
-                        icon="i-lucide-edit"
+                        icon="i-ion-create-outline"
                         size="xs"
                         :padded="false"
                         class="shrink-0"
@@ -234,7 +235,7 @@
                       class="flex items-center gap-1 mb-2"
                     >
                       <UIcon
-                        name="i-lucide-crown"
+                        name="i-ion-trophy"
                         class="w-3 h-3 text-yellow-500"
                       />
                       <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">

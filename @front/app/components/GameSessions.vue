@@ -1,10 +1,11 @@
 <template>
   <div>
-    <div class="flex items-center justify-end mb-4">
+    <div class="flex items-center justify-end mb-3 sm:mb-4">
       <UButton
         color="primary"
         size="sm"
-        icon="i-lucide-plus"
+        icon="i-ion-add"
+        class="min-h-[44px] sm:min-h-0"
         @click="openAddSessionModal"
       >
         Ajouter une partie
@@ -16,101 +17,140 @@
       class="flex justify-center items-center py-8"
     >
       <UIcon
-        name="i-lucide-loader-2"
+        name="i-ion-refresh-circle"
         class="w-6 h-6 animate-spin text-primary-500"
       />
     </div>
 
     <div
       v-else-if="sessions.length === 0"
-      class="text-center py-8 text-gray-500 dark:text-gray-400"
+      class="text-center py-12 text-gray-500 dark:text-gray-400"
     >
       <UIcon
-        name="i-lucide-gamepad-2"
-        class="w-12 h-12 mx-auto mb-3 opacity-50"
+        name="i-ion-game-controller"
+        class="w-16 h-16 mx-auto mb-4 opacity-50"
       />
-      <p>Aucune partie enregistrée pour ce jeu</p>
+      <p class="text-base font-medium mb-2">Aucune partie enregistrée</p>
+      <p class="text-sm">Ajoutez votre première partie pour commencer à suivre vos scores !</p>
     </div>
 
     <div
       v-else
-      class="space-y-4"
+      class="space-y-3 sm:space-y-4"
     >
       <UCard
         v-for="session in sessions"
         :key="session.id"
-        class="bg-white dark:bg-gray-800"
+        class="bg-white dark:bg-gray-800 transition-all duration-200 hover:shadow-md"
       >
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
+        <!-- Header avec date et actions -->
+        <div class="flex items-start justify-between mb-3 sm:mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2 flex-1 min-w-0">
             <UIcon
-              name="i-lucide-calendar"
-              class="w-4 h-4 text-gray-500"
+              name="i-ion-calendar"
+              class="w-4 h-4 sm:w-5 sm:h-5 text-primary-500 dark:text-primary-400 flex-shrink-0"
             />
-            <span class="font-semibold">
+            <span class="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100">
               {{ formatDate(session.played_at) }}
             </span>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-shrink-0">
             <UBadge
               v-if="session.notes"
               color="gray"
               variant="subtle"
-              icon="i-lucide-file-text"
+              icon="i-ion-document-text"
+              size="xs"
             >
-              Notes
+              <span class="hidden sm:inline">Notes</span>
             </UBadge>
             <UButton
               color="red"
               variant="ghost"
-              icon="i-lucide-trash-2"
-              size="xs"
+              icon="i-ion-trash"
+              size="sm"
+              class="min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0"
               :loading="deletingSessionId === session.id"
               @click="handleDeleteSession(session.id)"
-            />
+            >
+              <span class="sr-only">Supprimer la partie</span>
+            </UButton>
           </div>
         </div>
 
+        <!-- Notes si présentes -->
         <div
           v-if="session.notes"
-          class="mb-3 text-sm text-gray-600 dark:text-gray-400 italic"
+          class="mb-3 sm:mb-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border-l-4 border-primary-500"
         >
-          {{ session.notes }}
+          <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+            {{ session.notes }}
+          </p>
         </div>
 
-        <div class="space-y-2">
+        <!-- Liste des joueurs avec scores -->
+        <div class="space-y-2 sm:space-y-2.5">
           <div
-            v-for="score in sortedScores(session.player_scores || [])"
+            v-for="(score, index) in sortedScores(session.player_scores || [])"
             :key="score.id"
-            class="flex items-center justify-between p-2 rounded"
-            :class="score.is_winner ? 'bg-primary-50 dark:bg-primary-900/20' : ''"
+            class="flex items-center justify-between p-3 sm:p-3.5 rounded-lg transition-all duration-200"
+            :class="[
+              score.is_winner
+                ? 'bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-2 border-yellow-200 dark:border-yellow-800 shadow-sm'
+                : index % 2 === 0
+                  ? 'bg-gray-50 dark:bg-gray-900/30'
+                  : 'bg-white dark:bg-gray-800'
+            ]"
           >
-            <div class="flex items-center gap-3">
-              <div
-                v-if="score.is_winner"
-                class="flex items-center gap-1"
-              >
-                <UIcon
-                  name="i-lucide-crown"
-                  class="w-4 h-4 text-yellow-500"
-                />
+            <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <!-- Position / Trophée -->
+              <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
+                <div
+                  v-if="score.is_winner"
+                  class="flex items-center justify-center w-full h-full rounded-full bg-yellow-400 dark:bg-yellow-500 shadow-sm"
+                >
+                  <UIcon
+                    name="i-ion-trophy"
+                    class="w-5 h-5 sm:w-6 sm:h-6 text-yellow-900 dark:text-yellow-100"
+                  />
+                </div>
+                <div
+                  v-else
+                  class="flex items-center justify-center w-full h-full rounded-full bg-gray-200 dark:bg-gray-700"
+                >
+                  <span class="text-xs sm:text-sm font-bold text-gray-600 dark:text-gray-300">
+                    {{ score.position }}
+                  </span>
+                </div>
               </div>
-              <div
-                v-else
-                class="w-4 h-4 flex items-center justify-center"
-              >
-                <span class="text-xs text-gray-400">
-                  {{ score.position }}
+
+              <!-- Avatar et nom -->
+              <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <MemberAvatar
+                  :member="score.member"
+                  size="md"
+                  class="flex-shrink-0"
+                />
+                <span class="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">
+                  {{ score.member.username }}
                 </span>
               </div>
-              <MemberAvatar
-                :member="score.member"
-                size="sm"
-              />
-              <span class="font-medium">{{ score.member.username }}</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold">{{ score.score }}</span>
+
+            <!-- Score -->
+            <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+              <span
+                class="text-lg sm:text-xl font-bold"
+                :class="score.is_winner ? 'text-yellow-600 dark:text-yellow-400' : 'text-gray-900 dark:text-gray-100'"
+              >
+                {{ score.score }}
+              </span>
+              <span
+                v-if="score.is_winner"
+                class="text-xs font-medium text-yellow-600 dark:text-yellow-400 uppercase tracking-wide"
+              >
+                Gagnant
+              </span>
             </div>
           </div>
         </div>
@@ -141,7 +181,7 @@
               <UButton
                 color="neutral"
                 variant="ghost"
-                icon="i-lucide-x"
+                icon="i-ion-close"
                 size="sm"
                 :disabled="isSubmitting"
                 @click="closeModal"
@@ -160,7 +200,7 @@
                 class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
                 <UIcon
-                  name="i-lucide-calendar"
+                  name="i-ion-calendar"
                   class="w-4 h-4"
                 />
                 Date et heure de la partie <span class="text-red-500">*</span>
@@ -185,7 +225,7 @@
             <div>
               <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 <UIcon
-                  name="i-lucide-users"
+                  name="i-ion-persons"
                   class="w-4 h-4"
                 />
                 Scores des joueurs <span class="text-red-500">*</span>
@@ -290,15 +330,41 @@ watch(() => newSession.value.scores, () => {
 }, { deep: true })
 
 const sortedScores = (scores: PlayerScore[]) => {
-  return [...scores].sort((a, b) => {
+  const sorted = [...scores].sort((a, b) => {
     if (a.is_winner && !b.is_winner) return -1
     if (!a.is_winner && b.is_winner) return 1
     return (b.score - a.score)
   })
+  // Ajouter la position à chaque score
+  return sorted.map((score, index) => ({
+    ...score,
+    position: index + 1
+  }))
 }
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = Math.abs(now.getTime() - date.getTime())
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
+  // Si c'est aujourd'hui, afficher seulement l'heure
+  if (diffDays === 0) {
+    return new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date) + ' (aujourd\'hui)'
+  }
+
+  // Si c'est hier
+  if (diffDays === 1) {
+    return new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date) + ' (hier)'
+  }
+
+  // Sinon, afficher la date complète
   return new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
     month: 'long',
