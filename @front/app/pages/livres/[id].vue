@@ -64,16 +64,54 @@
           {{ book.titre }}
         </h1>
 
-        <!-- Navigation par onglets -->
-        <UTabs
-          v-model="activeTab"
-          :items="tabs"
-          variant="link"
-          class="w-full"
-        >
-          <template #detail>
-            <div class="space-y-6 py-6">
-              <UCard class="bg-white dark:bg-gray-800">
+        <!-- Navigation par segments -->
+        <div class="mb-6">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+            <button
+              :class="[
+                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                activeTab === 'detail'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'detail'"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <UIcon
+                  name="i-lucide-info"
+                  class="w-4 h-4"
+                />
+                <span>Détail</span>
+              </div>
+            </button>
+            <button
+              :class="[
+                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                activeTab === 'lectures'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'lectures'"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <UIcon
+                  name="i-lucide-book-open"
+                  class="w-4 h-4"
+                />
+                <span>Lectures</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenu des sections -->
+        <div class="w-full">
+          <!-- Section Détail -->
+          <div
+            v-show="activeTab === 'detail'"
+            class="space-y-6 py-6"
+          >
+            <UCard class="bg-white dark:bg-gray-800">
                 <template #header>
                   <div class="flex items-center justify-between">
                     <span class="font-semibold">Détails</span>
@@ -211,161 +249,160 @@
                   </div>
                 </div>
               </UCard>
+          </div>
+
+          <!-- Section Lectures -->
+          <div
+            v-show="activeTab === 'lectures'"
+            :key="'section-lectures-' + readingsList.length"
+            class="space-y-4 py-6"
+          >
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold">
+                {{ memberStore.isMemberConnected ? 'Ma lecture' : 'Lectures des membres' }}
+              </h2>
+              <UButton
+                color="primary"
+                icon="i-lucide-plus"
+                @click="openReadingModal()"
+              >
+                Ajouter ma lecture
+              </UButton>
             </div>
-          </template>
-
-          <template #lectures>
-            <div
-              :key="'section-lectures-' + readingsList.length"
-              class="space-y-4 py-6"
-            >
-              <div class="flex items-center justify-between">
-                <h2 class="text-xl font-bold">
-                  {{ memberStore.isMemberConnected ? 'Ma lecture' : 'Lectures des membres' }}
-                </h2>
-                <UButton
-                  color="primary"
-                  icon="i-lucide-plus"
-                  @click="openReadingModal()"
-                >
-                  Ajouter ma lecture
-                </UButton>
+            <p class="text-sm text-gray-500">
+              Nombre de lectures : {{ readingsList.length }}
+            </p>
+            <div>
+              <div
+                v-if="readingsList.length === 0"
+                class="text-center py-12 text-gray-500 dark:text-gray-400"
+              >
+                <UIcon
+                  name="i-lucide-book-open"
+                  class="w-16 h-16 mx-auto mb-4 opacity-50"
+                />
+                <p>Aucune lecture enregistrée</p>
+                <p class="text-sm mt-2">
+                  Ajoutez votre première lecture pour commencer à suivre votre progression !
+                </p>
               </div>
-              <p class="text-sm text-gray-500">
-                Nombre de lectures : {{ readingsList.length }}
-              </p>
-              <div>
-                <div
-                  v-if="readingsList.length === 0"
-                  class="text-center py-12 text-gray-500 dark:text-gray-400"
+              <div
+                v-else
+                class="space-y-4"
+              >
+                <UCard
+                  v-for="(reading, index) in readingsList"
+                  :key="'reading-' + index"
+                  class="bg-white dark:bg-gray-800"
                 >
-                  <UIcon
-                    name="i-lucide-book-open"
-                    class="w-16 h-16 mx-auto mb-4 opacity-50"
-                  />
-                  <p>Aucune lecture enregistrée</p>
-                  <p class="text-sm mt-2">
-                    Ajoutez votre première lecture pour commencer à suivre votre progression !
-                  </p>
-                </div>
-                <div
-                  v-else
-                  class="space-y-4"
-                >
-                  <UCard
-                    v-for="(reading, index) in readingsList"
-                    :key="'reading-' + index"
-                    class="bg-white dark:bg-gray-800"
-                  >
-                    <div class="flex items-start justify-between p-4">
-                      <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-3">
-                          <MemberAvatar
-                            :member="readingMemberForAvatar(reading)"
-                            size="sm"
+                  <div class="flex items-start justify-between p-4">
+                    <div class="flex-1">
+                      <div class="flex items-center gap-2 mb-3">
+                        <MemberAvatar
+                          :member="readingMemberForAvatar(reading)"
+                          size="sm"
+                        />
+                        <span class="font-semibold text-lg">{{ readingMemberName(reading) }}</span>
+                      </div>
+
+                      <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div
+                          v-if="readingDate(reading, 'date_debut')"
+                          class="flex items-center gap-1"
+                        >
+                          <UIcon
+                            name="i-lucide-calendar"
+                            class="w-4 h-4"
                           />
-                          <span class="font-semibold text-lg">{{ readingMemberName(reading) }}</span>
+                          <span class="font-medium">Début :</span>
+                          {{ formatDate(readingDate(reading, 'date_debut')) }}
                         </div>
-
-                        <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                          <div
-                            v-if="readingDate(reading, 'date_debut')"
-                            class="flex items-center gap-1"
-                          >
-                            <UIcon
-                              name="i-lucide-calendar"
-                              class="w-4 h-4"
-                            />
-                            <span class="font-medium">Début :</span>
-                            {{ formatDate(readingDate(reading, 'date_debut')) }}
-                          </div>
-                          <div
-                            v-if="readingDate(reading, 'date_fin')"
-                            class="flex items-center gap-1"
-                          >
-                            <UIcon
-                              name="i-lucide-calendar-check"
-                              class="w-4 h-4"
-                            />
-                            <span class="font-medium">Fin :</span>
-                            {{ formatDate(readingDate(reading, 'date_fin')) }}
-                          </div>
-                          <div
-                            v-if="readingNote(reading) != null"
-                            class="flex items-center gap-1"
-                          >
-                            <UIcon
-                              name="i-lucide-star"
-                              class="w-4 h-4 text-yellow-500"
-                            />
-                            <span class="font-medium">Note :</span>
-                            <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ readingNote(reading) }}/10</span>
-                          </div>
+                        <div
+                          v-if="readingDate(reading, 'date_fin')"
+                          class="flex items-center gap-1"
+                        >
+                          <UIcon
+                            name="i-lucide-calendar-check"
+                            class="w-4 h-4"
+                          />
+                          <span class="font-medium">Fin :</span>
+                          {{ formatDate(readingDate(reading, 'date_fin')) }}
                         </div>
-
-                        <!-- Statut de lecture et durée -->
-                        <div class="mt-3 flex flex-wrap items-center gap-2">
-                          <UBadge
-                            v-if="readingDate(reading, 'date_fin')"
-                            color="success"
-                            variant="subtle"
-                          >
-                            <UIcon
-                              name="i-lucide-check-circle"
-                              class="w-3 h-3 mr-1"
-                            />
-                            Terminé
-                          </UBadge>
-                          <UBadge
-                            v-else-if="readingDate(reading, 'date_debut')"
-                            color="warning"
-                            variant="subtle"
-                          >
-                            <UIcon
-                              name="i-lucide-clock"
-                              class="w-3 h-3 mr-1"
-                            />
-                            En cours
-                          </UBadge>
-                          <UBadge
-                            v-else
-                            color="neutral"
-                            variant="subtle"
-                          >
-                            <UIcon
-                              name="i-lucide-bookmark"
-                              class="w-3 h-3 mr-1"
-                            />
-                            À lire
-                          </UBadge>
-                          <UBadge
-                            v-if="readingDurationLabel(reading)"
-                            color="primary"
-                            variant="subtle"
-                          >
-                            <UIcon
-                              name="i-lucide-timer"
-                              class="w-3 h-3 mr-1"
-                            />
-                            {{ readingDurationLabel(reading) }}
-                          </UBadge>
+                        <div
+                          v-if="readingNote(reading) != null"
+                          class="flex items-center gap-1"
+                        >
+                          <UIcon
+                            name="i-lucide-star"
+                            class="w-4 h-4 text-yellow-500"
+                          />
+                          <span class="font-medium">Note :</span>
+                          <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ readingNote(reading) }}/10</span>
                         </div>
                       </div>
 
-                      <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="i-lucide-edit"
-                        size="sm"
-                        @click="openReadingModal(reading)"
-                      />
+                      <!-- Statut de lecture et durée -->
+                      <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <UBadge
+                          v-if="readingDate(reading, 'date_fin')"
+                          color="success"
+                          variant="subtle"
+                        >
+                          <UIcon
+                            name="i-lucide-check-circle"
+                            class="w-3 h-3 mr-1"
+                          />
+                          Terminé
+                        </UBadge>
+                        <UBadge
+                          v-else-if="readingDate(reading, 'date_debut')"
+                          color="warning"
+                          variant="subtle"
+                        >
+                          <UIcon
+                            name="i-lucide-clock"
+                            class="w-3 h-3 mr-1"
+                          />
+                          En cours
+                        </UBadge>
+                        <UBadge
+                          v-else
+                          color="neutral"
+                          variant="subtle"
+                        >
+                          <UIcon
+                            name="i-lucide-bookmark"
+                            class="w-3 h-3 mr-1"
+                          />
+                          À lire
+                        </UBadge>
+                        <UBadge
+                          v-if="readingDurationLabel(reading)"
+                          color="primary"
+                          variant="subtle"
+                        >
+                          <UIcon
+                            name="i-lucide-timer"
+                            class="w-3 h-3 mr-1"
+                          />
+                          {{ readingDurationLabel(reading) }}
+                        </UBadge>
+                      </div>
                     </div>
-                  </UCard>
-                </div>
+
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      icon="i-lucide-edit"
+                      size="sm"
+                      @click="openReadingModal(reading)"
+                    />
+                  </div>
+                </UCard>
               </div>
             </div>
-          </template>
-        </UTabs>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -659,11 +696,7 @@ async function saveSelectedCover() {
   }
 }
 
-const activeTab = ref('0')
-const tabs = [
-  { label: 'Détail', icon: 'i-lucide-info', slot: 'detail' },
-  { label: 'Lectures', icon: 'i-lucide-book-open', slot: 'lectures' }
-]
+const activeTab = ref<'detail' | 'lectures'>('detail')
 
 const loadBook = async () => {
   try {

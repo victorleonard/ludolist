@@ -32,6 +32,16 @@ const isGamePage = computed(() => {
   return route.path.startsWith('/game/') && route.params.id
 })
 
+// Détecter si on est sur une page de livre
+const isBookPage = computed(() => {
+  return route.path.startsWith('/livres/') && route.params.id && route.path !== '/livres/'
+})
+
+// Détecter si on est sur une page de plat
+const isDishPage = computed(() => {
+  return route.path.startsWith('/plat/') && route.params.id && route.path !== '/plats/'
+})
+
 // Fonction pour gérer le retour depuis une page de jeu
 const handleBackFromGame = () => {
   // Essayer de déterminer d'où on vient via le referrer
@@ -60,6 +70,68 @@ const handleBackFromGame = () => {
     router.back()
   } else {
     navigateTo('/jeux')
+  }
+}
+
+// Fonction pour gérer le retour depuis une page de livre
+const handleBackFromBook = () => {
+  // Essayer de déterminer d'où on vient via le referrer
+  if (typeof window !== 'undefined' && document.referrer) {
+    try {
+      const referrerUrl = new URL(document.referrer)
+      const referrerPath = referrerUrl.pathname
+
+      // Si on vient de la page home, retourner à la page home
+      if (referrerPath === '/' || referrerPath === '') {
+        navigateTo('/')
+        return
+      }
+      // Si on vient de la page livres, retourner à la page livres
+      if (referrerPath === '/livres/' || referrerPath.startsWith('/livres/')) {
+        navigateTo('/livres/')
+        return
+      }
+    } catch {
+      // En cas d'erreur, utiliser router.back()
+    }
+  }
+
+  // Par défaut, utiliser router.back() ou rediriger vers /livres/
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    navigateTo('/livres/')
+  }
+}
+
+// Fonction pour gérer le retour depuis une page de plat
+const handleBackFromDish = () => {
+  // Essayer de déterminer d'où on vient via le referrer
+  if (typeof window !== 'undefined' && document.referrer) {
+    try {
+      const referrerUrl = new URL(document.referrer)
+      const referrerPath = referrerUrl.pathname
+
+      // Si on vient de la page home, retourner à la page home
+      if (referrerPath === '/' || referrerPath === '') {
+        navigateTo('/')
+        return
+      }
+      // Si on vient de la page plats, retourner à la page plats
+      if (referrerPath === '/plats/' || referrerPath.startsWith('/plats/')) {
+        navigateTo('/plats/')
+        return
+      }
+    } catch {
+      // En cas d'erreur, utiliser router.back()
+    }
+  }
+
+  // Par défaut, utiliser router.back() ou rediriger vers /plats/
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    navigateTo('/plats/')
   }
 }
 
@@ -184,8 +256,28 @@ const handleMemberLogout = () => {
             size="lg"
             icon="i-lucide-chevron-left"
             aria-label="Retour"
-            class="w-11 h-11 min-w-11 [&_svg]:w-6 [&_svg]:h-6 -ml-1"
+            class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromGame"
+          />
+          <UButton
+            v-else-if="isBookPage"
+            variant="ghost"
+            color="neutral"
+            size="lg"
+            icon="i-lucide-chevron-left"
+            aria-label="Retour"
+            class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
+            @click="handleBackFromBook"
+          />
+          <UButton
+            v-else-if="isDishPage"
+            variant="ghost"
+            color="neutral"
+            size="lg"
+            icon="i-lucide-chevron-left"
+            aria-label="Retour"
+            class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
+            @click="handleBackFromDish"
           />
           <UButton
             v-else
@@ -224,6 +316,31 @@ const handleMemberLogout = () => {
               size="xs"
               show-ring
             />
+          </UButton>
+          <!-- Mode famille : afficher tous les avatars en superposition -->
+          <UButton
+            v-else-if="!isMemberConnected && familyMembers && familyMembers.length > 0"
+            color="neutral"
+            variant="ghost"
+            class="p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
+            aria-label="Mode famille — Choisir un membre"
+            @click="openMemberDrawer"
+          >
+            <div class="flex items-center">
+              <div
+                v-for="(member, index) in familyMembers.slice(0, 4)"
+                :key="member.id"
+                class="relative"
+                :class="index > 0 ? '-ml-4' : ''"
+                :style="{ zIndex: 10 - index }"
+              >
+                <MemberAvatar
+                  :member="member"
+                  size="xs"
+                  :class="index > 0 ? 'ring-2 ring-white dark:ring-gray-900' : ''"
+                />
+              </div>
+            </div>
           </UButton>
           <UButton
             v-else

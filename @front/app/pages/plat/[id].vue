@@ -60,14 +60,53 @@
           {{ dish.name }}
         </h1>
 
-        <UTabs
-          v-model="activeTab"
-          :items="tabs"
-          variant="link"
-          class="w-full"
-        >
-          <template #detail>
-            <div class="space-y-6 py-6">
+        <!-- Navigation par segments -->
+        <div class="mb-6">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+            <button
+              :class="[
+                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                activeTab === 'detail'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'detail'"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <UIcon
+                  name="i-lucide-info"
+                  class="w-4 h-4"
+                />
+                <span>Détail</span>
+              </div>
+            </button>
+            <button
+              :class="[
+                'flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200',
+                activeTab === 'notes'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'notes'"
+            >
+              <div class="flex items-center justify-center gap-2">
+                <UIcon
+                  name="i-lucide-star"
+                  class="w-4 h-4"
+                />
+                <span>Notes</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenu des sections -->
+        <div class="w-full">
+          <!-- Section Détail -->
+          <div
+            v-show="activeTab === 'detail'"
+            class="space-y-6 py-6"
+          >
               <UCard class="bg-white dark:bg-gray-800">
                 <template #header>
                   <div class="flex items-center justify-between">
@@ -122,10 +161,13 @@
                   </div>
                 </div>
               </UCard>
-            </div>
-          </template>
+          </div>
 
-          <template #notes>
+          <!-- Section Notes -->
+          <div
+            v-show="activeTab === 'notes'"
+            class="py-6"
+          >
             <MemberRatingsTab
               :members="familyMembers"
               :get-member-rating="getMemberRating"
@@ -133,8 +175,8 @@
               :average-rating="averageRating"
               :max-stars="10"
             />
-          </template>
-        </UTabs>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -162,22 +204,9 @@ const familyStore = useFamilyStore()
 
 const loading = ref(true)
 const error = ref<string | null>(null)
-const activeTab = ref('0')
+const activeTab = ref<'detail' | 'notes'>('detail')
 
 const { isOpen: isModalOpen, selectedDish, openModal, closeModal } = useAddPlatModal()
-
-const tabs = [
-  {
-    label: 'Détail',
-    icon: 'i-lucide-info',
-    slot: 'detail',
-  },
-  {
-    label: 'Notes',
-    icon: 'i-lucide-star',
-    slot: 'notes',
-  },
-]
 
 const routeId = computed(() => route.params.id as string)
 

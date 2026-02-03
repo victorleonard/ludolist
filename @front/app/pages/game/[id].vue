@@ -61,15 +61,87 @@
           {{ jeu.titre }}
         </h1>
 
-        <!-- Navigation avec onglets -->
-        <UTabs
-          v-model="activeTab"
-          :items="tabs"
-          variant="link"
-          class="w-full"
-        >
-          <template #detail>
-            <div class="space-y-6 py-6">
+        <!-- Navigation par segments -->
+        <div class="mb-6">
+          <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1 w-full">
+            <button
+              :class="[
+                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                activeTab === 'detail'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'detail'"
+            >
+              <div class="flex items-center justify-center gap-1 sm:gap-2">
+                <UIcon
+                  name="i-lucide-info"
+                  class="w-3 h-3 sm:w-4 sm:h-4"
+                />
+                <span class="hidden sm:inline">Détail</span>
+              </div>
+            </button>
+            <button
+              :class="[
+                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                activeTab === 'notes'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'notes'"
+            >
+              <div class="flex items-center justify-center gap-1 sm:gap-2">
+                <UIcon
+                  name="i-lucide-star"
+                  class="w-3 h-3 sm:w-4 sm:h-4"
+                />
+                <span class="hidden sm:inline">Notes</span>
+              </div>
+            </button>
+            <button
+              :class="[
+                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                activeTab === 'parties'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'parties'"
+            >
+              <div class="flex items-center justify-center gap-1 sm:gap-2">
+                <UIcon
+                  name="i-lucide-gamepad-2"
+                  class="w-3 h-3 sm:w-4 sm:h-4"
+                />
+                <span class="hidden sm:inline">Parties</span>
+              </div>
+            </button>
+            <button
+              :class="[
+                'flex-1 px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200',
+                activeTab === 'podium'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="activeTab = 'podium'"
+            >
+              <div class="flex items-center justify-center gap-1 sm:gap-2">
+                <UIcon
+                  name="i-lucide-trophy"
+                  class="w-3 h-3 sm:w-4 sm:h-4"
+                />
+                <span class="hidden sm:inline">Podium</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenu des sections -->
+        <div class="w-full">
+          <!-- Section Détail -->
+          <div
+            v-show="activeTab === 'detail'"
+            class="space-y-6 py-6"
+          >
               <!-- Card avec image et infos synthétiques -->
               <UCard class="bg-white dark:bg-gray-800">
                 <template #header>
@@ -142,10 +214,13 @@
                   </div>
                 </div>
               </UCard>
-            </div>
-          </template>
+          </div>
 
-          <template #notes>
+          <!-- Section Notes -->
+          <div
+            v-show="activeTab === 'notes'"
+            class="py-6"
+          >
             <MemberRatingsTab
               :members="familyMembers"
               :get-member-rating="getMemberRating"
@@ -153,20 +228,25 @@
               :average-rating="averageRating"
               :max-stars="5"
             />
-          </template>
+          </div>
 
-          <template #parties>
-            <div class="space-y-6 py-6">
-              <!-- Liste des parties -->
-              <GameSessions
-                v-if="gameId"
-                :game-id="gameId"
-              />
-            </div>
-          </template>
+          <!-- Section Parties -->
+          <div
+            v-show="activeTab === 'parties'"
+            class="space-y-6 py-6"
+          >
+            <!-- Liste des parties -->
+            <GameSessions
+              v-if="gameId"
+              :game-id="gameId"
+            />
+          </div>
 
-          <template #podium>
-            <div class="space-y-6 py-6">
+          <!-- Section Podium -->
+          <div
+            v-show="activeTab === 'podium'"
+            class="space-y-6 py-6"
+          >
               <!-- Podium des top 3 -->
               <UCard
                 v-if="top3Winners.length > 0"
@@ -311,9 +391,8 @@
                   Jouez des parties pour voir le podium !
                 </p>
               </div>
-            </div>
-          </template>
-        </UTabs>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -344,32 +423,8 @@ const isModalOpen = ref(false)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const top3Winners = ref<Array<{ member: { id: number, username: string }, wins: number }>>([])
-const activeTab = ref('0')
+const activeTab = ref<'detail' | 'notes' | 'parties' | 'podium'>('detail')
 const showPodiumAnimation = ref(false)
-
-// Définir les onglets avec des slots personnalisés
-const tabs = [
-  {
-    label: 'Détail',
-    icon: 'i-lucide-info',
-    slot: 'detail'
-  },
-  {
-    label: 'Notes',
-    icon: 'i-lucide-star',
-    slot: 'notes'
-  },
-  {
-    label: 'Parties',
-    icon: 'i-lucide-gamepad-2',
-    slot: 'parties'
-  },
-  {
-    label: '',
-    icon: 'i-lucide-trophy',
-    slot: 'podium'
-  }
-]
 
 // Récupérer l'ID depuis la route
 const gameId = computed(() => {
@@ -474,11 +529,9 @@ const averageRating = computed(() => {
 // Watcher pour détecter quand on arrive sur l'onglet podium
 watch(activeTab, (newTab) => {
   console.log('Active tab changed to:', newTab, 'type:', typeof newTab, 'top3Winners length:', top3Winners.value.length)
-  // L'onglet podium est à l'index 3 - convertir en nombre pour être sûr
-  const tabIndex = Number(newTab)
-  const isPodiumTab = tabIndex === 3
+  const isPodiumTab = newTab === 'podium'
   const hasWinners = top3Winners.value && top3Winners.value.length > 0
-  console.log('tabIndex:', tabIndex, 'isPodiumTab:', isPodiumTab, 'hasWinners:', hasWinners)
+  console.log('isPodiumTab:', isPodiumTab, 'hasWinners:', hasWinners)
 
   if (isPodiumTab && hasWinners) {
     console.log('Podium tab activated, starting animation')
