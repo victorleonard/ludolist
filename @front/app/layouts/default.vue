@@ -142,9 +142,19 @@ const menuItems = [
     to: '/'
   },
   {
-    label: 'Ma collection de livres',
+    label: 'Jeux',
+    icon: 'i-ion-dice',
+    to: '/jeux'
+  },
+  {
+    label: 'Livres',
     icon: 'i-ion-book',
     to: '/livres/'
+  },
+  {
+    label: 'Plats',
+    icon: 'i-ion-restaurant',
+    to: '/plats/'
   }
 ]
 
@@ -371,9 +381,10 @@ const handleMemberLogout = () => {
       @update:open="(value) => { isMenuOpen = value }"
     >
       <template #content>
-        <div class="flex flex-col h-full">
-          <div class="flex items-center justify-between p-4 border-b">
-            <h2 class="text-lg font-semibold">
+        <div class="flex flex-col h-full bg-white dark:bg-gray-900">
+          <!-- Header du menu -->
+          <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
               Menu
             </h2>
             <UButton
@@ -381,119 +392,148 @@ const handleMemberLogout = () => {
               color="neutral"
               icon="i-ion-close"
               size="sm"
+              class="hover:bg-gray-100 dark:hover:bg-gray-800"
               @click="closeMenu"
             />
           </div>
 
-          <div class="flex flex-col gap-2 p-4 flex-1">
+          <div class="flex flex-col flex-1 overflow-y-auto">
             <!-- Informations utilisateur -->
-            <div class="px-4 py-3 mb-2 border-b">
+            <div class="px-5 py-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
               <div class="flex items-center gap-3">
-                <UIcon
-                  name="i-ion-person"
-                  class="w-5 h-5 text-gray-500"
-                />
-                <div class="flex flex-col">
-                  <span class="font-semibold">{{ user?.username }}</span>
+                <div class="w-12 h-12 rounded-full bg-primary-500 dark:bg-primary-600 flex items-center justify-center shrink-0">
+                  <span class="text-white font-semibold text-lg">
+                    {{ user?.username?.charAt(0)?.toUpperCase() || 'U' }}
+                  </span>
+                </div>
+                <div class="flex flex-col min-w-0 flex-1">
+                  <span class="font-semibold text-gray-900 dark:text-gray-100 text-base truncate">
+                    {{ user?.username }}
+                  </span>
                   <span
                     v-if="family"
-                    class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"
+                    class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1.5 mt-0.5"
                   >
                     <UIcon
                       name="i-ion-persons"
-                      class="w-4 h-4"
+                      class="w-4 h-4 shrink-0"
                     />
-                    {{ family.name }}
+                    <span class="truncate">{{ family.name }}</span>
                   </span>
                   <span
                     v-if="isMemberConnected && currentMember"
-                    class="text-sm text-primary-600 dark:text-primary-400 flex items-center gap-1 mt-1"
+                    class="text-xs text-primary-600 dark:text-primary-400 flex items-center gap-1.5 mt-1.5 font-medium"
                   >
                     <UIcon
                       name="i-ion-person-circle"
-                      class="w-4 h-4"
+                      class="w-3.5 h-3.5 shrink-0"
                     />
-                    Connecté en tant que : {{ currentMember.username }}
+                    <span class="truncate">Connecté : {{ currentMember.username }}</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            <!-- Liens de navigation -->
-            <NuxtLink
-              v-for="item in menuItems"
-              :key="item.to"
-              :to="item.to"
-              class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              @click="closeMenu"
-            >
-              <UIcon
-                :name="item.icon"
-                class="w-5 h-5"
-              />
-              <span class="font-medium">{{ item.label }}</span>
-            </NuxtLink>
-
-            <!-- Séparateur -->
-            <div class="border-t my-2" />
-
-            <!-- Connexion membre (ouvre le drawer) -->
-            <UButton
-              v-if="!isMemberConnected"
-              variant="ghost"
-              color="neutral"
-              class="justify-start px-4 py-3 w-full"
-              @click="closeMenu(); openMemberDrawer()"
-            >
-              <UIcon
-                name="i-ion-person-circle"
-                class="w-5 h-5"
-              />
-              <span class="font-medium">Se connecter en tant que membre</span>
-            </UButton>
-
-            <UButton
-              v-else
-              variant="ghost"
-              color="neutral"
-              class="justify-start px-4 py-3"
-              @click="handleMemberLogout"
-            >
-              <UIcon
-                name="i-ion-log-out"
-                class="w-5 h-5"
-              />
-              <span class="font-medium">Déconnexion membre ({{ currentMember?.username }})</span>
-            </UButton>
-
-            <!-- Séparateur -->
-            <div class="border-t my-2" />
-
-            <!-- Dark mode -->
-            <div class="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <div class="flex items-center gap-3">
+            <!-- Navigation principale -->
+            <div class="px-2 py-3">
+              <NuxtLink
+                v-for="item in menuItems"
+                :key="item.to"
+                :to="item.to"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"
+                :class="route.path === item.to ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'"
+                @click="closeMenu"
+              >
                 <UIcon
-                  name="i-ion-moon"
-                  class="w-5 h-5"
+                  :name="item.icon"
+                  class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  :class="route.path === item.to ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'"
                 />
-                <span class="font-medium">Mode sombre</span>
-              </div>
-              <UColorModeButton />
+                <span class="font-medium text-sm">{{ item.label }}</span>
+                <UIcon
+                  v-if="route.path === item.to"
+                  name="i-ion-chevron-forward"
+                  class="w-4 h-4 ml-auto text-primary-600 dark:text-primary-400"
+                />
+              </NuxtLink>
             </div>
 
+            <!-- Séparateur -->
+            <div class="h-px bg-gray-200 dark:bg-gray-800 my-2 mx-5" />
+
+            <!-- Connexion membre -->
+            <div class="px-2 py-2">
+              <button
+                v-if="!isMemberConnected"
+                type="button"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 w-full text-left group"
+                @click="closeMenu(); openMemberDrawer()"
+              >
+                <UIcon
+                  name="i-ion-person-circle"
+                  class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
+                />
+                <span class="font-medium text-sm text-gray-700 dark:text-gray-300">Se connecter en tant que membre</span>
+                <UIcon
+                  name="i-ion-chevron-forward"
+                  class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
+                />
+              </button>
+
+              <button
+                v-else
+                type="button"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 w-full text-left group"
+                @click="handleMemberLogout"
+              >
+                <UIcon
+                  name="i-ion-log-out"
+                  class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
+                />
+                <span class="font-medium text-sm text-gray-700 dark:text-gray-300">
+                  Déconnexion membre
+                </span>
+                <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                  {{ currentMember?.username }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Séparateur -->
+            <div class="h-px bg-gray-200 dark:bg-gray-800 my-2 mx-5" />
+
+            <!-- Paramètres -->
+            <div class="px-2 py-2">
+              <!-- Dark mode -->
+              <div class="flex items-center justify-between px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150">
+                <div class="flex items-center gap-3">
+                  <UIcon
+                    name="i-ion-moon"
+                    class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400"
+                  />
+                  <span class="font-medium text-sm text-gray-700 dark:text-gray-300">Mode sombre</span>
+                </div>
+                <UColorModeButton class="shrink-0" />
+              </div>
+            </div>
+
+            <!-- Séparateur -->
+            <div class="h-px bg-gray-200 dark:bg-gray-800 my-2 mx-5" />
+
             <!-- Déconnexion -->
-            <UButton
-              variant="ghost"
-              color="red"
-              class="justify-start px-4 py-3"
-              @click="logout"
-            >
-              <UIcon
-                name="i-ion-log-out"
-                class="w-5 h-5"
-              />
-              <span class="font-medium">Déconnexion</span>
-            </UButton>
+            <div class="px-2 py-2" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));">
+              <button
+                type="button"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 transition-all duration-150 w-full text-left group"
+                @click="logout"
+              >
+                <UIcon
+                  name="i-ion-log-out"
+                  class="w-5 h-5 shrink-0 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform"
+                />
+                <span class="font-medium text-sm text-red-600 dark:text-red-400">Déconnexion</span>
+              </button>
+            </div>
           </div>
         </div>
       </template>
