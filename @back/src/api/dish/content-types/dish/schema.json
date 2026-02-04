@@ -31,6 +31,21 @@
     "image_url": {
       "type": "string"
     },
+    "category": {
+      "type": "string"
+    },
+    "preparation_time": {
+      "type": "integer",
+      "description": "Temps de préparation en minutes"
+    },
+    "cooking_time": {
+      "type": "integer",
+      "description": "Temps de cuisson en minutes"
+    },
+    "ingredients": {
+      "type": "json",
+      "description": "Liste des ingrédients sous forme de tableau JSON"
+    },
     "family": {
       "type": "relation",
       "relation": "manyToOne",

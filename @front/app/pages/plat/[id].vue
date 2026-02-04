@@ -129,9 +129,67 @@
                   </div>
                   <div
                     v-if="dish.description"
-                    class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap"
+                    class="text-gray-600 dark:text-gray-400 whitespace-pre-wrap mb-4"
                   >
                     {{ dish.description }}
+                  </div>
+
+                  <!-- Informations du plat -->
+                  <div class="space-y-3 mb-4">
+                    <div
+                      v-if="dish.category"
+                      class="flex items-center gap-2"
+                    >
+                      <UIcon
+                        name="i-ion-bookmark"
+                        class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                      />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                        <span class="font-medium">Catégorie :</span> {{ dish.category }}
+                      </span>
+                    </div>
+                    <div
+                      v-if="dish.preparation_time"
+                      class="flex items-center gap-2"
+                    >
+                      <UIcon
+                        name="i-ion-time"
+                        class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                      />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                        <span class="font-medium">Temps de préparation :</span> {{ dish.preparation_time }} minutes
+                      </span>
+                    </div>
+                    <div
+                      v-if="dish.cooking_time"
+                      class="flex items-center gap-2"
+                    >
+                      <UIcon
+                        name="i-ion-flame"
+                        class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                      />
+                      <span class="text-sm text-gray-700 dark:text-gray-300">
+                        <span class="font-medium">Temps de cuisson :</span> {{ dish.cooking_time }} minutes
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Ingrédients -->
+                  <div
+                    v-if="dish.ingredients && dish.ingredients.length > 0"
+                    class="mb-4"
+                  >
+                    <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      Ingrédients
+                    </h3>
+                    <ul class="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                      <li
+                        v-for="(ingredient, index) in dish.ingredients"
+                        :key="index"
+                      >
+                        {{ ingredient }}
+                      </li>
+                    </ul>
                   </div>
 
                   <!-- Bouton Modifier en bas -->

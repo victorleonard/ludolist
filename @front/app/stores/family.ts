@@ -175,6 +175,10 @@ interface StrapiDish {
   description?: string | null;
   image?: StrapiImage | null;
   image_url?: string | null;
+  category?: string | null;
+  preparation_time?: number | null;
+  cooking_time?: number | null;
+  ingredients?: string[] | null;
   ratings?: DishRating[];
   publishedAt?: string;
   createdAt: string;
@@ -187,6 +191,10 @@ export interface TransformedDish {
   name: string;
   description: string;
   image: string | null;
+  category?: string | null;
+  preparation_time?: number | null;
+  cooking_time?: number | null;
+  ingredients?: string[] | null;
   ratings?: DishRating[];
   createdAt: string;
 }
@@ -450,6 +458,10 @@ export const useFamilyStore = defineStore("family", {
             name: strapiDish.name,
             description: strapiDish.description || "",
             image: imageUrl,
+            category: strapiDish.category || null,
+            preparation_time: strapiDish.preparation_time || null,
+            cooking_time: strapiDish.cooking_time || null,
+            ingredients: strapiDish.ingredients || null,
             ratings: strapiDish.ratings || [],
             createdAt: strapiDish.createdAt || new Date().toISOString(),
           });
@@ -753,6 +765,10 @@ export const useFamilyStore = defineStore("family", {
       description?: string;
       image_url?: string;
       image?: number;
+      category?: string;
+      preparation_time?: number;
+      cooking_time?: number;
+      ingredients?: string[];
     }) {
       const authStore = useAuthStore();
 
@@ -799,6 +815,10 @@ export const useFamilyStore = defineStore("family", {
         description?: string;
         image_url?: string | null;
         image?: number | null;
+        category?: string;
+        preparation_time?: number;
+        cooking_time?: number;
+        ingredients?: string[];
       },
     ) {
       const authStore = useAuthStore();
@@ -823,6 +843,10 @@ export const useFamilyStore = defineStore("family", {
               ...(data.description !== undefined && { description: data.description }),
               ...(data.image_url !== undefined && { image_url: data.image_url ?? null }),
               ...(data.image !== undefined && { image: data.image ?? null }),
+              ...(data.category !== undefined && { category: data.category }),
+              ...(data.preparation_time !== undefined && { preparation_time: data.preparation_time }),
+              ...(data.cooking_time !== undefined && { cooking_time: data.cooking_time }),
+              ...(data.ingredients !== undefined && { ingredients: data.ingredients }),
             },
           },
         });

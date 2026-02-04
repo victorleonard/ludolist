@@ -68,16 +68,6 @@
                   <h2 class="text-xl font-bold break-words min-w-0 flex-1">
                     {{ dish.name }}
                   </h2>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-ion-create-outline"
-                      size="sm"
-                      class="flex-shrink-0"
-                      @click.stop="openEditModal(dish)"
-                    />
-                  </div>
                 </div>
               </template>
 
@@ -104,12 +94,45 @@
                   v-if="getAverageRating(dish) > 0"
                   class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
                 >
-                  <StarRating
+                  <RatingDisplay10
                     :model-value="getAverageRating(dish)"
-                    :max="10"
-                    size="sm"
                     readonly
                   />
+                </div>
+                <!-- Informations supplémentaires -->
+                <div class="flex flex-wrap gap-2">
+                  <UBadge
+                    v-if="dish.category"
+                    color="primary"
+                    variant="subtle"
+                    class="text-xs text-primary-800 dark:text-primary-200"
+                  >
+                    {{ dish.category }}
+                  </UBadge>
+                  <UBadge
+                    v-if="dish.preparation_time"
+                    color="neutral"
+                    variant="subtle"
+                    class="text-xs flex items-center gap-1 text-gray-800 dark:text-gray-200"
+                  >
+                    <UIcon
+                      name="i-ion-time"
+                      class="w-3 h-3"
+                    />
+                    {{ dish.preparation_time }} min
+                  </UBadge>
+                  <UBadge
+                    v-if="dish.cooking_time"
+                    color="neutral"
+                    variant="subtle"
+                    class="text-xs flex items-center gap-1 text-gray-800 dark:text-gray-200"
+                  >
+                    <UIcon
+                      name="i-ion-flame"
+                      class="w-3 h-3"
+                    />
+                    {{ dish.cooking_time }} min
+                  </UBadge>
                 </div>
               </div>
             </UCard>
@@ -144,32 +167,57 @@
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                      <div class="flex-1 min-w-0">
-                        <h3 class="text-lg font-semibold break-words">
-                          {{ dish.name }}
-                        </h3>
-                      </div>
-                      <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="i-ion-create-outline"
-                        size="xs"
-                        :padded="false"
-                        class="shrink-0"
-                        @click.stop="openEditModal(dish)"
-                      />
+                    <div class="mb-2">
+                      <h3 class="text-lg font-semibold break-words">
+                        {{ dish.name }}
+                      </h3>
                     </div>
                     <div
                       v-if="getAverageRating(dish) > 0"
                       class="flex items-center gap-2 mb-2"
                     >
-                      <StarRating
+                      <RatingDisplay10
                         :model-value="getAverageRating(dish)"
-                        :max="10"
-                        size="sm"
                         readonly
                       />
+                    </div>
+                    <!-- Informations supplémentaires -->
+                    <div class="flex flex-wrap gap-2 mb-2">
+                      <UBadge
+                        v-if="dish.category"
+                        color="primary"
+                        variant="subtle"
+                        size="xs"
+                        class="text-primary-800 dark:text-primary-200"
+                      >
+                        {{ dish.category }}
+                      </UBadge>
+                      <UBadge
+                        v-if="dish.preparation_time"
+                        color="neutral"
+                        variant="subtle"
+                        size="xs"
+                        class="flex items-center gap-1 text-gray-800 dark:text-gray-200"
+                      >
+                        <UIcon
+                          name="i-ion-time"
+                          class="w-3 h-3"
+                        />
+                        {{ dish.preparation_time }} min
+                      </UBadge>
+                      <UBadge
+                        v-if="dish.cooking_time"
+                        color="neutral"
+                        variant="subtle"
+                        size="xs"
+                        class="flex items-center gap-1 text-gray-800 dark:text-gray-200"
+                      >
+                        <UIcon
+                          name="i-ion-flame"
+                          class="w-3 h-3"
+                        />
+                        {{ dish.cooking_time }} min
+                      </UBadge>
                     </div>
                   </div>
                 </div>

@@ -563,6 +563,8 @@ export interface ApiDishDish extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    category: Schema.Attribute.String;
+    cooking_time: Schema.Attribute.Integer;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -570,10 +572,12 @@ export interface ApiDishDish extends Struct.CollectionTypeSchema {
     family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'>;
     image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     image_url: Schema.Attribute.String;
+    ingredients: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::dish.dish'> &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    preparation_time: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
     ratings: Schema.Attribute.Relation<
       'oneToMany',
@@ -811,7 +815,7 @@ export interface ApiRatingRating extends Struct.CollectionTypeSchema {
       Schema.Attribute.Required &
       Schema.Attribute.SetMinMax<
         {
-          max: 5;
+          max: 10;
           min: 1;
         },
         number

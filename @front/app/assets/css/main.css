@@ -248,3 +248,216 @@ div[class*="rounded"][class*="border"]:not([class*="bg-gray"]):not(
 .drawer-leave-to .drawer-content {
   transform: translateY(100%);
 }
+
+/* Amélioration du contraste des badges pour iPhone 7 et autres appareils */
+/* Forcer une couleur de texte visible sur tous les badges */
+[data-slot="badge"],
+button[data-slot="badge"],
+span[data-slot="badge"],
+div[data-slot="badge"],
+.badge,
+[class*="badge"] {
+  color: inherit !important;
+}
+
+/* Améliorer le contraste pour les badges avec variant="subtle" */
+[data-slot="badge"][class*="subtle"],
+button[data-slot="badge"][class*="subtle"],
+span[data-slot="badge"][class*="subtle"],
+div[data-slot="badge"][class*="subtle"] {
+  /* Forcer une couleur de texte sombre en mode clair */
+  color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark [data-slot="badge"][class*="subtle"],
+.dark button[data-slot="badge"][class*="subtle"],
+.dark span[data-slot="badge"][class*="subtle"],
+.dark div[data-slot="badge"][class*="subtle"] {
+  /* Forcer une couleur de texte claire en mode sombre */
+  color: rgb(229, 231, 235) !important; /* gray-200 */
+}
+
+/* Cibler spécifiquement les badges Nuxt UI */
+[class*="bg-primary"][class*="subtle"] span,
+[class*="bg-primary"][class*="subtle"] div,
+[class*="bg-primary"][class*="subtle"] {
+  color: rgb(30, 58, 138) !important; /* blue-800 pour primary */
+}
+
+.dark [class*="bg-primary"][class*="subtle"] span,
+.dark [class*="bg-primary"][class*="subtle"] div,
+.dark [class*="bg-primary"][class*="subtle"] {
+  color: rgb(191, 219, 254) !important; /* blue-200 pour primary dark */
+}
+
+[class*="bg-neutral"][class*="subtle"] span,
+[class*="bg-neutral"][class*="subtle"] div,
+[class*="bg-neutral"][class*="subtle"] {
+  color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark [class*="bg-neutral"][class*="subtle"] span,
+.dark [class*="bg-neutral"][class*="subtle"] div,
+.dark [class*="bg-neutral"][class*="subtle"] {
+  color: rgb(229, 231, 235) !important; /* gray-200 */
+}
+
+[class*="bg-info"][class*="subtle"] span,
+[class*="bg-info"][class*="subtle"] div,
+[class*="bg-info"][class*="subtle"] {
+  color: rgb(30, 64, 175) !important; /* blue-800 pour info */
+}
+
+.dark [class*="bg-info"][class*="subtle"] span,
+.dark [class*="bg-info"][class*="subtle"] div,
+.dark [class*="bg-info"][class*="subtle"] {
+  color: rgb(191, 219, 254) !important; /* blue-200 pour info dark */
+}
+
+[class*="bg-success"][class*="subtle"] span,
+[class*="bg-success"][class*="subtle"] div,
+[class*="bg-success"][class*="subtle"] {
+  color: rgb(20, 83, 45) !important; /* green-800 pour success */
+}
+
+.dark [class*="bg-success"][class*="subtle"] span,
+.dark [class*="bg-success"][class*="subtle"] div,
+.dark [class*="bg-success"][class*="subtle"] {
+  color: rgb(187, 247, 208) !important; /* green-200 pour success dark */
+}
+
+[class*="bg-warning"][class*="subtle"] span,
+[class*="bg-warning"][class*="subtle"] div,
+[class*="bg-warning"][class*="subtle"] {
+  color: rgb(146, 64, 14) !important; /* orange-800 pour warning */
+}
+
+.dark [class*="bg-warning"][class*="subtle"] span,
+.dark [class*="bg-warning"][class*="subtle"] div,
+.dark [class*="bg-warning"][class*="subtle"] {
+  color: rgb(254, 215, 170) !important; /* orange-200 pour warning dark */
+}
+
+/* Forcer le contraste pour tous les textes dans les badges */
+[data-slot="badge"] *,
+button[data-slot="badge"] *,
+span[data-slot="badge"] *,
+div[data-slot="badge"] * {
+  color: inherit !important;
+}
+
+/* Cibler les badges Nuxt UI directement via leurs classes */
+/* Les badges Nuxt UI utilisent généralement des classes comme bg-{color}-50/100 avec text-{color}-600/700 */
+button[class*="bg-primary"][class*="50"],
+button[class*="bg-primary"][class*="100"],
+span[class*="bg-primary"][class*="50"],
+span[class*="bg-primary"][class*="100"],
+div[class*="bg-primary"][class*="50"],
+div[class*="bg-primary"][class*="100"] {
+  color: rgb(30, 58, 138) !important; /* blue-800 */
+}
+
+.dark button[class*="bg-primary"][class*="50"],
+.dark button[class*="bg-primary"][class*="100"],
+.dark span[class*="bg-primary"][class*="50"],
+.dark span[class*="bg-primary"][class*="100"],
+.dark div[class*="bg-primary"][class*="50"],
+.dark div[class*="bg-primary"][class*="100"] {
+  color: rgb(191, 219, 254) !important; /* blue-200 */
+}
+
+button[class*="bg-gray"][class*="50"],
+button[class*="bg-gray"][class*="100"],
+button[class*="bg-neutral"][class*="50"],
+button[class*="bg-neutral"][class*="100"],
+span[class*="bg-gray"][class*="50"],
+span[class*="bg-gray"][class*="100"],
+span[class*="bg-neutral"][class*="50"],
+span[class*="bg-neutral"][class*="100"],
+div[class*="bg-gray"][class*="50"],
+div[class*="bg-gray"][class*="100"],
+div[class*="bg-neutral"][class*="50"],
+div[class*="bg-neutral"][class*="100"] {
+  color: rgb(31, 41, 55) !important; /* gray-800 */
+}
+
+.dark button[class*="bg-gray"][class*="50"],
+.dark button[class*="bg-gray"][class*="100"],
+.dark button[class*="bg-neutral"][class*="50"],
+.dark button[class*="bg-neutral"][class*="100"],
+.dark span[class*="bg-gray"][class*="50"],
+.dark span[class*="bg-gray"][class*="100"],
+.dark span[class*="bg-neutral"][class*="50"],
+.dark span[class*="bg-neutral"][class*="100"],
+.dark div[class*="bg-gray"][class*="50"],
+.dark div[class*="bg-gray"][class*="100"],
+.dark div[class*="bg-neutral"][class*="50"],
+.dark div[class*="bg-neutral"][class*="100"] {
+  color: rgb(229, 231, 235) !important; /* gray-200 */
+}
+
+button[class*="bg-blue"][class*="50"],
+button[class*="bg-blue"][class*="100"],
+span[class*="bg-blue"][class*="50"],
+span[class*="bg-blue"][class*="100"],
+div[class*="bg-blue"][class*="50"],
+div[class*="bg-blue"][class*="100"] {
+  color: rgb(30, 64, 175) !important; /* blue-800 */
+}
+
+.dark button[class*="bg-blue"][class*="50"],
+.dark button[class*="bg-blue"][class*="100"],
+.dark span[class*="bg-blue"][class*="50"],
+.dark span[class*="bg-blue"][class*="100"],
+.dark div[class*="bg-blue"][class*="50"],
+.dark div[class*="bg-blue"][class*="100"] {
+  color: rgb(191, 219, 254) !important; /* blue-200 */
+}
+
+button[class*="bg-green"][class*="50"],
+button[class*="bg-green"][class*="100"],
+span[class*="bg-green"][class*="50"],
+span[class*="bg-green"][class*="100"],
+div[class*="bg-green"][class*="50"],
+div[class*="bg-green"][class*="100"] {
+  color: rgb(20, 83, 45) !important; /* green-800 */
+}
+
+.dark button[class*="bg-green"][class*="50"],
+.dark button[class*="bg-green"][class*="100"],
+.dark span[class*="bg-green"][class*="50"],
+.dark span[class*="bg-green"][class*="100"],
+.dark div[class*="bg-green"][class*="50"],
+.dark div[class*="bg-green"][class*="100"] {
+  color: rgb(187, 247, 208) !important; /* green-200 */
+}
+
+button[class*="bg-yellow"][class*="50"],
+button[class*="bg-yellow"][class*="100"],
+button[class*="bg-orange"][class*="50"],
+button[class*="bg-orange"][class*="100"],
+span[class*="bg-yellow"][class*="50"],
+span[class*="bg-yellow"][class*="100"],
+span[class*="bg-orange"][class*="50"],
+span[class*="bg-orange"][class*="100"],
+div[class*="bg-yellow"][class*="50"],
+div[class*="bg-yellow"][class*="100"],
+div[class*="bg-orange"][class*="50"],
+div[class*="bg-orange"][class*="100"] {
+  color: rgb(146, 64, 14) !important; /* orange-800 */
+}
+
+.dark button[class*="bg-yellow"][class*="50"],
+.dark button[class*="bg-yellow"][class*="100"],
+.dark button[class*="bg-orange"][class*="50"],
+.dark button[class*="bg-orange"][class*="100"],
+.dark span[class*="bg-yellow"][class*="50"],
+.dark span[class*="bg-yellow"][class*="100"],
+.dark span[class*="bg-orange"][class*="50"],
+.dark span[class*="bg-orange"][class*="100"],
+.dark div[class*="bg-yellow"][class*="50"],
+.dark div[class*="bg-yellow"][class*="100"],
+.dark div[class*="bg-orange"][class*="50"],
+.dark div[class*="bg-orange"][class*="100"] {
+  color: rgb(254, 215, 170) !important; /* orange-200 */
+}

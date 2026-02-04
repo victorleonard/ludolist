@@ -356,6 +356,7 @@
                           v-if="readingDate(reading, 'date_fin')"
                           color="success"
                           variant="subtle"
+                          class="text-green-800 dark:text-green-200"
                         >
                           <UIcon
                             name="i-ion-checkmark-circle"
@@ -367,6 +368,7 @@
                           v-else-if="readingDate(reading, 'date_debut')"
                           color="warning"
                           variant="subtle"
+                          class="text-orange-800 dark:text-orange-200"
                         >
                           <UIcon
                             name="i-ion-time"
@@ -378,6 +380,7 @@
                           v-else
                           color="neutral"
                           variant="subtle"
+                          class="text-gray-800 dark:text-gray-200"
                         >
                           <UIcon
                             name="i-ion-bookmark"
@@ -389,6 +392,7 @@
                           v-if="readingDurationLabel(reading)"
                           color="primary"
                           variant="subtle"
+                          class="text-primary-800 dark:text-primary-200"
                         >
                           <UIcon
                             name="i-ion-time"

@@ -61,6 +61,7 @@
               variant="subtle"
               icon="i-ion-document-text"
               size="xs"
+              class="text-gray-800 dark:text-gray-200"
             >
               <span class="hidden sm:inline">Notes</span>
             </UBadge>

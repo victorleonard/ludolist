@@ -93,8 +93,140 @@
               :disabled="submitting"
               class="w-full"
               :rows="4"
-              placeholder="Recette, ingrédients..."
+              placeholder="Recette, description..."
             />
+          </div>
+
+          <div>
+            <label
+              for="plat-category"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-ion-bookmark"
+                class="w-4 h-4"
+              />
+              Catégorie
+            </label>
+            <USelect
+              id="plat-category"
+              v-model="state.category"
+              :items="categoryOptions"
+              :disabled="submitting"
+              placeholder="Choisir une catégorie..."
+              class="w-full"
+            />
+          </div>
+
+          <div>
+            <label
+              for="plat-preparation-time"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-ion-time"
+                class="w-4 h-4"
+              />
+              Temps de préparation (minutes)
+            </label>
+            <UInput
+              id="plat-preparation-time"
+              v-model.number="state.preparation_time"
+              type="number"
+              :disabled="submitting"
+              class="w-full"
+              placeholder="Ex. 30"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label
+              for="plat-cooking-time"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-ion-flame"
+                class="w-4 h-4"
+              />
+              Temps de cuisson (minutes)
+            </label>
+            <UInput
+              id="plat-cooking-time"
+              v-model.number="state.cooking_time"
+              type="number"
+              :disabled="submitting"
+              class="w-full"
+              placeholder="Ex. 45"
+              min="0"
+            />
+          </div>
+
+          <div>
+            <label
+              for="plat-ingredient-input"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              <UIcon
+                name="i-ion-list"
+                class="w-4 h-4"
+              />
+              Ingrédients
+            </label>
+            
+            <!-- Champ de saisie avec bouton -->
+            <div class="flex gap-2 mb-3">
+              <UInput
+                id="plat-ingredient-input"
+                v-model="newIngredient"
+                :disabled="submitting"
+                class="flex-1"
+                placeholder="Ajouter un ingrédient..."
+                @keyup.enter="addIngredient"
+              />
+              <UButton
+                type="button"
+                color="primary"
+                icon="i-ion-add"
+                :disabled="submitting || !newIngredient.trim()"
+                @click="addIngredient"
+              >
+                Ajouter
+              </UButton>
+            </div>
+
+            <!-- Liste des ingrédients -->
+            <div
+              v-if="state.ingredients.length > 0"
+              class="flex flex-wrap gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg min-h-[60px]"
+            >
+              <UBadge
+                v-for="(ingredient, index) in state.ingredients"
+                :key="index"
+                color="primary"
+                variant="subtle"
+                class="flex items-center gap-1.5 pr-1"
+              >
+                <span>{{ ingredient }}</span>
+                <button
+                  type="button"
+                  :disabled="submitting"
+                  class="ml-1 hover:bg-primary-200 dark:hover:bg-primary-800 rounded-full p-0.5 transition-colors"
+                  @click="removeIngredient(index)"
+                >
+                  <UIcon
+                    name="i-ion-close"
+                    class="w-3 h-3"
+                  />
+                </button>
+              </UBadge>
+            </div>
+            <div
+              v-else
+              class="flex items-center justify-center p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg min-h-[60px] text-sm text-gray-500 dark:text-gray-400"
+            >
+              Aucun ingrédient ajouté
+            </div>
           </div>
 
           <div>
@@ -105,6 +237,19 @@
               />
               Photo du plat
             </label>
+            <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+              Indiquez une URL :
+            </p>
+            <UInput
+              id="plat-image-url"
+              v-model="state.image_url"
+              :disabled="submitting"
+              class="w-full mb-3"
+              placeholder="https://..."
+            />
+            <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+              Ou téléchargez une image :
+            </p>
             <UFileUpload
               v-model="imageFile"
               color="neutral"
@@ -113,16 +258,6 @@
               description="SVG, PNG, JPG ou GIF (max. 2MB)"
               class="w-full min-h-48"
               :disabled="submitting"
-            />
-            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Ou indiquez une URL :
-            </p>
-            <UInput
-              id="plat-image-url"
-              v-model="state.image_url"
-              :disabled="submitting"
-              class="w-full mt-1"
-              placeholder="https://..."
             />
           </div>
 
@@ -188,11 +323,30 @@ const deleting = ref(false)
 const submitError = ref('')
 const imageFile = ref<File | null>(null)
 
+const categoryOptions = [
+  { label: 'Entrée', value: 'Entrée' },
+  { label: 'Plat principal', value: 'Plat principal' },
+  { label: 'Dessert', value: 'Dessert' },
+  { label: 'Apéritif', value: 'Apéritif' },
+  { label: 'Boisson', value: 'Boisson' },
+  { label: 'Accompagnement', value: 'Accompagnement' },
+  { label: 'Sauce', value: 'Sauce' },
+  { label: 'Petit-déjeuner', value: 'Petit-déjeuner' },
+  { label: 'Goûter', value: 'Goûter' },
+  { label: 'Autre', value: 'Autre' },
+]
+
 const state = reactive({
   name: '',
   description: '',
   image_url: '',
+  category: null as string | null,
+  preparation_time: null as number | null,
+  cooking_time: null as number | null,
+  ingredients: [] as string[],
 })
+
+const newIngredient = ref('')
 
 const errors = reactive<{ name?: string }>({})
 
@@ -200,9 +354,25 @@ function resetForm() {
   state.name = ''
   state.description = ''
   state.image_url = ''
+  state.category = null
+  state.preparation_time = null
+  state.ingredients = []
+  newIngredient.value = ''
   imageFile.value = null
   errors.name = undefined
   submitError.value = ''
+}
+
+function addIngredient() {
+  const trimmed = newIngredient.value.trim()
+  if (trimmed && !state.ingredients.includes(trimmed)) {
+    state.ingredients.push(trimmed)
+    newIngredient.value = ''
+  }
+}
+
+function removeIngredient(index: number) {
+  state.ingredients.splice(index, 1)
 }
 
 function loadDishData() {
@@ -210,6 +380,11 @@ function loadDishData() {
     state.name = props.dish.name
     state.description = props.dish.description || ''
     state.image_url = ''
+    state.category = props.dish.category || null
+    state.preparation_time = props.dish.preparation_time || null
+    state.cooking_time = props.dish.cooking_time || null
+    state.ingredients = props.dish.ingredients ? [...props.dish.ingredients] : []
+    newIngredient.value = ''
   }
 }
 
@@ -278,6 +453,10 @@ async function handleSubmit() {
           name: nameTrimmed,
           description: state.description?.trim() || undefined,
           image_url: state.image_url?.trim() || null,
+          category: state.category || undefined,
+          preparation_time: state.preparation_time || undefined,
+          cooking_time: state.cooking_time || undefined,
+          ingredients: state.ingredients.length > 0 ? state.ingredients : undefined,
           ...(imageId != null && { image: imageId }),
         },
       )
@@ -290,6 +469,10 @@ async function handleSubmit() {
         name: nameTrimmed,
         description: state.description?.trim() || undefined,
         image_url: state.image_url?.trim() || undefined,
+          category: state.category || undefined,
+        preparation_time: state.preparation_time || undefined,
+        cooking_time: state.cooking_time || undefined,
+        ingredients: state.ingredients.length > 0 ? state.ingredients : undefined,
         ...(imageId != null && { image: imageId }),
       })
       if (!result.success) {

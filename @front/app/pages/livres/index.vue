@@ -119,6 +119,7 @@
                     :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : 'neutral'"
                     variant="subtle"
                     size="xs"
+                    :class="getBookStatus(book) === 'Lu' ? 'text-green-800 dark:text-green-200' : getBookStatus(book) === 'En cours' ? 'text-orange-800 dark:text-orange-200' : 'text-gray-800 dark:text-gray-200'"
                   >
                     {{ getBookStatus(book) }}
                   </UBadge>
@@ -127,6 +128,7 @@
                     color="primary"
                     variant="subtle"
                     size="xs"
+                    class="text-primary-800 dark:text-primary-200"
                   >
                     <UIcon
                       name="i-ion-time"
@@ -141,6 +143,7 @@
                     v-if="book.annee"
                     color="neutral"
                     variant="subtle"
+                    class="text-gray-800 dark:text-gray-200"
                   >
                     {{ book.annee }}
                   </UBadge>
@@ -149,6 +152,7 @@
                     color="primary"
                     variant="outline"
                     size="xs"
+                    class="text-primary-800 dark:text-primary-200"
                   >
                     {{ getBookFirstCategory(book) }}
                   </UBadge>

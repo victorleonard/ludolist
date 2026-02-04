@@ -90,16 +90,6 @@
                   <h2 class="text-xl font-bold break-words min-w-0 flex-1">
                     {{ jeu.titre }}
                   </h2>
-                  <div class="flex items-center gap-2 shrink-0">
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-ion-create-outline"
-                      size="sm"
-                      class="flex-shrink-0"
-                      @click.stop="openEditModal(jeu)"
-                    />
-                  </div>
                 </div>
               </template>
 
@@ -136,9 +126,8 @@
                   v-if="getAverageRating(jeu) > 0"
                   class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
                 >
-                  <StarRating
+                  <RatingDisplay10
                     :model-value="getAverageRating(jeu)"
-                    size="sm"
                     readonly
                   />
                 </div>
@@ -158,7 +147,7 @@
                   <UBadge
                     color="neutral"
                     variant="subtle"
-                    class="whitespace-nowrap"
+                    class="whitespace-nowrap text-gray-800 dark:text-gray-200"
                   >
                     {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
                   </UBadge>
@@ -167,6 +156,7 @@
                     :key="tag"
                     :color="tag.includes('joueurs') ? 'info' : 'primary'"
                     variant="subtle"
+                    :class="tag.includes('joueurs') ? 'text-blue-800 dark:text-blue-200' : 'text-primary-800 dark:text-primary-200'"
                   >
                     {{ tag }}
                   </UBadge>
@@ -204,29 +194,17 @@
                     </div>
                   </div>
                   <div class="flex-1 min-w-0">
-                    <div class="flex items-start justify-between gap-2 mb-2">
-                      <div class="flex-1 min-w-0">
-                        <h3 class="text-lg font-semibold break-words">
-                          {{ jeu.titre }}
-                        </h3>
-                      </div>
-                      <UButton
-                        color="neutral"
-                        variant="ghost"
-                        icon="i-ion-create-outline"
-                        size="xs"
-                        :padded="false"
-                        class="shrink-0"
-                        @click.stop="openEditModal(jeu)"
-                      />
+                    <div class="mb-2">
+                      <h3 class="text-lg font-semibold break-words">
+                        {{ jeu.titre }}
+                      </h3>
                     </div>
                     <div
                       v-if="getAverageRating(jeu) > 0"
                       class="flex items-center gap-2 mb-2"
                     >
-                      <StarRating
+                      <RatingDisplay10
                         :model-value="getAverageRating(jeu)"
-                        size="sm"
                         readonly
                       />
                     </div>
@@ -246,7 +224,7 @@
                       <UBadge
                         color="neutral"
                         variant="subtle"
-                        class="whitespace-nowrap"
+                        class="whitespace-nowrap text-gray-800 dark:text-gray-200"
                       >
                         {{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans
                       </UBadge>
@@ -255,6 +233,7 @@
                         :key="tag"
                         :color="tag.includes('joueurs') ? 'info' : 'primary'"
                         variant="subtle"
+                        :class="tag.includes('joueurs') ? 'text-blue-800 dark:text-blue-200' : 'text-primary-800 dark:text-primary-200'"
                       >
                         {{ tag }}
                       </UBadge>
@@ -275,7 +254,6 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRecherche } from '../composables/useRecherche'
 import { useFamilyStore, type TransformedGame as Game, type Rating } from '~/stores/family'
-import StarRating from '~/components/StarRating.vue'
 import { useAddGameModal } from '~/composables/useAddGameModal'
 
 definePageMeta({
