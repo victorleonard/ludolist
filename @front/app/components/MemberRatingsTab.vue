@@ -28,52 +28,36 @@
       <!-- Membres avec notes -->
       <div
         v-if="membersWithRatings.length > 0"
-        class="space-y-3 sm:space-y-4 mb-4 sm:mb-6"
+        class="space-y-2 sm:space-y-3 mb-3 sm:mb-4"
       >
-        <h3 class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 sm:mb-3 px-1">
+        <h3 class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-1.5 sm:mb-2 px-1">
           Notes des membres
         </h3>
         <UCard
           v-for="member in membersWithRatings"
           :key="member.id"
-          class="bg-white dark:bg-gray-800 transition-all duration-200 hover:shadow-md p-4 sm:p-5"
+          :data-member-id="member.id"
+          class="bg-white dark:bg-gray-800 transition-all duration-200 hover:shadow-md p-3 sm:p-4 overflow-x-visible"
         >
-          <div class="flex items-start gap-3 sm:gap-4">
+          <div class="flex items-start gap-2 sm:gap-3">
             <MemberAvatar
               :member="member"
               size="md"
               class="shrink-0"
             />
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between mb-3">
-                <div>
-                  <span class="font-semibold text-gray-900 dark:text-gray-100">{{ member.username }}</span>
-                  <div
-                    v-if="getMemberRating(member.id) > 0"
-                    class="flex items-center gap-2 mt-1"
-                  >
-                    <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
-                      {{ getMemberRating(member.id) }}
-                    </span>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">
-                      / {{ maxStars }}
-                    </span>
-                  </div>
-                </div>
-                <UButton
-                  v-if="getMemberRating(member.id) > 0"
-                  color="red"
-                  variant="ghost"
-                  icon="i-ion-trash"
-                  size="sm"
-                  class="shrink-0"
-                  @click="handleDeleteRating(member.id)"
-                >
-                  <span class="sr-only">Supprimer la note</span>
-                </UButton>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ member.username }}</span>
               </div>
-              <div class="flex items-center gap-3">
+              <div class="w-full" @click="handleRatingAreaClick">
+                <RatingDisplay10
+                  v-if="maxStars === 10"
+                  :ref="(el) => setRatingRef(member.id, el)"
+                  :model-value="getMemberRating(member.id)"
+                  @update:model-value="(rating) => setMemberRating(member.id, rating)"
+                />
                 <StarRating
+                  v-else
                   :model-value="getMemberRating(member.id)"
                   :max="maxStars"
                   size="lg"
@@ -88,82 +72,50 @@
       <!-- Membres sans notes -->
       <div
         v-if="membersWithoutRatings.length > 0"
-        class="space-y-3 sm:space-y-4"
+        class="space-y-2 sm:space-y-3"
       >
-        <h3 class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 sm:mb-3 px-1">
+        <h3 class="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5 sm:mb-2 px-1">
           Pas encore noté
         </h3>
         <UCard
           v-for="member in membersWithoutRatings"
           :key="member.id"
-          class="bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-900 p-4 sm:p-5"
+          :data-member-id="member.id"
+          class="bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-700 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-900 p-3 sm:p-4 overflow-x-visible"
         >
-          <div class="flex items-start gap-3 sm:gap-4">
+          <div class="flex items-start gap-2 sm:gap-3">
             <MemberAvatar
               :member="member"
               size="md"
-              class="flex-shrink-0 opacity-75"
+              class="shrink-0 opacity-75"
             />
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between mb-3">
+              <div class="mb-1">
                 <span class="font-medium text-gray-600 dark:text-gray-400">{{ member.username }}</span>
               </div>
-              <div class="flex items-center gap-3">
-                <StarRating
+              <div class="w-full">
+                <RatingDisplay10
+                  v-if="maxStars === 10"
                   :model-value="0"
-                  :max="maxStars"
-                  size="lg"
                   @update:model-value="(rating) => setMemberRating(member.id, rating)"
                 />
-                <span class="text-xs text-gray-500 dark:text-gray-500 italic">
-                  Cliquez pour noter
-                </span>
+                <div v-else class="flex items-center gap-2">
+                  <StarRating
+                    :model-value="0"
+                    :max="maxStars"
+                    size="lg"
+                    @update:model-value="(rating) => setMemberRating(member.id, rating)"
+                  />
+                  <span class="text-xs text-gray-500 dark:text-gray-500 italic">
+                    Cliquez pour noter
+                  </span>
+                </div>
               </div>
             </div>
           </div>
         </UCard>
       </div>
 
-      <!-- Note moyenne détaillée -->
-      <UCard
-        v-if="averageRating > 0"
-        class="mt-4 sm:mt-6 bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/30 dark:to-primary-800/30 border-primary-200 dark:border-primary-800 p-4 sm:p-5"
-      >
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
-          <div class="flex items-center gap-2 sm:gap-3">
-            <div class="p-2 sm:p-3 rounded-full bg-primary-100 dark:bg-primary-900/50">
-              <UIcon
-                name="i-ion-stats-chart"
-                class="w-5 h-5 sm:w-6 sm:h-6 text-primary-600 dark:text-primary-400"
-              />
-            </div>
-            <div>
-              <span class="block text-xs sm:text-sm font-medium text-primary-700 dark:text-primary-300">
-                Note moyenne
-              </span>
-              <span class="block text-xs text-primary-600 dark:text-primary-400">
-                Basée sur {{ ratedMembersCount }} {{ ratedMembersCount === 1 ? 'note' : 'notes' }}
-              </span>
-            </div>
-          </div>
-          <div class="flex items-center gap-3 sm:gap-4">
-            <StarRating
-              :model-value="averageRating"
-              :max="maxStars"
-              size="lg"
-              readonly
-            />
-            <div class="text-right">
-              <div class="text-xl sm:text-2xl font-bold text-primary-600 dark:text-primary-400">
-                {{ averageRating.toFixed(1) }}
-              </div>
-              <div class="text-xs sm:text-sm text-primary-500 dark:text-primary-500">
-                / {{ maxStars }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </UCard>
     </div>
     <div
       v-else
@@ -179,7 +131,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface Member {
   id: number
@@ -219,6 +171,41 @@ const membersWithoutRatings = computed(() => {
 const ratedMembersCount = computed(() => {
   return membersWithRatings.value.length
 })
+
+// Références aux composants RatingDisplay10
+const ratingRefs = ref<Record<number, { openDrawer: () => void } | null>>({})
+
+const setRatingRef = (memberId: number, el: any) => {
+  if (el) {
+    ratingRefs.value[memberId] = el
+  } else {
+    delete ratingRefs.value[memberId]
+  }
+}
+
+// Gestion du clic sur la zone de notation pour ouvrir le drawer
+const handleRatingAreaClick = (event: MouseEvent) => {
+  // Ne pas ouvrir si on clique directement sur un bouton
+  const target = event.target as HTMLElement
+  if (target.closest('button')) {
+    return
+  }
+  
+  // Trouver le membre correspondant en remontant dans le DOM
+  const card = target.closest('[data-member-id]') as HTMLElement
+  if (!card) return
+  
+  const memberId = parseInt(card.getAttribute('data-member-id') || '0', 10)
+  if (!memberId) return
+  
+  // Ouvrir le drawer uniquement sur mobile et si maxStars === 10
+  if (props.maxStars === 10 && typeof window !== 'undefined' && window.innerWidth < 640) {
+    const ratingRef = ratingRefs.value[memberId]
+    if (ratingRef && typeof ratingRef.openDrawer === 'function') {
+      ratingRef.openDrawer()
+    }
+  }
+}
 
 // Gestion de la suppression avec confirmation
 const handleDeleteRating = (memberId: number) => {

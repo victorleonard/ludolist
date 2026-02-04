@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-0.5">
+  <div class="flex items-center gap-0.5 shrink-0">
     <button
       v-for="star in max"
       :key="star"

@@ -57,9 +57,16 @@
 
 /* Zone de contenu : espace pour la barre de navigation basse + safe-area */
 .main-content {
-  padding-bottom: calc(5rem + var(--safe-area-inset-bottom));
+  padding-bottom: calc(4.5rem + var(--safe-area-inset-bottom));
   margin-top: 0; /* retirer margin-top négatif qui posait problème */
   padding-top: 0; /* le padding-top est géré via .app-wrapper ou .main-content selon header */
+}
+
+/* Réduire le padding-bottom sur mobile/iOS - la barre de navigation gère déjà la safe-area */
+@media (max-width: 640px) {
+  .main-content {
+    padding-bottom: 4rem; /* Juste la hauteur de la barre, sans double safe-area */
+  }
 }
 
 /* Safe-area horizontale uniquement (pour header, main, bottom nav) */
@@ -213,4 +220,31 @@ div[class*="rounded"][class*="border"]:not([class*="bg-gray"]):not(
 .header-fixed > * ,
 .safe-header > * {
   transform: none !important;
+}
+
+/* Animations pour le drawer de notation */
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.drawer-enter-active .drawer-content,
+.drawer-leave-active .drawer-content {
+  transition: transform 0.3s ease-out;
+}
+
+.drawer-enter-from {
+  opacity: 0;
+}
+
+.drawer-enter-from .drawer-content {
+  transform: translateY(100%);
+}
+
+.drawer-leave-to {
+  opacity: 0;
+}
+
+.drawer-leave-to .drawer-content {
+  transform: translateY(100%);
 }

@@ -1,5 +1,5 @@
 <template>
-  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
+  <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl sm:pb-6">
     <!-- Loader pendant le chargement initial -->
     <div
       v-if="pageLoading"
@@ -15,11 +15,11 @@
     </div>
 
     <div v-else>
-      <div class="mt-4 sm:mt-6">
+      <div class="mt-4 sm:mt-6 pb-0">
         <!-- Dernières parties : carousel horizontal, cartes carrées, image en fond + infos en overlay -->
         <div
           v-if="latestSessions && latestSessions.length > 0"
-          class="mb-8 sm:mb-10"
+          class="mb-4 sm:mb-10"
         >
           <div class="flex items-center justify-between mb-4 sm:mb-5">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -38,7 +38,7 @@
           </div>
           <!-- Sur mobile : pas de marge négative à gauche pour garder l'espace du container ; spacer pour décaler la 1ère carte -->
           <div class="relative">
-            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
+            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
                 aria-hidden="true"
@@ -132,7 +132,7 @@
         <!-- Lectures en cours : carousel horizontal -->
         <div
           v-if="readingsInProgress.length > 0"
-          class="mb-8 sm:mb-10"
+          class="mb-4 sm:mb-10"
         >
           <div class="flex items-center justify-between mb-4 sm:mb-5">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -150,7 +150,7 @@
             </NuxtLink>
           </div>
           <div class="relative">
-            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
+            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
                 aria-hidden="true"
@@ -209,7 +209,7 @@
         <!-- Derniers plats ajoutés : carousel horizontal -->
         <div
           v-if="latestDishes.length > 0"
-          class="mb-8 sm:mb-10"
+          class="mb-4 sm:mb-10"
         >
           <div class="flex items-center justify-between mb-4 sm:mb-5">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
@@ -227,7 +227,7 @@
             </NuxtLink>
           </div>
           <div class="relative">
-            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
+            <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
                 aria-hidden="true"
