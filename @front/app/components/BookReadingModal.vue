@@ -140,6 +140,31 @@
             </p>
           </div>
 
+          <div>
+            <label
+              for="pages_lues"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-ion-document-text"
+                class="w-4 h-4"
+              />
+              Nombre de pages lues
+            </label>
+            <UInput
+              id="pages_lues"
+              v-model.number="state.pages_lues"
+              type="number"
+              min="0"
+              placeholder="Ex: 150"
+              :disabled="submitting"
+              class="w-full"
+            />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Indiquez le nombre de pages que vous avez lues
+            </p>
+          </div>
+
           <div
             v-if="submitError"
             class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
@@ -233,7 +258,8 @@ const state = reactive({
   memberId: null as number | null,
   date_debut: '',
   date_fin: '',
-  note: null as number | null
+  note: null as number | null,
+  pages_lues: null as number | null
 })
 
 const errors = reactive({
@@ -246,6 +272,7 @@ const loadReadingData = () => {
     state.date_debut = props.reading.date_debut || ''
     state.date_fin = props.reading.date_fin || ''
     state.note = props.reading.note || null
+    state.pages_lues = props.reading.pages_lues || null
   }
 }
 
@@ -254,6 +281,7 @@ const resetForm = () => {
   state.date_debut = ''
   state.date_fin = ''
   state.note = null
+  state.pages_lues = null
   submitError.value = null
   errors.memberId = ''
 }
@@ -294,7 +322,8 @@ async function handleSubmit() {
       {
         date_debut: state.date_debut || null,
         date_fin: state.date_fin || null,
-        note: state.note || null
+        note: state.note || null,
+        pages_lues: state.pages_lues || null
       }
     )
 

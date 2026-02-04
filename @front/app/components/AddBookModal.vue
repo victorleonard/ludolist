@@ -487,6 +487,28 @@
             />
           </div>
 
+          <div>
+            <label
+              for="nombrePages"
+              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              <UIcon
+                name="i-ion-document-text"
+                class="w-4 h-4"
+              />
+              Nombre de pages
+            </label>
+            <UInput
+              id="nombrePages"
+              v-model.number="state.nombrePages"
+              type="number"
+              min="1"
+              :disabled="submitting"
+              class="w-full"
+              placeholder="Ex: 250"
+            />
+          </div>
+
           <div
             v-if="submitError"
             class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
@@ -588,7 +610,8 @@ const state = reactive({
   isbn: '',
   year: null as number | null,
   description: '',
-  coverUrl: ''
+  coverUrl: '',
+  nombrePages: null as number | null
 })
 
 const errors = reactive({
@@ -747,6 +770,7 @@ const resetForm = () => {
   state.year = null
   state.description = ''
   state.coverUrl = ''
+  state.nombrePages = null
   submitError.value = null
   searchQuery.value = ''
   searchResults.value = []
@@ -782,33 +806,52 @@ async function handleSubmit() {
   submitError.value = null
 
   try {
-    // Pour l'instant, on stocke localement dans le localStorage
-    // Plus tard, on pourra créer une API backend pour ça
-    const books = JSON.parse(localStorage.getItem('ludolist-books') || '[]')
-
-    const bookData = {
-      id: editingBook.value && props.book ? props.book.id : Date.now(),
-      titre: state.title.trim(),
-      auteur: state.author.trim() || undefined,
-      isbn: state.isbn.trim() || undefined,
-      annee: state.year || undefined,
-      description: state.description.trim() || undefined,
-      image: state.coverUrl || undefined,
-      createdAt: new Date().toISOString()
-    }
+    const familyStore = useFamilyStore()
+    const memberStore = useMemberStore()
 
     if (editingBook.value && props.book) {
-      // Mise à jour
-      const index = books.findIndex((b: Book) => b.id === props.book!.id)
-      if (index !== -1) {
-        books[index] = { ...books[index], ...bookData }
+      // Mise à jour - utiliser documentId en priorité (Strapi 5)
+      const identifier = props.book.documentId || props.book.id
+
+      const result = await familyStore.updateBook(identifier, {
+        titre: state.title.trim(),
+        auteur: state.author.trim() || null,
+        isbn: state.isbn.trim() || null,
+        annee: state.year || null,
+        description: state.description.trim() || null,
+        image_url: state.coverUrl || null,
+        editeur: props.book.editeur || null,
+        nombre_pages: state.nombrePages || null
+      })
+
+      if (!result.success) {
+        submitError.value = result.error || 'Erreur lors de la mise à jour du livre'
+        return
       }
     } else {
-      // Ajout
-      books.push(bookData)
-    }
+      // Création
+      const bookData = {
+        titre: state.title.trim(),
+        auteur: state.author.trim() || undefined,
+        isbn: state.isbn.trim() || undefined,
+        annee: state.year || undefined,
+        description: state.description.trim() || undefined,
+        image_url: state.coverUrl || undefined,
+        nombre_pages: state.nombrePages || undefined
+      }
 
-    localStorage.setItem('ludolist-books', JSON.stringify(books))
+      // Si membre connecté, passer son id pour marquer le livre comme ajouté par lui
+      const memberId = memberStore.isMemberConnected && memberStore.currentMember
+        ? memberStore.currentMember.id
+        : undefined
+
+      const result = await familyStore.addBookToFamily(bookData, memberId)
+
+      if (!result.success) {
+        submitError.value = result.error || 'Erreur lors de l\'ajout du livre'
+        return
+      }
+    }
 
     resetForm()
     emit('success')

@@ -141,6 +141,7 @@ export interface BookReading {
   date_debut?: string | null;
   date_fin?: string | null;
   note?: number | null;
+  pages_lues?: number | null;
   member: {
     id: number;
     username: string;
@@ -1345,10 +1346,19 @@ export const useFamilyStore = defineStore("family", {
       }
     },
 
-    // Mettre à jour un livre (ex. image). Utiliser documentId (Strapi 5) si dispo, sinon id.
+    // Mettre à jour un livre. Utiliser documentId (Strapi 5) si dispo, sinon id.
     async updateBook(
       bookIdOrDocumentId: number | string,
-      data: { image_url?: string | null }
+      data: {
+        titre?: string;
+        auteur?: string | null;
+        description?: string | null;
+        isbn?: string | null;
+        annee?: number | null;
+        editeur?: string | null;
+        image_url?: string | null;
+        nombre_pages?: number | null;
+      }
     ) {
       const authStore = useAuthStore();
 
@@ -1367,7 +1377,16 @@ export const useFamilyStore = defineStore("family", {
             "Content-Type": "application/json",
           },
           body: {
-            data: { image_url: data.image_url ?? null },
+            data: {
+              titre: data.titre,
+              auteur: data.auteur ?? null,
+              description: data.description ?? null,
+              isbn: data.isbn ?? null,
+              annee: data.annee ?? null,
+              editeur: data.editeur ?? null,
+              image_url: data.image_url ?? null,
+              nombre_pages: data.nombre_pages ?? null,
+            },
           },
         });
 
@@ -1395,6 +1414,7 @@ export const useFamilyStore = defineStore("family", {
         date_debut?: string | null;
         date_fin?: string | null;
         note?: number | null;
+        pages_lues?: number | null;
       },
     ) {
       const authStore = useAuthStore();

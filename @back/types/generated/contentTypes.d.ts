@@ -464,6 +464,13 @@ export interface ApiBookReadingBookReading extends Struct.CollectionTypeSchema {
         },
         number
       >;
+    pages_lues: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 0;
+        },
+        number
+      >;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

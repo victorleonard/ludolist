@@ -103,19 +103,12 @@
                   {{ book.auteur }}
                 </div>
 
-                <!-- Note, statut et durée (membre connecté : sa lecture ; sinon première lecture) -->
+                <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
                 <div
-                  v-if="showMemberReadingTags(book)"
+                  v-if="showMemberReadingTags(book) && getBookStatus(book)"
                   class="flex flex-wrap items-center gap-2"
                 >
-                  <StarRating
-                    :model-value="getBookNoteRaw(book)"
-                    :max="10"
-                    readonly
-                    size="sm"
-                  />
                   <UBadge
-                    v-if="getBookStatus(book)"
                     :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : 'neutral'"
                     variant="subtle"
                     size="xs"
@@ -123,39 +116,62 @@
                   >
                     {{ getBookStatus(book) }}
                   </UBadge>
-                  <UBadge
-                    v-if="getBookDurationLabel(book)"
-                    color="primary"
-                    variant="subtle"
-                    size="xs"
-                    class="text-primary-800 dark:text-primary-200"
-                  >
-                    <UIcon
-                      name="i-ion-time"
-                      class="w-3 h-3 mr-1"
-                    />
-                    {{ getBookDurationLabel(book) }}
-                  </UBadge>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                  <UBadge
-                    v-if="book.annee"
-                    color="neutral"
-                    variant="subtle"
-                    class="text-gray-800 dark:text-gray-200"
+                <!-- Barre de progression (membre connecté) -->
+                <div
+                  v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
+                  class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Ma progression
+                    </span>
+                    <span class="text-sm font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                      {{ Math.round((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100) }}%
+                    </span>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden shadow-inner">
+                    <div
+                      class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full shadow-sm"
+                      :style="{ width: `${Math.min((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100, 100)}%` }"
+                    />
+                  </div>
+                </div>
+
+                <!-- Progressions des autres membres (mode famille) -->
+                <div
+                  v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
+                  class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2.5"
+                >
+                  <div
+                    v-for="reading in getAllBookReadings(book).slice(0, 3)"
+                    :key="(reading as BookReading).id || Math.random()"
                   >
-                    {{ book.annee }}
-                  </UBadge>
-                  <UBadge
-                    v-if="getBookFirstCategory(book)"
-                    color="primary"
-                    variant="outline"
-                    size="xs"
-                    class="text-primary-800 dark:text-primary-200"
-                  >
-                    {{ getBookFirstCategory(book) }}
-                  </UBadge>
+                    <div
+                      v-if="getReadingMember(reading) && readingPagesLues(reading) != null && book.nombre_pages && book.nombre_pages > 0"
+                      class="space-y-1"
+                    >
+                      <div class="flex items-center gap-2 mb-1">
+                        <MemberAvatar
+                          :member="getReadingMember(reading)!"
+                          size="xs"
+                        />
+                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">
+                          {{ getReadingMember(reading)!.username }}
+                        </span>
+                        <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                          {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
+                        </span>
+                      </div>
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden shadow-inner">
+                        <div
+                          class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
+                          :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </UCard>
@@ -199,55 +215,74 @@
                     >
                       {{ book.auteur }}
                     </p>
-                    <!-- Note, statut et durée (membre connecté : sa lecture ; sinon première lecture) -->
+                    <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
                     <div
-                      v-if="showMemberReadingTags(book)"
+                      v-if="showMemberReadingTags(book) && getBookStatus(book)"
                       class="flex flex-wrap items-center gap-2 mb-2"
                     >
-                      <StarRating
-                        :model-value="getBookNoteRaw(book)"
-                        :max="10"
-                        readonly
-                        size="sm"
-                      />
                       <UBadge
-                        v-if="getBookStatus(book)"
                         :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : 'neutral'"
                         variant="subtle"
                         size="xs"
                       >
                         {{ getBookStatus(book) }}
                       </UBadge>
-                      <UBadge
-                        v-if="getBookDurationLabel(book)"
-                        color="primary"
-                        variant="subtle"
-                        size="xs"
-                      >
-                        <UIcon
-                          name="i-ion-time"
-                          class="w-3 h-3 mr-1"
-                        />
-                        {{ getBookDurationLabel(book) }}
-                      </UBadge>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                      <UBadge
-                        v-if="book.annee"
-                        color="neutral"
-                        variant="subtle"
-                        size="xs"
+
+                    <!-- Barre de progression (mobile, membre connecté) -->
+                    <div
+                      v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
+                      class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700"
+                    >
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          Ma progression
+                        </span>
+                        <span class="text-sm font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                          {{ Math.round((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100) }}%
+                        </span>
+                      </div>
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden shadow-inner">
+                        <div
+                          class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
+                          :style="{ width: `${Math.min((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100, 100)}%` }"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Progressions des autres membres (mobile, mode famille) -->
+                    <div
+                      v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
+                      class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-700 space-y-2"
+                    >
+                      <div
+                        v-for="reading in getAllBookReadings(book).slice(0, 2)"
+                        :key="(reading as BookReading).id || Math.random()"
                       >
-                        {{ book.annee }}
-                      </UBadge>
-                      <UBadge
-                        v-if="getBookFirstCategory(book)"
-                        color="primary"
-                        variant="outline"
-                        size="xs"
-                      >
-                        {{ getBookFirstCategory(book) }}
-                      </UBadge>
+                        <div
+                          v-if="getReadingMember(reading) && readingPagesLues(reading) != null && book.nombre_pages && book.nombre_pages > 0"
+                          class="space-y-1"
+                        >
+                          <div class="flex items-center gap-2 mb-1">
+                            <MemberAvatar
+                              :member="getReadingMember(reading)!"
+                              size="xs"
+                            />
+                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">
+                              {{ getReadingMember(reading)!.username }}
+                            </span>
+                            <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                              {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
+                            </span>
+                          </div>
+                          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden shadow-inner">
+                            <div
+                              class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
+                              :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -264,9 +299,10 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores/family'
-import { useMemberStore } from '~/stores/member'
+import { useMemberStore, type MemberLike } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import StarRating from '~/components/StarRating.vue'
+import MemberAvatar from '~/components/MemberAvatar.vue'
 
 definePageMeta({
   layout: 'default',
@@ -284,18 +320,22 @@ const books = computed(() => {
   if (!memberStore.isMemberConnected || !memberStore.currentMember) return allBooks
   const memberId = memberStore.currentMember.id
   return allBooks.filter(
-    (book) =>
-      book.added_by != null &&
-      (Number(book.added_by.id) === Number(memberId) || book.added_by.id === memberId)
+    book =>
+      book.added_by != null
+      && (Number(book.added_by.id) === Number(memberId) || book.added_by.id === memberId)
   )
 })
 
 /** Map book id / documentId -> lecture du membre connecté (rempli par fetch). */
 const memberReadingsMap = ref<Map<string, BookReading | Record<string, unknown>>>(new Map())
 
+/** Map book id / documentId -> lectures de tous les membres (mode famille). */
+const allMembersReadingsMap = ref<Map<string, Array<BookReading | Record<string, unknown>>>>(new Map())
+
 async function loadMemberReadings() {
   if (!memberStore.isMemberConnected || !memberStore.currentMember) {
     memberReadingsMap.value = new Map()
+    await loadAllMembersReadings()
     return
   }
   const memberId = memberStore.currentMember.id
@@ -311,6 +351,44 @@ async function loadMemberReadings() {
     if (docId) map.set(docId, r)
   }
   memberReadingsMap.value = map
+}
+
+async function loadAllMembersReadings() {
+  if (memberStore.isMemberConnected) {
+    allMembersReadingsMap.value = new Map()
+    return
+  }
+  const members = familyStore.familyMembers
+  if (!members || members.length === 0) {
+    allMembersReadingsMap.value = new Map()
+    return
+  }
+
+  const allReadingsMap = new Map<string, Array<BookReading | Record<string, unknown>>>()
+
+  for (const member of members) {
+    const result = await familyStore.fetchMemberBookReadings(member.id)
+    const list = result.success && Array.isArray(result.data) ? result.data : []
+
+    for (const r of list) {
+      const book = (r as BookReading).book ?? (r as { attributes?: { book?: unknown } }).attributes?.book
+      if (!book) continue
+      const bookId = typeof book === 'object' && book !== null && 'id' in book ? String((book as { id: number }).id) : null
+      const docId = typeof book === 'object' && book !== null && 'documentId' in book ? (book as { documentId: string }).documentId : null
+
+      if (bookId) {
+        const existing = allReadingsMap.get(bookId) || []
+        existing.push(r)
+        allReadingsMap.set(bookId, existing)
+      }
+      if (docId) {
+        const existing = allReadingsMap.get(docId) || []
+        existing.push(r)
+        allReadingsMap.set(docId, existing)
+      }
+    }
+  }
+  allMembersReadingsMap.value = allReadingsMap
 }
 
 /** Lecture à afficher pour un livre : priorité aux lectures du membre chargées, sinon book_readings. */
@@ -408,6 +486,66 @@ function getBookFirstCategory(book: TransformedBook): string | null {
   return typeof first === 'string' ? first : null
 }
 
+/** Extrait pages_lues d'une lecture (gère les structures Strapi). */
+function readingPagesLues(reading: BookReading | Record<string, unknown> | null): number | null {
+  if (!reading || typeof reading !== 'object') return null
+  const r = reading as Record<string, unknown>
+  const pagesLues = r.pages_lues ?? (r.attributes as Record<string, unknown> | undefined)?.pages_lues
+  if (typeof pagesLues === 'number') return pagesLues
+  if (pagesLues != null) return Number(pagesLues)
+  return null
+}
+
+/** Récupère toutes les lectures d'un livre pour tous les membres (mode famille). */
+function getAllBookReadings(book: TransformedBook): Array<BookReading | Record<string, unknown>> {
+  if (!memberStore.isMemberConnected) {
+    const bookId = String(book.id)
+    const docId = book.documentId || ''
+    const fromMap = allMembersReadingsMap.value.get(bookId) || allMembersReadingsMap.value.get(docId) || []
+    if (fromMap.length === 0) {
+      return Array.isArray(book.book_readings) ? book.book_readings : []
+    }
+    return fromMap
+  }
+  return []
+}
+
+/** Récupère le membre associé à une lecture (gère les structures Strapi). */
+function getReadingMember(reading: BookReading | Record<string, unknown>): MemberLike | null {
+  if (!reading || typeof reading !== 'object') return null
+  const r = reading as Record<string, unknown>
+
+  let member = (r as BookReading).member
+  if (!member && r.attributes && typeof r.attributes === 'object') {
+    const attrs = r.attributes as Record<string, unknown>
+    if (attrs.member && typeof attrs.member === 'object') {
+      member = attrs.member as MemberLike
+    }
+  }
+
+  if (!member || typeof member !== 'object') return null
+
+  if (member.data && typeof member.data === 'object') {
+    const data = member.data as Record<string, unknown>
+    const id = data.id as number
+    const attrs = data.attributes as Record<string, unknown>
+    if (attrs && typeof attrs === 'object') {
+      return {
+        id,
+        username: attrs.username as string,
+        icon: attrs.icon as string | undefined,
+        avatar_url: attrs.avatar_url as string | undefined
+      }
+    }
+  }
+
+  if ('id' in member && 'username' in member) {
+    return member as MemberLike
+  }
+
+  return null
+}
+
 onMounted(async () => {
   await familyStore.fetchFamily()
   await loadMemberReadings()
@@ -416,4 +554,10 @@ onMounted(async () => {
 watch(() => [memberStore.isMemberConnected, memberStore.currentMember?.id], () => {
   loadMemberReadings()
 })
+
+watch(() => familyStore.familyMembers, () => {
+  if (!memberStore.isMemberConnected) {
+    loadAllMembersReadings()
+  }
+}, { deep: true })
 </script>

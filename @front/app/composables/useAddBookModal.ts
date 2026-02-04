@@ -2,6 +2,7 @@ import { computed } from 'vue'
 
 export interface Book {
   id: number
+  documentId?: string
   titre: string
   auteur?: string
   description?: string
@@ -9,6 +10,7 @@ export interface Book {
   image?: string
   annee?: number
   editeur?: string
+  nombre_pages?: number
 }
 
 export const useAddBookModal = () => {

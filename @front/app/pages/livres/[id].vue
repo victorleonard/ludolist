@@ -348,6 +348,44 @@
                           <span class="font-medium">Note :</span>
                           <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ readingNote(reading) }}/10</span>
                         </div>
+                        <div
+                          v-if="readingPagesLues(reading) != null"
+                          class="flex items-center gap-1"
+                        >
+                          <UIcon
+                            name="i-ion-document-text"
+                            class="w-4 h-4"
+                          />
+                          <span class="font-medium">Pages lues :</span>
+                          <span class="font-bold">{{ readingPagesLues(reading) }}</span>
+                          <span
+                            v-if="book?.nombre_pages"
+                            class="text-gray-500"
+                          >
+                            / {{ book.nombre_pages }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Barre de progression des pages lues -->
+                      <div
+                        v-if="readingPagesLues(reading) != null && book?.nombre_pages && book.nombre_pages > 0"
+                        class="mt-3"
+                      >
+                        <div class="flex items-center justify-between mb-1">
+                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            Progression
+                          </span>
+                          <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
+                            {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
+                          </span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                          <div
+                            class="h-full bg-primary-500 dark:bg-primary-400 transition-all duration-300 rounded-full"
+                            :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
+                          />
+                        </div>
                       </div>
 
                       <!-- Statut de lecture et durée -->
@@ -562,6 +600,8 @@ const bookIdentifier = computed(() => route.params.id as string)
 
 const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
+const addBookModal = useAddBookModal()
+const openEditBookModal = addBookModal.openModal
 
 const book = ref<TransformedBook | null>(null)
 const readings = ref<BookReading[]>([])
@@ -577,7 +617,8 @@ const readingsList = computed(() => {
         book: att.book ?? r.book,
         date_debut: att.date_debut ?? r.date_debut,
         date_fin: att.date_fin ?? r.date_fin,
-        note: att.note ?? r.note
+        note: att.note ?? r.note,
+        pages_lues: att.pages_lues ?? r.pages_lues
       }
     }
     return r
@@ -1034,6 +1075,18 @@ function readingNote(reading: Record<string, unknown>): number | null {
   return null
 }
 
+function readingPagesLues(reading: Record<string, unknown>): number | null {
+  const v = reading?.pages_lues
+  if (typeof v === 'number') return v
+  if (v !== undefined && v !== null && typeof Number(v) === 'number' && !Number.isNaN(Number(v))) return Number(v)
+  if (reading?.attributes && typeof reading.attributes === 'object' && 'pages_lues' in (reading.attributes as object)) {
+    const n = (reading.attributes as { pages_lues?: unknown }).pages_lues
+    if (typeof n === 'number') return n
+    if (n != null) return Number(n)
+  }
+  return null
+}
+
 /** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */
 function readingDurationDays(reading: Record<string, unknown>): number | null {
   const debut = readingDate(reading, 'date_debut')
@@ -1089,13 +1142,15 @@ const handleEditBook = () => {
   if (book.value) {
     openEditBookModal({
       id: book.value.id,
+      documentId: book.value.documentId,
       titre: book.value.titre,
-      auteur: book.value.auteur,
-      description: book.value.description,
-      isbn: book.value.isbn,
+      auteur: book.value.auteur || undefined,
+      description: book.value.description || undefined,
+      isbn: book.value.isbn || undefined,
       image: book.value.image || undefined,
-      annee: book.value.annee,
-      editeur: book.value.editeur
+      annee: book.value.annee || undefined,
+      editeur: book.value.editeur || undefined,
+      nombre_pages: book.value.nombre_pages || undefined
     })
   }
 }
