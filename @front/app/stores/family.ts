@@ -131,6 +131,7 @@ interface StrapiBook {
   open_library_key?: string | null;
   book_readings?: BookReading[];
   added_by?: { id: number; username?: string } | null;
+  owner?: { id: number; username?: string } | null;
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -166,6 +167,8 @@ export interface TransformedBook {
   sujets?: any;
   open_library_key?: string | null;
   book_readings?: BookReading[];
+  added_by?: { id: number; username?: string } | null;
+  owner?: { id: number; username?: string } | null;
   createdAt: string;
 }
 
@@ -393,6 +396,7 @@ export const useFamilyStore = defineStore("family", {
             open_library_key: strapiBook.open_library_key || null,
             book_readings: strapiBook.book_readings || [],
             added_by: strapiBook.added_by || null,
+            owner: strapiBook.owner || null,
             createdAt: strapiBook.createdAt || new Date().toISOString(),
           });
         } catch (err) {
@@ -1402,6 +1406,51 @@ export const useFamilyStore = defineStore("family", {
           err?.data?.error?.message ||
           err?.message ||
           "Erreur lors de la mise à jour du livre";
+        return { success: false, error: errorMessage };
+      }
+    },
+
+    // Changer le propriétaire d'un livre
+    async changeBookOwner(
+      bookIdOrDocumentId: number | string,
+      newOwnerId: number
+    ) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        await $fetch(
+          `${config.public.apiUrl}/api/books/change-owner`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+              "Content-Type": "application/json",
+            },
+            body: {
+              bookId: bookIdOrDocumentId,
+              ownerId: newOwnerId,
+            },
+          }
+        );
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors du changement de propriétaire:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors du changement de propriétaire";
         return { success: false, error: errorMessage };
       }
     },

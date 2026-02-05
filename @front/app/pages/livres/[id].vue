@@ -207,6 +207,30 @@
                     <span class="font-medium">Nombre de pages :</span>
                     <span>{{ book.nombre_pages }}</span>
                   </div>
+
+                  <!-- Propriétaire -->
+                  <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <UIcon
+                      name="i-ion-person-circle"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Propriétaire :</span>
+                    <span v-if="book.owner">{{ book.owner.username }}</span>
+                    <span
+                      v-else
+                      class="text-gray-400 italic"
+                    >Non défini</span>
+                    <UButton
+                      v-if="!memberStore.isMemberConnected"
+                      color="primary"
+                      variant="ghost"
+                      size="xs"
+                      icon="i-ion-swap-horizontal"
+                      @click="openChangeOwnerModal"
+                    >
+                      Changer
+                    </UButton>
+                  </div>
                 </div>
 
                 <!-- Description -->
@@ -468,6 +492,84 @@
       @success="handleReadingSuccess"
     />
 
+    <!-- Modal pour changer le propriétaire -->
+    <UModal
+      :open="isChangeOwnerModalOpen"
+      :ui="{ width: 'max-w-md' }"
+      @update:open="(value) => { isChangeOwnerModalOpen = value }"
+    >
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">
+                Changer le propriétaire
+              </h3>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-ion-close"
+                size="sm"
+                @click="isChangeOwnerModalOpen = false"
+              />
+            </div>
+          </template>
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Sélectionnez le nouveau propriétaire de ce livre :
+            </p>
+            
+            <div class="space-y-2">
+              <button
+                v-for="member in familyStore.familyMembers"
+                :key="member.id"
+                type="button"
+                class="w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                :class="selectedNewOwnerId === member.id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700'"
+                @click="selectedNewOwnerId = member.id"
+              >
+                <MemberAvatar
+                  :member="member"
+                  size="sm"
+                />
+                <span class="font-medium">{{ member.username }}</span>
+                <UIcon
+                  v-if="selectedNewOwnerId === member.id"
+                  name="i-ion-checkmark-circle"
+                  class="w-5 h-5 text-primary-500 ml-auto"
+                />
+              </button>
+            </div>
+
+            <p
+              v-if="changeOwnerError"
+              class="text-sm text-red-600 dark:text-red-400"
+            >
+              {{ changeOwnerError }}
+            </p>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="isChangeOwnerModalOpen = false"
+              >
+                Annuler
+              </UButton>
+              <UButton
+                color="primary"
+                :loading="changingOwner"
+                :disabled="!selectedNewOwnerId || selectedNewOwnerId === book?.owner?.id"
+                @click="changeOwner"
+              >
+                Changer le propriétaire
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+      </template>
+    </UModal>
+
     <!-- Modal propositions de couverture -->
     <UModal
       :open="isCoverModalOpen"
@@ -589,6 +691,7 @@ import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores
 import { useMemberStore } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import BookReadingModal from '~/components/BookReadingModal.vue'
+import MemberAvatar from '~/components/MemberAvatar.vue'
 
 definePageMeta({
   layout: 'default',
@@ -636,12 +739,48 @@ const loadingCovers = ref(false)
 const coverModalError = ref<string | null>(null)
 const coverSaving = ref(false)
 
+const isChangeOwnerModalOpen = ref(false)
+const selectedNewOwnerId = ref<number | null>(null)
+const changingOwner = ref(false)
+const changeOwnerError = ref<string | null>(null)
+
 function openCoverModal() {
   selectedCoverUrl.value = book.value?.image ?? ''
   coverModalError.value = null
   coverSuggestions.value = []
   isCoverModalOpen.value = true
   loadCoverSuggestions()
+}
+
+function openChangeOwnerModal() {
+  selectedNewOwnerId.value = book.value?.owner?.id || null
+  changeOwnerError.value = null
+  isChangeOwnerModalOpen.value = true
+}
+
+async function changeOwner() {
+  if (!book.value || !selectedNewOwnerId.value) return
+  
+  changingOwner.value = true
+  changeOwnerError.value = null
+  
+  try {
+    const result = await familyStore.changeBookOwner(
+      book.value.documentId || book.value.id,
+      selectedNewOwnerId.value
+    )
+    
+    if (result.success) {
+      isChangeOwnerModalOpen.value = false
+      await loadBook()
+    } else {
+      changeOwnerError.value = result.error || 'Erreur lors du changement de propriétaire'
+    }
+  } catch (err) {
+    changeOwnerError.value = err instanceof Error ? err.message : 'Erreur lors du changement de propriétaire'
+  } finally {
+    changingOwner.value = false
+  }
 }
 
 function openLibraryCoverUrl(isbn: string | number | null | undefined): string {

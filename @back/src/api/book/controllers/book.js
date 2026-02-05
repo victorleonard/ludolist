@@ -118,6 +118,8 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
         open_library_key: keyTrimmed || null,
         publishedAt: new Date().toISOString(),
         ...(addedByMemberId != null && { added_by: addedByMemberId }),
+        // Le propriétaire initial est la personne qui ajoute le livre
+        ...(addedByMemberId != null && { owner: addedByMemberId }),
       };
 
       const createdBook = await strapi.entityService.create("api::book.book", {
@@ -179,6 +181,91 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
     } catch (error) {
       strapi.log.error("Erreur lors de l'ajout du livre:", error);
       return ctx.internalServerError("Erreur lors de l'ajout du livre");
+    }
+  },
+
+  /**
+   * Changer le propriétaire d'un livre
+   */
+  async changeOwner(ctx) {
+    try {
+      const user = ctx.state.user;
+      if (!user) {
+        return ctx.unauthorized("Vous devez être connecté");
+      }
+
+      const { bookId, ownerId } = ctx.request.body;
+
+      if (!bookId || !ownerId) {
+        return ctx.badRequest("bookId et ownerId sont requis");
+      }
+
+      // Récupérer la famille de l'utilisateur
+      const family = await strapi.entityService.findMany("api::family.family", {
+        filters: {
+          users_permissions_user: {
+            id: user.id,
+          },
+        },
+        populate: {
+          members: true,
+          books: true,
+        },
+        limit: 1,
+      });
+
+      if (!family || family.length === 0) {
+        return ctx.notFound("Famille non trouvée");
+      }
+
+      const userFamily = family[0];
+
+      // Vérifier que le membre appartient à la famille
+      const memberExists = userFamily.members?.some(
+        (m) => m.id === ownerId || m.id === Number(ownerId)
+      );
+      if (!memberExists) {
+        return ctx.badRequest("Ce membre n'appartient pas à votre famille");
+      }
+
+      // Vérifier que le livre appartient à la famille
+      const bookIdentifier = String(bookId);
+      const bookBelongsToFamily = userFamily.books?.some(
+        (b) => String(b.id) === bookIdentifier || b.documentId === bookIdentifier
+      );
+      if (!bookBelongsToFamily) {
+        return ctx.badRequest("Ce livre n'appartient pas à votre famille");
+      }
+
+      // Trouver le livre par id ou documentId
+      let book;
+      if (typeof bookId === "number" || !isNaN(Number(bookId))) {
+        book = await strapi.entityService.findOne("api::book.book", Number(bookId));
+      } else {
+        const books = await strapi.entityService.findMany("api::book.book", {
+          filters: { documentId: bookId },
+          limit: 1,
+        });
+        book = books?.[0];
+      }
+
+      if (!book) {
+        return ctx.notFound("Livre non trouvé");
+      }
+
+      // Mettre à jour le propriétaire
+      await strapi.entityService.update("api::book.book", book.id, {
+        data: {
+          owner: Number(ownerId),
+        },
+      });
+
+      return ctx.send({
+        message: "Propriétaire changé avec succès",
+      });
+    } catch (error) {
+      strapi.log.error("Erreur lors du changement de propriétaire:", error);
+      return ctx.internalServerError("Erreur lors du changement de propriétaire");
     }
   },
 }));

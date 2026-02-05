@@ -51,6 +51,7 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
                   populate: {
                     image: true,
                     added_by: true,
+                    owner: true,
                     book_readings: {
                       populate: {
                         member: true

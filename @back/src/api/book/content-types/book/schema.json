@@ -70,6 +70,12 @@
       "target": "api::member.member",
       "inversedBy": "books_added",
       "description": "Membre qui a ajouté ce livre à la collection"
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member",
+      "description": "Propriétaire actuel du livre (peut être modifié)"
     }
   }
 }

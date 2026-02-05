@@ -510,6 +510,7 @@ export interface ApiBookBook extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     nombre_pages: Schema.Attribute.Integer;
     open_library_key: Schema.Attribute.String;
+    owner: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     publishedAt: Schema.Attribute.DateTime;
     sujets: Schema.Attribute.JSON;
     titre: Schema.Attribute.String & Schema.Attribute.Required;

@@ -15,5 +15,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'POST',
+      path: '/books/change-owner',
+      handler: 'book.changeOwner',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
