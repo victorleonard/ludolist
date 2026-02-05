@@ -81,9 +81,9 @@
           <div class="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             <UCard
               v-for="jeu in jeuxFiltres"
-              :key="jeu.id"
+              :key="jeu.documentId || jeu.id"
               class="cursor-pointer hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-800"
-              @click="navigateTo(`/game/${jeu.id}`)"
+              @click="navigateTo(`/game/${jeu.documentId || jeu.id}`)"
             >
               <template #header>
                 <div class="flex items-start justify-between gap-2">
@@ -131,8 +131,16 @@
                     readonly
                   />
                 </div>
+                <!-- Propriétaire -->
+                <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <UIcon
+                    :name="jeu.owner ? 'i-ion-person-circle' : 'i-ion-people'"
+                    class="w-3 h-3"
+                  />
+                  <span>{{ jeu.owner ? jeu.owner.username : 'Famille' }}</span>
+                </div>
                 <div
-                  v-if="topWinners[jeu.id] && topWinners[jeu.id]?.member"
+                  v-if="topWinners[jeu.documentId || jeu.id] && topWinners[jeu.documentId || jeu.id]?.member"
                   class="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg"
                 >
                   <UIcon
@@ -140,7 +148,7 @@
                     class="w-4 h-4 text-yellow-500"
                   />
                   <span class="text-sm font-bold text-yellow-600 dark:text-yellow-400">
-                    {{ topWinners[jeu.id]?.member?.username }} ({{ topWinners[jeu.id]?.wins }} {{ (topWinners[jeu.id]?.wins || 0) > 1 ? 'victoires' : 'victoire' }})
+                    {{ topWinners[jeu.documentId || jeu.id]?.member?.username }} ({{ topWinners[jeu.documentId || jeu.id]?.wins }} {{ (topWinners[jeu.documentId || jeu.id]?.wins || 0) > 1 ? 'victoires' : 'victoire' }})
                   </span>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -169,10 +177,10 @@
           <UPageList class="md:hidden space-y-4">
             <UPageCard
               v-for="jeu in jeuxFiltres"
-              :key="jeu.id"
+              :key="jeu.documentId || jeu.id"
               variant="ghost"
               class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer"
-              @click="navigateTo(`/game/${jeu.id}`)"
+              @click="navigateTo(`/game/${jeu.documentId || jeu.id}`)"
             >
               <template #body>
                 <div class="flex items-start gap-4 w-full">
@@ -199,6 +207,14 @@
                         {{ jeu.titre }}
                       </h3>
                     </div>
+                  <!-- Propriétaire -->
+                  <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-1">
+                    <UIcon
+                      :name="jeu.owner ? 'i-ion-person-circle' : 'i-ion-people'"
+                      class="w-3 h-3"
+                    />
+                    <span>{{ jeu.owner ? jeu.owner.username : 'Famille' }}</span>
+                  </p>
                     <div
                       v-if="getAverageRating(jeu) > 0"
                       class="flex items-center gap-2 mb-2"
@@ -209,7 +225,7 @@
                       />
                     </div>
                     <div
-                      v-if="topWinners[jeu.id] && topWinners[jeu.id]?.member"
+                      v-if="topWinners[jeu.documentId || jeu.id] && topWinners[jeu.documentId || jeu.id]?.member"
                       class="flex items-center gap-1 mb-2"
                     >
                       <UIcon
@@ -217,7 +233,7 @@
                         class="w-3 h-3 text-yellow-500"
                       />
                       <span class="text-xs font-bold text-yellow-600 dark:text-yellow-400">
-                        {{ topWinners[jeu.id]?.member?.username }} ({{ topWinners[jeu.id]?.wins }})
+                        {{ topWinners[jeu.documentId || jeu.id]?.member?.username }} ({{ topWinners[jeu.documentId || jeu.id]?.wins }})
                       </span>
                     </div>
                     <div class="flex flex-wrap gap-2 mt-3">
@@ -379,9 +395,13 @@ const loadTopWinners = async () => {
   if (!games.value || games.value.length === 0) return
 
   const promises = games.value.map(async (jeu) => {
-    const result = await familyStore.getTopWinner(jeu.id)
+    // Utiliser l'id numérique pour l'API
+    const gameId = jeu.id
+    const result = await familyStore.getTopWinner(gameId)
     if (result.success && result.data) {
-      topWinners.value[jeu.id] = result.data
+      // Utiliser documentId comme clé si disponible, sinon id
+      const key = jeu.documentId || jeu.id
+      topWinners.value[key] = result.data
     }
   })
 

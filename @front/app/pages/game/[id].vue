@@ -211,6 +211,32 @@
                       </div>
                     </UBadge>
                   </div>
+
+                  <!-- Propriétaire -->
+                  <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                    <UIcon
+                      name="i-ion-person-circle"
+                      class="w-4 h-4 text-gray-500"
+                    />
+                    <span class="font-medium">Propriétaire :</span>
+                    <span v-if="jeu?.owner">{{ jeu.owner.username }}</span>
+                    <span
+                      v-else
+                      class="text-gray-400 italic"
+                    >
+                      Non défini
+                    </span>
+                    <UButton
+                      v-if="!memberStore.isMemberConnected"
+                      color="primary"
+                      variant="ghost"
+                      size="xs"
+                      icon="i-ion-swap-horizontal"
+                      @click="openChangeOwnerModal"
+                    >
+                      Changer
+                    </UButton>
+                  </div>
                 </div>
 
                 <!-- Bouton Modifier en bas -->
@@ -389,13 +415,115 @@
       :game="jeu"
       @success="handleGameUpdated"
     />
+
+    <!-- Modal pour changer le propriétaire -->
+    <UModal
+      :open="isChangeOwnerModalOpen"
+      :ui="{ width: 'max-w-md' }"
+      @update:open="(value) => { isChangeOwnerModalOpen = value }"
+    >
+      <template #content>
+        <UCard>
+          <template #header>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold">
+                Changer le propriétaire
+              </h3>
+              <UButton
+                variant="ghost"
+                color="neutral"
+                icon="i-ion-close"
+                size="sm"
+                @click="isChangeOwnerModalOpen = false"
+              />
+            </div>
+          </template>
+          <div class="space-y-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Sélectionnez le nouveau propriétaire de ce jeu :
+            </p>
+            
+            <div class="space-y-2">
+              <!-- Option Famille (pas de propriétaire) -->
+              <button
+                type="button"
+                class="w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                :class="selectedNewOwnerId === null ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700'"
+                @click="selectedNewOwnerId = null"
+              >
+                <div class="rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 w-10 h-10 shrink-0">
+                  <UIcon
+                    name="i-ion-people"
+                    class="w-5 h-5 text-gray-600 dark:text-gray-300"
+                  />
+                </div>
+                <span class="font-medium">Famille</span>
+                <UIcon
+                  v-if="selectedNewOwnerId === null"
+                  name="i-ion-checkmark-circle"
+                  class="w-5 h-5 text-primary-500 ml-auto"
+                />
+              </button>
+              
+              <!-- Membres individuels -->
+              <button
+                v-for="member in familyStore.familyMembers"
+                :key="member.id"
+                type="button"
+                class="w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                :class="selectedNewOwnerId === member.id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700'"
+                @click="selectedNewOwnerId = member.id"
+              >
+                <MemberAvatar
+                  :member="member"
+                  size="sm"
+                />
+                <span class="font-medium">{{ member.username }}</span>
+                <UIcon
+                  v-if="selectedNewOwnerId === member.id"
+                  name="i-ion-checkmark-circle"
+                  class="w-5 h-5 text-primary-500 ml-auto"
+                />
+              </button>
+            </div>
+
+            <p
+              v-if="changeOwnerError"
+              class="text-sm text-red-600 dark:text-red-400"
+            >
+              {{ changeOwnerError }}
+            </p>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                @click="isChangeOwnerModalOpen = false"
+              >
+                Annuler
+              </UButton>
+              <UButton
+                color="primary"
+                :loading="changingOwner"
+                :disabled="selectedNewOwnerId === jeu?.owner?.id || (selectedNewOwnerId === null && !jeu?.owner)"
+                @click="changeOwner"
+              >
+                Changer le propriétaire
+              </UButton>
+            </div>
+          </div>
+        </UCard>
+      </template>
+    </UModal>
   </UContainer>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useFamilyStore, type Rating } from '~/stores/family'
+import { useMemberStore } from '~/stores/member'
 import GameSessions from '~/components/GameSessions.vue'
+import MemberAvatar from '~/components/MemberAvatar.vue'
 
 definePageMeta({
   layout: 'default',
@@ -404,6 +532,7 @@ definePageMeta({
 
 const route = useRoute()
 const familyStore = useFamilyStore()
+const memberStore = useMemberStore()
 
 const isModalOpen = ref(false)
 const loading = ref(true)
@@ -411,16 +540,29 @@ const error = ref<string | null>(null)
 const top3Winners = ref<Array<{ member: { id: number, username: string }, wins: number }>>([])
 const activeTab = ref<'detail' | 'notes' | 'parties' | 'podium'>('detail')
 
-// Récupérer l'ID depuis la route
-const gameId = computed(() => {
+// Récupérer l'identifiant depuis la route (peut être documentId ou id)
+const gameIdentifier = computed(() => {
   const id = route.params.id
-  return typeof id === 'string' ? parseInt(id, 10) : null
+  return typeof id === 'string' ? id : null
 })
 
-// Trouver le jeu dans le store
+// Trouver le jeu dans le store par documentId en priorité, sinon par id
 const jeu = computed(() => {
-  if (!gameId.value) return null
-  return familyStore.transformedGames.find(g => g.id === gameId.value)
+  if (!gameIdentifier.value) return null
+  // Chercher d'abord par documentId (string)
+  const gameByDocumentId = familyStore.transformedGames.find(g => g.documentId === gameIdentifier.value)
+  if (gameByDocumentId) return gameByDocumentId
+  // Fallback sur id numérique si documentId ne correspond pas
+  const numericId = parseInt(gameIdentifier.value, 10)
+  if (!isNaN(numericId)) {
+    return familyStore.transformedGames.find(g => g.id === numericId)
+  }
+  return null
+})
+
+// Récupérer l'id numérique du jeu pour les appels API (fallback sur documentId si pas d'id)
+const gameId = computed(() => {
+  return jeu.value?.id || null
 })
 
 // Récupérer les membres de la famille
@@ -458,8 +600,8 @@ onMounted(async () => {
 })
 
 // Recharger les top 3 gagnants quand le jeu change
-watch(gameId, () => {
-  if (gameId.value) {
+watch(jeu, () => {
+  if (jeu.value && gameId.value) {
     loadTop3Winners()
   }
 })
@@ -510,4 +652,58 @@ const averageRating = computed(() => {
   const sum = ratings.reduce((acc: number, r: Rating) => acc + r.rating, 0)
   return sum / ratings.length
 })
+
+// Changement de propriétaire
+const isChangeOwnerModalOpen = ref(false)
+const selectedNewOwnerId = ref<number | null>(null)
+const changingOwner = ref(false)
+const changeOwnerError = ref<string | null>(null)
+
+const openChangeOwnerModal = () => {
+  selectedNewOwnerId.value = jeu.value?.owner?.id || null
+  changeOwnerError.value = null
+  isChangeOwnerModalOpen.value = true
+}
+
+const changeOwner = async () => {
+  if (!jeu.value) return
+
+  changingOwner.value = true
+  changeOwnerError.value = null
+
+  try {
+    // Utiliser documentId en priorité pour les jeux
+    const gameIdentifier = jeu.value.documentId || jeu.value.id
+    if (!gameIdentifier) {
+      changeOwnerError.value = 'Impossible de déterminer l\'identifiant du jeu'
+      return
+    }
+    const result = await familyStore.changeGameOwner(
+      gameIdentifier,
+      selectedNewOwnerId.value
+    )
+
+    if (result.success) {
+      // Recharger la famille pour mettre à jour le jeu avec le nouveau propriétaire
+      await familyStore.fetchFamily()
+      // Attendre un tick pour que le computed se mette à jour
+      await nextTick()
+      // Vérifier que le jeu a bien été mis à jour
+      if (jeu.value) {
+        // Le jeu a été mis à jour, fermer le modal
+        isChangeOwnerModalOpen.value = false
+        selectedNewOwnerId.value = null
+      } else {
+        // Le jeu n'a pas été trouvé après le rechargement
+        changeOwnerError.value = 'Le jeu n\'a pas pu être rechargé. Veuillez rafraîchir la page.'
+      }
+    } else {
+      changeOwnerError.value = result.error || 'Erreur lors du changement de propriétaire'
+    }
+  } catch (err) {
+    changeOwnerError.value = err instanceof Error ? err.message : 'Erreur lors du changement de propriétaire'
+  } finally {
+    changingOwner.value = false
+  }
+}
 </script>

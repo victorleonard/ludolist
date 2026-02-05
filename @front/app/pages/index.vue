@@ -49,7 +49,7 @@
                 :key="session.id"
                 type="button"
                 class="group relative shrink-0 w-[min(200px,48vw)] sm:w-[220px] aspect-square rounded-2xl overflow-hidden bg-gray-200 dark:bg-gray-700 snap-start cursor-pointer hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 shadow-md hover:shadow-xl"
-                @click="navigateTo(`/game/${session.game.id}`)"
+                @click="navigateTo(`/game/${session.game.documentId || session.game.id}`)"
               >
                 <!-- Fond : image du jeu -->
                 <img

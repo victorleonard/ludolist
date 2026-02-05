@@ -65,6 +65,12 @@
       "relation": "oneToMany",
       "target": "api::game-session.game-session",
       "mappedBy": "game"
+    },
+    "owner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member",
+      "description": "Propriétaire actuel du jeu (peut être modifié)"
     }
   }
 }

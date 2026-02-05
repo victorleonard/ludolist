@@ -35,5 +35,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'POST',
+      path: '/games/change-owner',
+      handler: 'game.changeOwner',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

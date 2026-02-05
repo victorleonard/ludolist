@@ -49,6 +49,7 @@ export interface GameSession {
   notes: string | null;
   game: {
     id: number;
+    documentId?: string;
     name: string;
     image?: StrapiImage | null;
   };
@@ -82,6 +83,7 @@ interface StrapiGame {
   image?: StrapiImage | null;
   image_url?: string | null;
   ratings?: Rating[];
+  owner?: { id: number; username?: string } | null;
   publishedAt?: string;
   createdAt: string;
   updatedAt?: string;
@@ -102,6 +104,7 @@ export interface TransformedGame {
   player_min: number;
   player_max: number;
   ratings?: Rating[];
+  owner?: { id: number; username?: string } | null;
   createdAt: string;
 }
 
@@ -319,6 +322,7 @@ export const useFamilyStore = defineStore("family", {
             player_min: strapiGame.player_min,
             player_max: playerMax,
             ratings: strapiGame.ratings || [],
+            owner: strapiGame.owner || null,
             createdAt: strapiGame.createdAt || new Date().toISOString(),
           });
         } catch (err) {
@@ -1451,6 +1455,50 @@ export const useFamilyStore = defineStore("family", {
           err?.data?.error?.message ||
           err?.message ||
           "Erreur lors du changement de propriétaire";
+        return { success: false, error: errorMessage };
+      }
+    },
+
+    async changeGameOwner(
+      gameIdOrDocumentId: number | string,
+      newOwnerId: number | null,
+    ) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        await $fetch(
+          `${config.public.apiUrl}/api/games/change-owner`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+              "Content-Type": "application/json",
+            },
+            body: {
+              gameId: gameIdOrDocumentId,
+              ownerId: newOwnerId, // null pour "Famille" ou un ID de membre
+            },
+          },
+        );
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors du changement de propriétaire (jeu):", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors du changement de propriétaire du jeu";
         return { success: false, error: errorMessage };
       }
     },

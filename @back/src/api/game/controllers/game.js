@@ -339,4 +339,102 @@ module.exports = createCoreController('api::game.game', ({ strapi }) => ({
       ctx.throw(500, `Erreur lors de l'ajout du jeu: ${err.message}`);
     }
   },
+
+  /**
+   * Changer le propriétaire d'un jeu
+   */
+  async changeOwner(ctx) {
+    try {
+      const user = ctx.state.user;
+      if (!user) {
+        return ctx.unauthorized("Vous devez être connecté");
+      }
+
+      const { gameId, ownerId } = ctx.request.body;
+
+      if (!gameId) {
+        return ctx.badRequest("gameId est requis");
+      }
+
+      // ownerId peut être null (pour "Famille") ou un nombre (pour un membre spécifique)
+      // Si ownerId est undefined, c'est une erreur
+      if (ownerId === undefined) {
+        return ctx.badRequest("ownerId doit être fourni (null pour 'Famille' ou un ID de membre)");
+      }
+
+      // Récupérer la famille de l'utilisateur
+      const family = await strapi.entityService.findMany("api::family.family", {
+        filters: {
+          users_permissions_user: {
+            id: user.id,
+          },
+        },
+        populate: {
+          members: true,
+          games: true,
+        },
+        limit: 1,
+      });
+
+      if (!family || family.length === 0) {
+        return ctx.notFound("Famille non trouvée");
+      }
+
+      const userFamily = family[0];
+
+      // Si ownerId n'est pas null, vérifier que le membre appartient à la famille
+      if (ownerId !== null) {
+        const memberExists = userFamily.members?.some(
+          (m) => m.id === ownerId || m.id === Number(ownerId)
+        );
+        if (!memberExists) {
+          return ctx.badRequest("Ce membre n'appartient pas à votre famille");
+        }
+      }
+
+      // Vérifier que le jeu appartient à la famille
+      const gameIdentifier = String(gameId);
+      const gameBelongsToFamily = userFamily.games?.some(
+        (g) => g.documentId === gameIdentifier || String(g.id) === gameIdentifier
+      );
+      if (!gameBelongsToFamily) {
+        return ctx.badRequest("Ce jeu n'appartient pas à votre famille");
+      }
+
+      // Trouver le jeu par documentId en priorité, sinon par id
+      let game;
+      // Essayer d'abord avec documentId (string)
+      const gamesByDocumentId = await strapi.entityService.findMany("api::game.game", {
+        filters: { documentId: gameId },
+        limit: 1,
+      });
+      if (gamesByDocumentId && gamesByDocumentId.length > 0) {
+        game = gamesByDocumentId[0];
+      } else {
+        // Fallback sur id si documentId ne fonctionne pas
+        if (typeof gameId === "number" || !isNaN(Number(gameId))) {
+          game = await strapi.entityService.findOne("api::game.game", Number(gameId));
+        }
+      }
+
+      if (!game) {
+        return ctx.notFound("Jeu non trouvé");
+      }
+
+      // Mettre à jour le propriétaire en utilisant l'id numérique du jeu
+      // (Strapi nécessite l'id numérique pour entityService.update, même si on a trouvé le jeu par documentId)
+      await strapi.entityService.update("api::game.game", game.id, {
+        data: {
+          owner: ownerId === null ? null : Number(ownerId),
+        },
+      });
+
+      return ctx.send({
+        message: "Propriétaire changé avec succès",
+      });
+    } catch (error) {
+      strapi.log.error("Erreur lors du changement de propriétaire:", error);
+      return ctx.internalServerError("Erreur lors du changement de propriétaire");
+    }
+  },
 }));

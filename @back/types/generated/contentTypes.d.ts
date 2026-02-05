@@ -703,6 +703,7 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::game.game'> &
       Schema.Attribute.Private;
     name: Schema.Attribute.String;
+    owner: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     player_max: Schema.Attribute.Integer;
     player_min: Schema.Attribute.Integer;
     playing_time: Schema.Attribute.String;
