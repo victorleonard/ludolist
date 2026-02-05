@@ -1413,7 +1413,7 @@ export const useFamilyStore = defineStore("family", {
     // Changer le propriétaire d'un livre
     async changeBookOwner(
       bookIdOrDocumentId: number | string,
-      newOwnerId: number
+      newOwnerId: number | null
     ) {
       const authStore = useAuthStore();
 
@@ -1434,7 +1434,7 @@ export const useFamilyStore = defineStore("family", {
             },
             body: {
               bookId: bookIdOrDocumentId,
-              ownerId: newOwnerId,
+              ownerId: newOwnerId, // null pour "Famille" ou un ID de membre
             },
           }
         );

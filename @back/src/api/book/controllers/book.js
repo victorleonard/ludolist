@@ -196,8 +196,14 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
 
       const { bookId, ownerId } = ctx.request.body;
 
-      if (!bookId || !ownerId) {
-        return ctx.badRequest("bookId et ownerId sont requis");
+      if (!bookId) {
+        return ctx.badRequest("bookId est requis");
+      }
+
+      // ownerId peut être null (pour "Famille") ou un nombre (pour un membre spécifique)
+      // Si ownerId est undefined, c'est une erreur
+      if (ownerId === undefined) {
+        return ctx.badRequest("ownerId doit être fourni (null pour 'Famille' ou un ID de membre)");
       }
 
       // Récupérer la famille de l'utilisateur
@@ -220,12 +226,14 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
 
       const userFamily = family[0];
 
-      // Vérifier que le membre appartient à la famille
-      const memberExists = userFamily.members?.some(
-        (m) => m.id === ownerId || m.id === Number(ownerId)
-      );
-      if (!memberExists) {
-        return ctx.badRequest("Ce membre n'appartient pas à votre famille");
+      // Si ownerId n'est pas null, vérifier que le membre appartient à la famille
+      if (ownerId !== null) {
+        const memberExists = userFamily.members?.some(
+          (m) => m.id === ownerId || m.id === Number(ownerId)
+        );
+        if (!memberExists) {
+          return ctx.badRequest("Ce membre n'appartient pas à votre famille");
+        }
       }
 
       // Vérifier que le livre appartient à la famille
@@ -253,10 +261,10 @@ module.exports = createCoreController("api::book.book", ({ strapi }) => ({
         return ctx.notFound("Livre non trouvé");
       }
 
-      // Mettre à jour le propriétaire
+      // Mettre à jour le propriétaire (null pour "Famille" ou un ID de membre)
       await strapi.entityService.update("api::book.book", book.id, {
         data: {
-          owner: Number(ownerId),
+          owner: ownerId === null ? null : Number(ownerId),
         },
       });
 

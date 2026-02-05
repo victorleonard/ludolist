@@ -520,6 +520,28 @@
             </p>
             
             <div class="space-y-2">
+              <!-- Option Famille (pas de propriétaire) -->
+              <button
+                type="button"
+                class="w-full flex items-center gap-3 p-3 rounded-lg border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none"
+                :class="selectedNewOwnerId === null ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' : 'border-gray-200 dark:border-gray-700'"
+                @click="selectedNewOwnerId = null"
+              >
+                <div class="rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 w-10 h-10 shrink-0">
+                  <UIcon
+                    name="i-ion-people"
+                    class="w-5 h-5 text-gray-600 dark:text-gray-300"
+                  />
+                </div>
+                <span class="font-medium">Famille</span>
+                <UIcon
+                  v-if="selectedNewOwnerId === null"
+                  name="i-ion-checkmark-circle"
+                  class="w-5 h-5 text-primary-500 ml-auto"
+                />
+              </button>
+              
+              <!-- Membres individuels -->
               <button
                 v-for="member in familyStore.familyMembers"
                 :key="member.id"
@@ -559,7 +581,7 @@
               <UButton
                 color="primary"
                 :loading="changingOwner"
-                :disabled="!selectedNewOwnerId || selectedNewOwnerId === book?.owner?.id"
+                :disabled="selectedNewOwnerId === book?.owner?.id || (selectedNewOwnerId === null && !book?.owner)"
                 @click="changeOwner"
               >
                 Changer le propriétaire
@@ -759,12 +781,13 @@ function openChangeOwnerModal() {
 }
 
 async function changeOwner() {
-  if (!book.value || !selectedNewOwnerId.value) return
+  if (!book.value) return
   
   changingOwner.value = true
   changeOwnerError.value = null
   
   try {
+    // Si null, on veut mettre "Famille" (pas de propriétaire)
     const result = await familyStore.changeBookOwner(
       book.value.documentId || book.value.id,
       selectedNewOwnerId.value

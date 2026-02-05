@@ -118,15 +118,12 @@
                 </div>
 
                 <!-- Propriétaire -->
-                <div
-                  v-if="book.owner"
-                  class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"
-                >
+                <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                   <UIcon
-                    name="i-ion-person-circle"
+                    :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
                     class="w-3 h-3"
                   />
-                  <span>{{ book.owner.username }}</span>
+                  <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
                 </div>
 
                 <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
@@ -258,15 +255,12 @@
                         {{ book.auteur }}
                       </p>
                       <!-- Propriétaire -->
-                      <p
-                        v-if="book.owner"
-                        class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-2"
-                      >
+                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-2">
                         <UIcon
-                          name="i-ion-person-circle"
+                          :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
                           class="w-3 h-3"
                         />
-                        <span>{{ book.owner.username }}</span>
+                        <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
                       </p>
                       <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
                       <div
