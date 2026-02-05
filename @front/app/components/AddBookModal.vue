@@ -5,28 +5,34 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900 overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-lg font-semibold">
+      <div
+        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+      >
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre' }}
           </h3>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 shrink-0">
             <UButton
               v-if="editingBook || showManualForm"
               type="submit"
               form="book-form"
               color="primary"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               :loading="submitting"
             >
-              {{ editingBook ? 'Enregistrer' : 'Ajouter le livre' }}
+              {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
             </UButton>
             <UButton
               color="neutral"
               variant="ghost"
               icon="i-ion-close"
               size="sm"
+              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
               :disabled="submitting"
+              aria-label="Fermer"
               @click="closeModal"
             />
           </div>
@@ -35,8 +41,8 @@
         <!-- Mode prévisualisation -->
         <div
           v-if="showPreview && previewBook"
-          class="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[70vh] p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[70vh] overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="mb-4">
             <UButton
@@ -45,6 +51,7 @@
               variant="ghost"
               icon="i-ion-arrow-back"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               @click="backToSearch"
             >
               Retour aux résultats
@@ -202,6 +209,7 @@
                 size="lg"
                 block
                 icon="i-ion-add"
+                class="min-h-[52px] sm:min-h-0 text-base font-semibold rounded-xl"
                 :loading="submitting"
                 :disabled="submitting"
                 @click="addBookFromPreview"
@@ -215,13 +223,13 @@
         <!-- Mode recherche Open Library (par défaut pour l'ajout) -->
         <div
           v-else-if="!editingBook && !showManualForm"
-          class="space-y-4 overflow-y-auto flex-1 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
               name="i-ion-search"
-              class="w-5 h-5"
+              class="w-5 h-5 shrink-0"
             />
             <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
               Rechercher un livre
@@ -234,13 +242,14 @@
               v-model="searchQuery"
               placeholder="Titre, auteur, ISBN..."
               :disabled="submitting || searching"
-              class="flex-1"
+              class="flex-1 input-touch"
               size="lg"
               @keyup.enter="searchBooks"
             />
             <UButton
               type="button"
               color="primary"
+              class="min-h-[48px] shrink-0"
               :loading="searching || submitting"
               :disabled="submitting || searching || !searchQuery.trim()"
               size="lg"
@@ -362,8 +371,8 @@
         <form
           v-else
           id="book-form"
-          class="space-y-4 overflow-y-auto flex-1 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
@@ -377,20 +386,21 @@
               variant="ghost"
               icon="i-ion-arrow-back"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               @click="showManualForm = false"
             >
               Retour à la recherche
             </UButton>
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="title"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-book"
-                class="w-4 h-4"
+                name="i-ion-book-outline"
+                class="w-4 h-4 shrink-0"
               />
               Titre du livre <span class="text-red-500">*</span>
             </label>
@@ -399,24 +409,24 @@
               v-model="state.title"
               :disabled="submitting"
               :error="!!errors.title"
-              class="w-full"
+              class="w-full input-touch"
             />
             <p
               v-if="errors.title"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
+              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
             >
               {{ errors.title }}
             </p>
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="author"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-person"
-                class="w-4 h-4"
+                name="i-ion-person-outline"
+                class="w-4 h-4 shrink-0"
               />
               Auteur
             </label>
@@ -424,18 +434,18 @@
               id="author"
               v-model="state.author"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="isbn"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-hash"
-                class="w-4 h-4"
+                name="i-ion-hash-outline"
+                class="w-4 h-4 shrink-0"
               />
               ISBN
             </label>
@@ -443,19 +453,19 @@
               id="isbn"
               v-model="state.isbn"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
               placeholder="978-..."
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="year"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-calendar"
-                class="w-4 h-4"
+                name="i-ion-calendar-outline"
+                class="w-4 h-4 shrink-0"
               />
               Année de publication
             </label>
@@ -466,18 +476,18 @@
               min="1000"
               :max="currentYear"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="description"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-document-text"
-                class="w-4 h-4"
+                name="i-ion-document-text-outline"
+                class="w-4 h-4 shrink-0"
               />
               Description
             </label>
@@ -490,14 +500,14 @@
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="nombrePages"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-document-text"
-                class="w-4 h-4"
+                name="i-ion-document-text-outline"
+                class="w-4 h-4 shrink-0"
               />
               Nombre de pages
             </label>
@@ -507,14 +517,14 @@
               type="number"
               min="1"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
               placeholder="Ex: 250"
             />
           </div>
 
           <div
             v-if="submitError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
           >
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
@@ -875,3 +885,27 @@ const closeModal = () => {
   }
 }
 </script>
+
+<style scoped>
+.form-field :deep(.label-mobile) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: currentColor;
+  margin-bottom: 0.375rem;
+}
+.form-field :deep(.input-touch) {
+  width: 100%;
+}
+@media (max-width: 639px) {
+  .form-field :deep(input[type="text"]),
+  .form-field :deep(input[type="number"]) {
+    min-height: 48px;
+    font-size: 16px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+</style>

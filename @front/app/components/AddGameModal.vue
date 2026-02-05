@@ -5,23 +5,27 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-lg font-semibold">
+      <div
+        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+      >
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingGame ? 'Modifier le jeu' : 'Ajouter un nouveau jeu' }}
           </h3>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 shrink-0">
             <UButton
               v-if="editingGame"
               color="red"
               variant="outline"
               icon="i-ion-trash"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               :loading="deleting"
               :disabled="submitting"
               @click="handleDelete"
             >
-              Supprimer
+              <span class="sm:inline hidden">Supprimer</span>
             </UButton>
             <UButton
               v-if="editingGame || showManualForm"
@@ -29,17 +33,20 @@
               form="game-form"
               color="primary"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               :loading="submitting"
               :disabled="deleting"
             >
-              {{ editingGame ? 'Enregistrer' : 'Ajouter le jeu' }}
+              {{ editingGame ? 'Enregistrer' : 'Ajouter' }}
             </UButton>
             <UButton
               color="neutral"
               variant="ghost"
               icon="i-ion-close"
               size="sm"
+              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
               :disabled="submitting || deleting"
+              aria-label="Fermer"
               @click="closeModal"
             />
           </div>
@@ -48,8 +55,8 @@
         <!-- Mode recherche BGG (par défaut pour l'ajout) -->
         <div
           v-if="!editingGame && !showManualForm"
-          class="space-y-4 overflow-y-auto flex-1 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
@@ -67,13 +74,14 @@
               v-model="bggSearchQuery"
               placeholder="Rechercher un jeu..."
               :disabled="submitting || searchingBGG"
-              class="flex-1"
+              class="flex-1 input-touch"
               size="lg"
               @keyup.enter="searchBGG"
             />
             <UButton
               type="button"
               color="primary"
+              class="min-h-[48px] shrink-0"
               :loading="searchingBGG || submitting"
               :disabled="submitting || searchingBGG || !bggSearchQuery.trim()"
               size="lg"
@@ -177,8 +185,8 @@
         <form
           v-else
           id="game-form"
-          class="space-y-4 overflow-y-auto flex-1 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
@@ -192,20 +200,21 @@
               variant="ghost"
               icon="i-ion-arrow-back"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               @click="showManualForm = false"
             >
               Retour à la recherche
             </UButton>
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="name"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-game-controller"
-                class="w-4 h-4"
+                name="i-ion-game-controller-outline"
+                class="w-4 h-4 shrink-0"
               />
               Titre du jeu <span class="text-red-500">*</span>
             </label>
@@ -214,21 +223,21 @@
               v-model="state.name"
               :disabled="submitting"
               :error="!!errors.name"
-              class="w-full"
+              class="w-full input-touch"
             />
             <p
               v-if="errors.name"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
+              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
             >
               {{ errors.name }}
             </p>
           </div>
 
-          <div>
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <div class="form-field">
+            <label class="label-mobile mb-2">
               <UIcon
-                name="i-ion-calendar"
-                class="w-4 h-4"
+                name="i-ion-calendar-outline"
+                class="w-4 h-4 shrink-0"
               />
               Âge
             </label>
@@ -250,7 +259,7 @@
                   modal-title="Âge minimum"
                   :disabled="submitting"
                   :error="!!errors.age_min"
-                  class="w-full"
+                  class="w-full input-touch"
                 />
                 <p
                   v-if="errors.age_min"
@@ -276,7 +285,7 @@
                   modal-title="Âge maximum"
                   :disabled="submitting"
                   :error="!!errors.age_max"
-                  class="w-full"
+                  class="w-full input-touch"
                 />
                 <p
                   v-if="errors.age_max"
@@ -288,16 +297,16 @@
             </div>
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="playing_time"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-time"
-                class="w-4 h-4"
+                name="i-ion-time-outline"
+                class="w-4 h-4 shrink-0"
               />
-              Durée de jeu (en minutes) <span class="text-red-500">*</span>
+              Durée de jeu (min) <span class="text-red-500">*</span>
             </label>
             <UInput
               id="playing_time"
@@ -308,7 +317,7 @@
               placeholder="Ex: 30, 45, 60..."
               :disabled="submitting"
               :error="!!errors.playing_time"
-              class="w-full"
+              class="w-full input-touch"
             />
             <p
               v-if="errors.playing_time"
@@ -318,11 +327,11 @@
             </p>
           </div>
 
-          <div>
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <div class="form-field">
+            <label class="label-mobile mb-2">
               <UIcon
-                name="i-ion-persons"
-                class="w-4 h-4"
+                name="i-ion-persons-outline"
+                class="w-4 h-4 shrink-0"
               />
               Nombre de joueurs
             </label>
@@ -332,7 +341,7 @@
                   for="player_min"
                   class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
                 >
-                  Nombre minimum <span class="text-red-500">*</span>
+                  Minimum <span class="text-red-500">*</span>
                 </label>
                 <SelectWithModal
                   id="player_min"
@@ -344,7 +353,7 @@
                   modal-title="Nombre minimum de joueurs"
                   :disabled="submitting"
                   :error="!!errors.player_min"
-                  class="w-full"
+                  class="w-full input-touch"
                 />
                 <p
                   v-if="errors.player_min"
@@ -370,7 +379,7 @@
                   modal-title="Nombre maximum de joueurs"
                   :disabled="submitting"
                   :error="!!errors.player_max"
-                  class="w-full"
+                  class="w-full input-touch"
                 />
                 <p
                   v-if="errors.player_max"
@@ -396,7 +405,7 @@
 
           <div
             v-if="submitError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
           >
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
@@ -1110,3 +1119,27 @@ const closeModal = () => {
   }
 }
 </script>
+
+<style scoped>
+.form-field :deep(.label-mobile) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: currentColor;
+  margin-bottom: 0.375rem;
+}
+.form-field :deep(.input-touch) {
+  width: 100%;
+}
+@media (max-width: 639px) {
+  .form-field :deep(input[type="text"]),
+  .form-field :deep(input[type="number"]) {
+    min-height: 48px;
+    font-size: 16px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+</style>

@@ -5,40 +5,47 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900 overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-lg font-semibold">
+      <div
+        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+      >
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingDish ? 'Modifier le plat' : 'Ajouter un plat' }}
           </h3>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 shrink-0">
             <UButton
               v-if="editingDish"
               color="red"
               variant="outline"
               icon="i-ion-trash"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               :loading="deleting"
               :disabled="submitting"
               @click="handleDelete"
             >
-              Supprimer
+              <span class="sm:inline hidden">Supprimer</span>
             </UButton>
             <UButton
               type="submit"
               form="plat-form"
               color="primary"
               size="sm"
+              class="min-h-[44px] sm:min-h-0"
               :loading="submitting"
               :disabled="deleting"
             >
-              {{ editingDish ? 'Enregistrer' : 'Ajouter le plat' }}
+              {{ editingDish ? 'Enregistrer' : 'Ajouter' }}
             </UButton>
             <UButton
               color="neutral"
               variant="ghost"
               icon="i-ion-close"
               size="sm"
+              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
               :disabled="submitting || deleting"
+              aria-label="Fermer"
               @click="closeModal"
             />
           </div>
@@ -46,18 +53,18 @@
 
         <form
           id="plat-form"
-          class="space-y-4 overflow-y-auto flex-1 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
-          <div>
+          <div class="form-field">
             <label
               for="plat-name"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
                 name="i-ion-restaurant"
-                class="w-4 h-4"
+                class="w-4 h-4 shrink-0"
               />
               Nom du plat <span class="text-red-500">*</span>
             </label>
@@ -66,25 +73,25 @@
               v-model="state.name"
               :disabled="submitting"
               :error="!!errors.name"
-              class="w-full"
+              class="w-full input-touch"
               placeholder="Ex. Tarte aux pommes"
             />
             <p
               v-if="errors.name"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
+              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
             >
               {{ errors.name }}
             </p>
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="plat-description"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-document-text"
-                class="w-4 h-4"
+                name="i-ion-document-text-outline"
+                class="w-4 h-4 shrink-0"
               />
               Description
             </label>
@@ -98,14 +105,14 @@
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="plat-category"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-bookmark"
-                class="w-4 h-4"
+                name="i-ion-bookmark-outline"
+                class="w-4 h-4 shrink-0"
               />
               Catégorie
             </label>
@@ -115,73 +122,72 @@
               :items="categoryOptions"
               :disabled="submitting"
               placeholder="Choisir une catégorie..."
-              class="w-full"
+              class="w-full input-touch"
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="plat-preparation-time"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-time"
-                class="w-4 h-4"
+                name="i-ion-time-outline"
+                class="w-4 h-4 shrink-0"
               />
-              Temps de préparation (minutes)
+              Préparation (min)
             </label>
             <UInput
               id="plat-preparation-time"
               v-model.number="state.preparation_time"
               type="number"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
               placeholder="Ex. 30"
               min="0"
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="plat-cooking-time"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-flame"
-                class="w-4 h-4"
+                name="i-ion-flame-outline"
+                class="w-4 h-4 shrink-0"
               />
-              Temps de cuisson (minutes)
+              Cuisson (min)
             </label>
             <UInput
               id="plat-cooking-time"
               v-model.number="state.cooking_time"
               type="number"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
               placeholder="Ex. 45"
               min="0"
             />
           </div>
 
-          <div>
+          <div class="form-field">
             <label
               for="plat-ingredient-input"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              class="label-mobile mb-2"
             >
               <UIcon
-                name="i-ion-list"
-                class="w-4 h-4"
+                name="i-ion-list-outline"
+                class="w-4 h-4 shrink-0"
               />
               Ingrédients
             </label>
-            
             <!-- Champ de saisie avec bouton -->
             <div class="flex gap-2 mb-3">
               <UInput
                 id="plat-ingredient-input"
                 v-model="newIngredient"
                 :disabled="submitting"
-                class="flex-1"
+                class="flex-1 input-touch"
                 placeholder="Ajouter un ingrédient..."
                 @keyup.enter="addIngredient"
               />
@@ -189,6 +195,7 @@
                 type="button"
                 color="primary"
                 icon="i-ion-add"
+                class="min-h-[48px] shrink-0"
                 :disabled="submitting || !newIngredient.trim()"
                 @click="addIngredient"
               >
@@ -230,11 +237,11 @@
             </div>
           </div>
 
-          <div>
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <div class="form-field">
+            <label class="label-mobile">
               <UIcon
-                name="i-ion-image"
-                class="w-4 h-4"
+                name="i-ion-image-outline"
+                class="w-4 h-4 shrink-0"
               />
               Photo du plat
             </label>
@@ -245,7 +252,7 @@
               id="plat-image-url"
               v-model="state.image_url"
               :disabled="submitting"
-              class="w-full mb-3"
+              class="w-full mb-3 input-touch"
               placeholder="https://..."
             />
             <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
@@ -264,7 +271,7 @@
 
           <div
             v-if="submitError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
           >
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
@@ -511,3 +518,27 @@ async function handleDelete() {
   }
 }
 </script>
+
+<style scoped>
+.form-field :deep(.label-mobile) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: currentColor;
+  margin-bottom: 0.375rem;
+}
+.form-field :deep(.input-touch) {
+  width: 100%;
+}
+@media (max-width: 639px) {
+  .form-field :deep(input[type="text"]),
+  .form-field :deep(input[type="number"]) {
+    min-height: 48px;
+    font-size: 16px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+</style>

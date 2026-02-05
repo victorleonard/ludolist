@@ -74,7 +74,7 @@
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
-              @click="activeTab = 'detail'"
+              @click="setActiveTab('detail')"
             >
               <div class="flex items-center justify-center gap-2 sm:gap-2">
                 <UIcon
@@ -91,7 +91,7 @@
                   ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
               ]"
-              @click="activeTab = 'lectures'"
+              @click="setActiveTab('lectures')"
             >
               <div class="flex flex-col items-center justify-center gap-1 sm:gap-2 sm:flex-row">
                 <UIcon
@@ -267,8 +267,8 @@
                   </div>
                 </div>
 
-                <!-- Bouton Modifier en bas -->
-                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <!-- Boutons Modifier et Supprimer -->
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
                   <UButton
                     color="primary"
                     variant="outline"
@@ -278,6 +278,19 @@
                     @click="handleEditBook"
                   >
                     Modifier les détails
+                  </UButton>
+                  <UButton
+                    v-if="canDeleteBook"
+                    color="error"
+                    variant="outline"
+                    icon="i-ion-trash-outline"
+                    size="md"
+                    class="w-full min-h-[44px] sm:min-h-0"
+                    :loading="deletingBook"
+                    :disabled="deletingBook"
+                    @click="confirmDeleteBook"
+                  >
+                    Supprimer le livre
                   </UButton>
                 </div>
               </div>
@@ -290,189 +303,202 @@
             :key="'section-lectures-' + readingsList.length"
             class="space-y-3 sm:space-y-4 py-2 sm:py-6"
           >
-            <div class="flex items-center justify-between">
-              <h2 class="text-xl font-bold">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 class="text-lg sm:text-xl font-bold">
                 {{ memberStore.isMemberConnected ? 'Ma lecture' : 'Lectures des membres' }}
               </h2>
               <UButton
                 color="primary"
                 icon="i-ion-add"
+                size="md"
+                class="w-full sm:w-auto min-h-[44px] sm:min-h-0"
                 @click="openReadingModal()"
               >
                 Ajouter ma lecture
               </UButton>
             </div>
-            <p class="text-sm text-gray-500">
-              Nombre de lectures : {{ readingsList.length }}
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {{ readingsList.length }} lecture{{ readingsList.length !== 1 ? 's' : '' }}
             </p>
             <div>
               <div
                 v-if="readingsList.length === 0"
-                class="text-center py-12 text-gray-500 dark:text-gray-400"
+                class="text-center py-12 px-4 text-gray-500 dark:text-gray-400"
               >
                 <UIcon
                   name="i-ion-book"
-                  class="w-16 h-16 mx-auto mb-4 opacity-50"
+                  class="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 opacity-50"
                 />
-                <p>Aucune lecture enregistrée</p>
-                <p class="text-sm mt-2">
-                  Ajoutez votre première lecture pour commencer à suivre votre progression !
+                <p class="font-medium">
+                  Aucune lecture enregistrée
+                </p>
+                <p class="text-sm mt-2 text-gray-400 dark:text-gray-500">
+                  Ajoutez votre première lecture pour suivre votre progression.
                 </p>
               </div>
               <div
                 v-else
-                class="space-y-4"
+                class="space-y-3 sm:space-y-4"
               >
                 <UCard
                   v-for="(reading, index) in readingsList"
                   :key="'reading-' + index"
-                  class="bg-white dark:bg-gray-800"
+                  class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700/50"
                 >
-                  <div class="flex items-start justify-between p-4">
-                    <div class="flex-1">
-                      <div class="flex items-center gap-2 mb-3">
+                  <div class="p-3 sm:p-4">
+                    <!-- Ligne membre + action (touch-friendly sur mobile) -->
+                    <div class="flex items-center gap-3 mb-3 sm:mb-4">
+                      <div class="flex items-center gap-2 min-w-0 flex-1">
                         <MemberAvatar
                           :member="readingMemberForAvatar(reading)"
                           size="sm"
+                          class="shrink-0"
                         />
-                        <span class="font-semibold text-lg">{{ readingMemberName(reading) }}</span>
+                        <span class="font-semibold text-base sm:text-lg truncate">{{ readingMemberName(reading) }}</span>
                       </div>
-
-                      <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <div
-                          v-if="readingDate(reading, 'date_debut')"
-                          class="flex items-center gap-1"
-                        >
-                          <UIcon
-                            name="i-ion-calendar"
-                            class="w-4 h-4"
-                          />
-                          <span class="font-medium">Début :</span>
-                          {{ formatDate(readingDate(reading, 'date_debut')) }}
-                        </div>
-                        <div
-                          v-if="readingDate(reading, 'date_fin')"
-                          class="flex items-center gap-1"
-                        >
-                          <UIcon
-                            name="i-ion-calendar"
-                            class="w-4 h-4"
-                          />
-                          <span class="font-medium">Fin :</span>
-                          {{ formatDate(readingDate(reading, 'date_fin')) }}
-                        </div>
-                        <div
-                          v-if="readingNote(reading) != null"
-                          class="flex items-center gap-1"
-                        >
-                          <UIcon
-                            name="i-ion-star"
-                            class="w-4 h-4 text-yellow-500"
-                          />
-                          <span class="font-medium">Note :</span>
-                          <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ readingNote(reading) }}/10</span>
-                        </div>
-                        <div
-                          v-if="readingPagesLues(reading) != null"
-                          class="flex items-center gap-1"
-                        >
-                          <UIcon
-                            name="i-ion-document-text"
-                            class="w-4 h-4"
-                          />
-                          <span class="font-medium">Pages lues :</span>
-                          <span class="font-bold">{{ readingPagesLues(reading) }}</span>
-                          <span
-                            v-if="book?.nombre_pages"
-                            class="text-gray-500"
-                          >
-                            / {{ book.nombre_pages }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <!-- Barre de progression des pages lues -->
-                      <div
-                        v-if="readingPagesLues(reading) != null && book?.nombre_pages && book.nombre_pages > 0"
-                        class="mt-3"
+                      <UButton
+                        color="primary"
+                        variant="soft"
+                        icon="i-ion-create-outline"
+                        size="sm"
+                        class="shrink-0 min-h-[44px] px-3 sm:px-2 rounded-lg sm:rounded-md font-medium"
+                        aria-label="Modifier la lecture"
+                        @click="openReadingModal(reading)"
                       >
-                        <div class="flex items-center justify-between mb-1">
-                          <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Progression
-                          </span>
-                          <span class="text-xs font-semibold text-primary-600 dark:text-primary-400">
-                            {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
-                          </span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                          <div
-                            class="h-full bg-primary-500 dark:bg-primary-400 transition-all duration-300 rounded-full"
-                            :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
-                          />
-                        </div>
-                      </div>
+                        <span class="sm:hidden ml-1">Modifier</span>
+                      </UButton>
+                    </div>
 
-                      <!-- Statut de lecture et durée -->
-                      <div class="mt-3 flex flex-wrap items-center gap-2">
-                        <UBadge
-                          v-if="readingDate(reading, 'date_fin')"
-                          color="success"
-                          variant="subtle"
-                          class="text-green-800 dark:text-green-200"
+                    <!-- Infos en grille lisible sur mobile -->
+                    <div class="grid grid-cols-1 sm:flex sm:flex-wrap gap-x-4 gap-y-2.5 sm:gap-4 text-sm text-gray-600 dark:text-gray-400">
+                      <div
+                        v-if="readingDate(reading, 'date_debut')"
+                        class="flex items-center gap-2"
+                      >
+                        <UIcon
+                          name="i-ion-calendar-outline"
+                          class="w-4 h-4 shrink-0 text-gray-400"
+                        />
+                        <span class="text-gray-500 dark:text-gray-500 shrink-0">Début</span>
+                        <span class="font-medium truncate">{{ formatDate(readingDate(reading, 'date_debut')) }}</span>
+                      </div>
+                      <div
+                        v-if="readingDate(reading, 'date_fin')"
+                        class="flex items-center gap-2"
+                      >
+                        <UIcon
+                          name="i-ion-calendar"
+                          class="w-4 h-4 shrink-0 text-gray-400"
+                        />
+                        <span class="text-gray-500 dark:text-gray-500 shrink-0">Fin</span>
+                        <span class="font-medium truncate">{{ formatDate(readingDate(reading, 'date_fin')) }}</span>
+                      </div>
+                      <div
+                        v-if="readingNote(reading) != null"
+                        class="flex items-center gap-2"
+                      >
+                        <UIcon
+                          name="i-ion-star"
+                          class="w-4 h-4 shrink-0 text-yellow-500"
+                        />
+                        <span class="text-gray-500 dark:text-gray-500 shrink-0">Note</span>
+                        <span class="font-bold text-yellow-600 dark:text-yellow-400">{{ readingNote(reading) }}/10</span>
+                      </div>
+                      <div
+                        v-if="readingPagesLues(reading) != null"
+                        class="flex items-center gap-2"
+                      >
+                        <UIcon
+                          name="i-ion-document-text-outline"
+                          class="w-4 h-4 shrink-0 text-gray-400"
+                        />
+                        <span class="text-gray-500 dark:text-gray-500 shrink-0">Pages</span>
+                        <span class="font-semibold">{{ readingPagesLues(reading) }}</span>
+                        <span
+                          v-if="book?.nombre_pages"
+                          class="text-gray-500 dark:text-gray-500"
                         >
-                          <UIcon
-                            name="i-ion-checkmark-circle"
-                            class="w-3 h-3 mr-1"
-                          />
-                          Terminé
-                        </UBadge>
-                        <UBadge
-                          v-else-if="readingDate(reading, 'date_debut')"
-                          color="warning"
-                          variant="subtle"
-                          class="text-orange-800 dark:text-orange-200"
-                        >
-                          <UIcon
-                            name="i-ion-time"
-                            class="w-3 h-3 mr-1"
-                          />
-                          En cours
-                        </UBadge>
-                        <UBadge
-                          v-else
-                          color="neutral"
-                          variant="subtle"
-                          class="text-gray-800 dark:text-gray-200"
-                        >
-                          <UIcon
-                            name="i-ion-bookmark"
-                            class="w-3 h-3 mr-1"
-                          />
-                          À lire
-                        </UBadge>
-                        <UBadge
-                          v-if="readingDurationLabel(reading)"
-                          color="primary"
-                          variant="subtle"
-                          class="text-primary-800 dark:text-primary-200"
-                        >
-                          <UIcon
-                            name="i-ion-time"
-                            class="w-3 h-3 mr-1"
-                          />
-                          {{ readingDurationLabel(reading) }}
-                        </UBadge>
+                          / {{ book.nombre_pages }}
+                        </span>
                       </div>
                     </div>
 
-                    <UButton
-                      color="neutral"
-                      variant="ghost"
-                      icon="i-ion-create-outline"
-                      size="sm"
-                      class="flex-shrink-0"
-                      @click="openReadingModal(reading)"
-                    />
+                    <!-- Barre de progression -->
+                    <div
+                      v-if="readingPagesLues(reading) != null && book?.nombre_pages && book.nombre_pages > 0"
+                      class="mt-3 sm:mt-4"
+                    >
+                      <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                          Progression
+                        </span>
+                        <span class="text-xs font-semibold tabular-nums text-primary-600 dark:text-primary-400">
+                          {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
+                        </span>
+                      </div>
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                        <div
+                          class="h-full bg-primary-500 dark:bg-primary-400 transition-all duration-300 rounded-full"
+                          :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Badges statut + durée -->
+                    <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
+                      <UBadge
+                        v-if="readingDate(reading, 'date_fin')"
+                        color="success"
+                        variant="subtle"
+                        size="sm"
+                        class="text-xs font-medium text-green-800 dark:text-green-200"
+                      >
+                        <UIcon
+                          name="i-ion-checkmark-circle"
+                          class="w-3.5 h-3.5 mr-1 shrink-0"
+                        />
+                        Terminé
+                      </UBadge>
+                      <UBadge
+                        v-else-if="readingDate(reading, 'date_debut')"
+                        color="warning"
+                        variant="subtle"
+                        size="sm"
+                        class="text-xs font-medium text-orange-800 dark:text-orange-200"
+                      >
+                        <UIcon
+                          name="i-ion-time"
+                          class="w-3.5 h-3.5 mr-1 shrink-0"
+                        />
+                        En cours
+                      </UBadge>
+                      <UBadge
+                        v-else
+                        color="neutral"
+                        variant="subtle"
+                        size="sm"
+                        class="text-xs font-medium text-gray-800 dark:text-gray-200"
+                      >
+                        <UIcon
+                          name="i-ion-bookmark"
+                          class="w-3.5 h-3.5 mr-1 shrink-0"
+                        />
+                        À lire
+                      </UBadge>
+                      <UBadge
+                        v-if="readingDurationLabel(reading)"
+                        color="primary"
+                        variant="subtle"
+                        size="sm"
+                        class="text-xs font-medium text-primary-800 dark:text-primary-200"
+                      >
+                        <UIcon
+                          name="i-ion-time-outline"
+                          class="w-3.5 h-3.5 mr-1 shrink-0"
+                        />
+                        {{ readingDurationLabel(reading) }}
+                      </UBadge>
+                    </div>
                   </div>
                 </UCard>
               </div>
@@ -518,7 +544,7 @@
             <p class="text-sm text-gray-600 dark:text-gray-400">
               Sélectionnez le nouveau propriétaire de ce livre :
             </p>
-            
+
             <div class="space-y-2">
               <!-- Option Famille (pas de propriétaire) -->
               <button
@@ -540,7 +566,7 @@
                   class="w-5 h-5 text-primary-500 ml-auto"
                 />
               </button>
-              
+
               <!-- Membres individuels -->
               <button
                 v-for="member in familyStore.familyMembers"
@@ -708,7 +734,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores/family'
 import { useMemberStore } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
@@ -721,10 +747,12 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const bookIdentifier = computed(() => route.params.id as string)
 
 const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
+const { fetchReadingsForBook } = useBookReadings()
 const addBookModal = useAddBookModal()
 const openEditBookModal = addBookModal.openModal
 
@@ -766,6 +794,17 @@ const selectedNewOwnerId = ref<number | null>(null)
 const changingOwner = ref(false)
 const changeOwnerError = ref<string | null>(null)
 
+const deletingBook = ref(false)
+/** Membre connecté : peut supprimer uniquement s'il est propriétaire. Sinon (vue famille) : peut tout supprimer. */
+const canDeleteBook = computed(() => {
+  if (!book.value) return false
+  if (memberStore.isMemberConnected && memberStore.currentMember) {
+    const ownerId = book.value.owner?.id
+    return ownerId != null && Number(ownerId) === Number(memberStore.currentMember!.id)
+  }
+  return true
+})
+
 function openCoverModal() {
   selectedCoverUrl.value = book.value?.image ?? ''
   coverModalError.value = null
@@ -780,19 +819,42 @@ function openChangeOwnerModal() {
   isChangeOwnerModalOpen.value = true
 }
 
+async function confirmDeleteBook() {
+  if (!book.value) return
+  const titre = book.value.titre || 'ce livre'
+  if (!confirm(`Supprimer « ${titre} » de la collection ? Cette action est irréversible.`)) {
+    return
+  }
+  deletingBook.value = true
+  try {
+    const result = await familyStore.removeBookFromFamily(book.value.id)
+    if (result.success) {
+      await navigateTo('/livres/')
+    } else {
+      console.error('Erreur suppression livre:', result.error)
+      error.value = result.error || 'Erreur lors de la suppression'
+    }
+  } catch (err) {
+    console.error('Erreur lors de la suppression du livre:', err)
+    error.value = err instanceof Error ? err.message : 'Erreur lors de la suppression'
+  } finally {
+    deletingBook.value = false
+  }
+}
+
 async function changeOwner() {
   if (!book.value) return
-  
+
   changingOwner.value = true
   changeOwnerError.value = null
-  
+
   try {
     // Si null, on veut mettre "Famille" (pas de propriétaire)
     const result = await familyStore.changeBookOwner(
       book.value.documentId || book.value.id,
       selectedNewOwnerId.value
     )
-    
+
     if (result.success) {
       isChangeOwnerModalOpen.value = false
       await loadBook()
@@ -914,7 +976,26 @@ async function saveSelectedCover() {
   }
 }
 
-const activeTab = ref<'detail' | 'lectures'>('detail')
+const activeTab = ref<'detail' | 'lectures'>(
+  route.query.tab === 'lectures' ? 'lectures' : 'detail'
+)
+
+watch(() => route.query.tab, (tab) => {
+  activeTab.value = tab === 'lectures' ? 'lectures' : 'detail'
+})
+
+/** À l’ouverture de l’onglet Lectures : appel API dédié pour ce livre. */
+watch(activeTab, (tab) => {
+  if (tab === 'lectures' && book.value) {
+    fetchReadingsForLecturesTab()
+  }
+})
+
+function setActiveTab(tab: 'detail' | 'lectures') {
+  activeTab.value = tab
+  const query = tab === 'lectures' ? { tab: 'lectures' } : {}
+  router.replace({ path: route.path, query })
+}
 
 const loadBook = async () => {
   try {
@@ -995,106 +1076,30 @@ function applyReadingsFromBook(bookItem: TransformedBook | null) {
   readings.value = list
 }
 
-/** Appel déclenché au passage sur l'onglet Lectures : récupère les données et log tout côté front. */
+/** Au passage sur l'onglet Lectures : appel API dédié pour récupérer les lectures de ce livre. */
 async function fetchReadingsForLecturesTab() {
-  if (!book.value) {
-    console.log('[livres] onglet Lectures: pas de livre, annulé')
-    return
-  }
+  if (!book.value) return
   const bookId = book.value.id
-  const bookDocumentId = book.value.documentId
-  const isMember = memberStore.isMemberConnected && memberStore.currentMember
-
-  console.log('[livres] onglet Lectures: appel spécial démarré', {
-    bookId,
-    bookDocumentId,
-    titre: book.value.titre,
-    isMemberConnected: !!isMember,
-    memberId: isMember ? memberStore.currentMember!.id : null
-  })
-
-  if (isMember) {
-    const memberId = memberStore.currentMember!.id
-    console.log('[livres] onglet Lectures: GET /api/book-readings/member/' + memberId)
-    const result = await familyStore.fetchMemberBookReadings(memberId)
-    console.log('[livres] onglet Lectures: réponse API membre', {
-      success: result.success,
-      error: result.error ?? null,
-      count: Array.isArray(result.data) ? result.data.length : 0,
-      data: result.success && result.data ? result.data : null
-    })
-    const list = result.success && Array.isArray(result.data) ? result.data : []
-    const filtered = list.filter((r) => {
-      const b = r.book
-      if (b == null) return false
-      if (typeof b === 'number') return b === bookId || Number(b) === Number(bookId)
-      const rid = (b as { id?: number }).id
-      const rDocId = (b as { documentId?: string }).documentId
-      return rid === bookId || Number(rid) === Number(bookId) || rDocId === bookDocumentId || String(rid) === String(bookId)
-    })
-    if (filtered.length === 0 && Array.isArray(book.value.book_readings)) {
-      const memberIdNum = Number(memberId)
-      const fromFamily = book.value.book_readings.filter((r) => {
-        const rid = r.member?.id
-        return rid != null && (Number(rid) === memberIdNum || rid === memberId)
-      })
-      console.log('[livres] onglet Lectures: fallback famille (membre)', { fromFamilyCount: fromFamily.length })
-      readings.value = [...fromFamily]
-    } else {
-      readings.value = [...filtered]
-    }
-  } else {
-    // Mode famille : afficher toutes les lectures de la famille pour ce livre
-    console.log('[livres] onglet Lectures: GET /api/book-readings/book/' + bookId + ' (mode famille)')
-    const result = await familyStore.fetchBookReadings(bookId)
-    console.log('[livres] onglet Lectures: réponse API livre', {
-      success: result.success,
-      error: result.error ?? null,
-      count: Array.isArray(result.data) ? result.data.length : 0,
-      data: result.success && result.data ? result.data : null
-    })
-    const list = result.success && Array.isArray(result.data) ? result.data : []
-    const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
-    // Fusionner API + book_readings pour avoir toutes les lectures de la famille (dédupliquées par id)
-    const seenIds = new Set<string | number>()
-    const merged: typeof list = []
-    for (const r of list) {
-      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
-      if (id != null && !seenIds.has(id)) {
-        seenIds.add(id)
-        merged.push(r)
-      }
-    }
-    for (const r of fromBook) {
-      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
-      if (id != null && !seenIds.has(id)) {
-        seenIds.add(id)
-        merged.push(r)
-      }
-    }
-    readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
-  }
-
-  const finalReadings = readings.value
-  console.log('[livres] onglet Lectures: données finales récupérées', {
-    count: finalReadings.length,
-    readings: finalReadings
-  })
-  if (finalReadings.length > 0) {
-    const first = finalReadings[0]
-    console.log('[livres] onglet Lectures: structure du 1er élément - clés:', Object.keys(first))
-    console.log('[livres] onglet Lectures: 1er élément (JSON):', JSON.stringify(first, null, 2))
-    console.log('[livres] onglet Lectures: 1er élément - member:', first?.member, 'type:', typeof first?.member)
-    if (first?.member && typeof first.member === 'object') {
-      console.log('[livres] onglet Lectures: member clés:', Object.keys(first.member as object))
+  const result = await fetchReadingsForBook(bookId)
+  const list = result.success && Array.isArray(result.data) ? result.data : []
+  const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
+  const seenIds = new Set<string | number>()
+  const merged: typeof list = []
+  for (const r of list) {
+    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+    if (id != null && !seenIds.has(id)) {
+      seenIds.add(id)
+      merged.push(r)
     }
   }
-  await nextTick()
-  const current = readings.value
-  if (current.length > 0) {
-    readings.value = current.slice()
+  for (const r of fromBook) {
+    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+    if (id != null && !seenIds.has(id)) {
+      seenIds.add(id)
+      merged.push(r)
+    }
   }
-  console.log('[livres] onglet Lectures: après nextTick, readings.length =', readings.value.length)
+  readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
 }
 
 /** Appel séparé : récupère les lectures du membre connecté pour le livre courant. */
@@ -1166,20 +1171,28 @@ const openReadingModal = (reading?: BookReading) => {
 }
 
 const handleReadingSuccess = async () => {
-  if (memberStore.isMemberConnected && memberStore.currentMember) {
-    await loadMemberReadingsForBook()
-  } else {
-    await familyStore.fetchFamily()
-    const books = familyStore.transformedBooks
-    const currentId = book.value?.documentId ?? book.value?.id
-    const updatedBook = books.find(b =>
-      b.documentId === currentId || b.id === currentId || String(b.id) === String(currentId)
-    )
-    if (updatedBook) {
-      book.value = updatedBook
-      applyReadingsFromBook(updatedBook)
+  if (!book.value) return
+  const bookId = book.value.id
+  const result = await fetchReadingsForBook(bookId)
+  const list = result.success && Array.isArray(result.data) ? result.data : []
+  const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
+  const seenIds = new Set<string | number>()
+  const merged: typeof list = []
+  for (const r of list) {
+    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+    if (id != null && !seenIds.has(id)) {
+      seenIds.add(id)
+      merged.push(r)
     }
   }
+  for (const r of fromBook) {
+    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+    if (id != null && !seenIds.has(id)) {
+      seenIds.add(id)
+      merged.push(r)
+    }
+  }
+  readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
 }
 
 const formatDate = (dateString: string) => {

@@ -1459,6 +1459,48 @@ export const useFamilyStore = defineStore("family", {
       }
     },
 
+    // Retirer un livre de la famille (retire le livre de la collection famille)
+    async removeBookFromFamily(bookId: number) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: "Aucune famille trouvée" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        const currentBookIds = this.family.books?.map((b) => b.id) || [];
+        const updatedBookIds = currentBookIds.filter((id) => id !== bookId);
+
+        await $fetch<Family>(
+          `${config.public.apiUrl}/api/families/${this.family.id}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+            body: {
+              data: {
+                books: updatedBookIds,
+              },
+            },
+          },
+        );
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors du retrait du livre de la famille:", error);
+        return {
+          success: false,
+          error:
+            (error as { data?: { error?: { message?: string } } }).data?.error
+              ?.message || "Erreur lors du retrait",
+        };
+      }
+    },
+
     async changeGameOwner(
       gameIdOrDocumentId: number | string,
       newOwnerId: number | null,
@@ -1584,48 +1626,6 @@ export const useFamilyStore = defineStore("family", {
         const list = Array.isArray(raw)
           ? raw
           : (Array.isArray((raw as { data?: unknown })?.data) ? (raw as { data: BookReading[] }).data : []);
-        return { success: true, data: list };
-      } catch (error: unknown) {
-        console.error("Erreur lors de la récupération des lectures:", error);
-        const err = error as {
-          data?: { error?: { message?: string } };
-          message?: string;
-        };
-        const errorMessage =
-          err?.data?.error?.message ||
-          err?.message ||
-          "Erreur lors de la récupération";
-
-        return {
-          success: false,
-          error: errorMessage,
-        };
-      }
-    },
-
-    // Récupérer les lectures d'un livre
-    async fetchBookReadings(bookId: number) {
-      const authStore = useAuthStore();
-
-      if (!authStore.token) {
-        return { success: false, error: "Non authentifié" };
-      }
-
-      const config = useRuntimeConfig();
-
-      try {
-        const response = await $fetch<{ data?: BookReading[] } | BookReading[]>(
-          `${config.public.apiUrl}/api/book-readings/book/${bookId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
-          },
-        );
-        // Accepter { data: [...] } ou tableau direct
-        const list = Array.isArray(response)
-          ? response
-          : (Array.isArray(response?.data) ? response.data : []);
         return { success: true, data: list };
       } catch (error: unknown) {
         console.error("Erreur lors de la récupération des lectures:", error);

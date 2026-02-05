@@ -5,9 +5,12 @@
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <div class="flex flex-col bg-white dark:bg-gray-900">
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-lg font-semibold">
+      <div
+        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+      >
+        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             Mettre à jour ma progression
           </h3>
           <UButton
@@ -15,24 +18,26 @@
             variant="ghost"
             icon="i-ion-close"
             size="sm"
+            class="min-w-[44px] min-h-[44px] rounded-full -mr-1 shrink-0"
             :disabled="submitting"
+            aria-label="Fermer"
             @click="closeModal"
           />
         </div>
 
         <form
-          class="space-y-4 p-4"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
-          <div>
+          <div class="form-field">
             <label
               for="pages_lues"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              class="label-mobile"
             >
               <UIcon
-                name="i-ion-document-text"
-                class="w-4 h-4"
+                name="i-ion-document-text-outline"
+                class="w-4 h-4 shrink-0"
               />
               Nombre de pages lues
             </label>
@@ -44,12 +49,12 @@
               :max="totalPages || undefined"
               placeholder="Ex: 150"
               :disabled="submitting"
-              class="w-full"
+              class="w-full input-touch"
               autofocus
             />
             <p
               v-if="totalPages"
-              class="mt-1 text-xs text-gray-500 dark:text-gray-400"
+              class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
             >
               Sur {{ totalPages }} pages au total
             </p>
@@ -57,19 +62,20 @@
 
           <div
             v-if="submitError"
-            class="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
+            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
           >
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
             </p>
           </div>
 
-          <div class="flex gap-3 pt-2">
+          <div class="pt-2 sm:pt-4">
             <UButton
               type="submit"
               color="primary"
               size="lg"
               block
+              class="min-h-[52px] sm:min-h-0 text-base font-semibold rounded-xl"
               :loading="submitting"
             >
               Enregistrer
@@ -188,3 +194,26 @@ const closeModal = () => {
   }
 }
 </script>
+
+<style scoped>
+.form-field :deep(.label-mobile) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: currentColor;
+  margin-bottom: 0.375rem;
+}
+.form-field :deep(.input-touch) {
+  width: 100%;
+}
+@media (max-width: 639px) {
+  .form-field :deep(input[type="number"]) {
+    min-height: 48px;
+    font-size: 16px;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+}
+</style>

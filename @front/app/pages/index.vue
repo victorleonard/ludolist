@@ -325,6 +325,7 @@ definePageMeta({
 
 const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
+const { fetchReadingsForBook } = useBookReadings()
 const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 
 const pageLoading = ref(true)
@@ -408,7 +409,7 @@ async function fetchAllFamilyReadingsInProgress(): Promise<ReadingInProgressItem
   const books = familyStore.transformedBooks
   const list: ReadingInProgressItem[] = []
   for (const book of books) {
-    const result = await familyStore.fetchBookReadings(book.id)
+    const result = await fetchReadingsForBook(book.id)
     const raw = result.success && Array.isArray(result.data) ? result.data : []
     for (const r of raw) {
       const reading = r as Record<string, unknown>
