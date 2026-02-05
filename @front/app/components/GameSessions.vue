@@ -192,7 +192,8 @@
 
           <form
             id="session-form"
-            class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
+            class="space-y-4 overflow-y-auto flex-1 p-4"
+            style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
             @submit.prevent="handleAddSession"
           >
             <div>

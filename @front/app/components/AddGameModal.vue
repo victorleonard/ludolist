@@ -48,7 +48,8 @@
         <!-- Mode recherche BGG (par défaut pour l'ajout) -->
         <div
           v-if="!editingGame && !showManualForm"
-          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
+          class="space-y-4 overflow-y-auto flex-1 p-4"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
@@ -176,7 +177,8 @@
         <form
           v-else
           id="game-form"
-          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
+          class="space-y-4 overflow-y-auto flex-1 p-4"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->

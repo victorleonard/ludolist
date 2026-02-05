@@ -546,7 +546,7 @@ const handleMemberLogout = () => {
       @update:open="onMemberDrawerOpenChange"
     >
       <template #content>
-        <div class="flex flex-col p-4 pb-safe">
+        <div class="flex flex-col p-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
           <!-- Vue liste des membres -->
           <template v-if="!memberForCode">
             <div class="flex items-center justify-between mb-4">

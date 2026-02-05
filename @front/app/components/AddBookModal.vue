@@ -35,7 +35,8 @@
         <!-- Mode prévisualisation -->
         <div
           v-if="showPreview && previewBook"
-          class="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[70vh] p-4 pb-safe"
+          class="space-y-4 overflow-y-auto flex-1 min-h-0 max-h-[70vh] p-4"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="mb-4">
             <UButton
@@ -214,7 +215,8 @@
         <!-- Mode recherche Open Library (par défaut pour l'ajout) -->
         <div
           v-else-if="!editingBook && !showManualForm"
-          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
+          class="space-y-4 overflow-y-auto flex-1 p-4"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="flex items-center gap-2 mb-4">
             <UIcon
@@ -360,7 +362,8 @@
         <form
           v-else
           id="book-form"
-          class="space-y-4 overflow-y-auto flex-1 p-4 pb-safe"
+          class="space-y-4 overflow-y-auto flex-1 p-4"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->

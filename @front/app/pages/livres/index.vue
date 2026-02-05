@@ -161,6 +161,32 @@
                   </div>
                 </div>
 
+                <!-- Nombre de pages lues avec bouton de modification (membre connecté, uniquement lectures en cours) -->
+                <div
+                  v-if="memberStore.isMemberConnected && getBookStatus(book) === 'En cours'"
+                  class="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer"
+                  role="button"
+                  tabindex="0"
+                  @click.stop="openUpdatePagesModal(book)"
+                  @keyup.enter.stop="openUpdatePagesModal(book)"
+                >
+                  <div class="flex items-center gap-2 flex-1">
+                    <UIcon
+                      name="i-ion-document-text"
+                      class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                    />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                      <span class="font-semibold">{{ readingPagesLues(getDisplayReading(book)) || 0 }}</span>
+                      <span v-if="book.nombre_pages"> / {{ book.nombre_pages }}</span>
+                      pages
+                    </span>
+                  </div>
+                  <UIcon
+                    name="i-ion-create"
+                    class="w-4 h-4 text-primary-500 dark:text-primary-400 shrink-0"
+                  />
+                </div>
+
                 <!-- Progressions des autres membres (mode famille) -->
                 <div
                   v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
@@ -297,6 +323,32 @@
                       </div>
                     </div>
 
+                    <!-- Nombre de pages lues avec bouton de modification (mobile, membre connecté, uniquement lectures en cours) -->
+                    <div
+                      v-if="memberStore.isMemberConnected && getBookStatus(book) === 'En cours'"
+                      class="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer"
+                      role="button"
+                      tabindex="0"
+                      @click.stop="openUpdatePagesModal(book)"
+                      @keyup.enter.stop="openUpdatePagesModal(book)"
+                    >
+                      <div class="flex items-center gap-2 flex-1">
+                        <UIcon
+                          name="i-ion-document-text"
+                          class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                        />
+                        <span class="text-sm text-gray-700 dark:text-gray-300">
+                          <span class="font-semibold">{{ readingPagesLues(getDisplayReading(book)) || 0 }}</span>
+                          <span v-if="book.nombre_pages"> / {{ book.nombre_pages }}</span>
+                          pages
+                        </span>
+                      </div>
+                      <UIcon
+                        name="i-ion-create"
+                        class="w-4 h-4 text-primary-500 dark:text-primary-400 shrink-0"
+                      />
+                    </div>
+
                     <!-- Progressions des autres membres (mobile, mode famille) -->
                     <div
                       v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
@@ -341,6 +393,15 @@
         </template>
       </div>
     </div>
+
+    <!-- Modal de mise à jour des pages -->
+    <UpdatePagesModal
+      v-model="isUpdatePagesModalOpen"
+      :book-id="selectedBookForPages?.id || selectedBookForPages?.documentId || null"
+      :current-pages="selectedBookForPages ? readingPagesLues(getDisplayReading(selectedBookForPages)) : null"
+      :total-pages="selectedBookForPages?.nombre_pages || null"
+      @success="handlePagesUpdated"
+    />
   </UContainer>
 </template>
 
@@ -352,6 +413,7 @@ import { useMemberStore, type MemberLike } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import StarRating from '~/components/StarRating.vue'
 import MemberAvatar from '~/components/MemberAvatar.vue'
+import UpdatePagesModal from '~/components/UpdatePagesModal.vue'
 
 definePageMeta({
   layout: 'default',
@@ -362,6 +424,20 @@ const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
 const { openModal: openAddBookModal } = useAddBookModal()
 const { isLoading: loading } = storeToRefs(familyStore)
+
+// Modal de mise à jour des pages
+const isUpdatePagesModalOpen = ref(false)
+const selectedBookForPages = ref<TransformedBook | null>(null)
+
+const openUpdatePagesModal = (book: TransformedBook) => {
+  selectedBookForPages.value = book
+  isUpdatePagesModalOpen.value = true
+}
+
+const handlePagesUpdated = async () => {
+  await loadMemberReadings()
+  selectedBookForPages.value = null
+}
 
 /** Livres à afficher : tous les livres de la famille, triés par catégorie */
 const books = computed(() => {
