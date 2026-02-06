@@ -37,6 +37,12 @@
       "target": "api::book-reading.book-reading",
       "mappedBy": "member"
     },
+    "book_ratings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::book-rating.book-rating",
+      "mappedBy": "member"
+    },
     "books_added": {
       "type": "relation",
       "relation": "oneToMany",

@@ -101,6 +101,23 @@
                 <span class="text-[10px] sm:text-sm leading-tight">Lectures</span>
               </div>
             </button>
+            <button
+              :class="[
+                'flex-1 px-3 sm:px-4 py-3 sm:py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-h-[48px] sm:min-h-0',
+                activeTab === 'notes'
+                  ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              ]"
+              @click="setActiveTab('notes')"
+            >
+              <div class="flex flex-col items-center justify-center gap-1 sm:gap-2 sm:flex-row">
+                <UIcon
+                  name="i-ion-star"
+                  class="w-5 h-5 sm:w-4 sm:h-4"
+                />
+                <span class="text-[10px] sm:text-sm leading-tight">Notes</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -517,6 +534,20 @@
               </div>
             </div>
           </div>
+
+          <!-- Section Notes -->
+          <div
+            v-show="activeTab === 'notes'"
+            class="py-2 sm:py-6"
+          >
+            <MemberRatingsTab
+              :members="familyMembers"
+              :get-member-rating="getMemberRating"
+              :set-member-rating="setMemberRating"
+              :average-rating="averageRating"
+              :max-stars="10"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -753,6 +784,7 @@ import { useMemberStore } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import BookReadingModal from '~/components/BookReadingModal.vue'
 import MemberAvatar from '~/components/MemberAvatar.vue'
+import MemberRatingsTab from '~/components/MemberRatingsTab.vue'
 
 definePageMeta({
   layout: 'default',
@@ -990,24 +1022,26 @@ async function saveSelectedCover() {
   }
 }
 
-const activeTab = ref<'detail' | 'lectures'>(
-  route.query.tab === 'lectures' ? 'lectures' : 'detail'
+const activeTab = ref<'detail' | 'lectures' | 'notes'>(
+  route.query.tab === 'lectures' ? 'lectures' : route.query.tab === 'notes' ? 'notes' : 'detail'
 )
 
 watch(() => route.query.tab, (tab) => {
-  activeTab.value = tab === 'lectures' ? 'lectures' : 'detail'
+  activeTab.value = tab === 'lectures' ? 'lectures' : tab === 'notes' ? 'notes' : 'detail'
 })
 
 /** À l’ouverture de l’onglet Lectures : appel API dédié pour ce livre. */
 watch(activeTab, (tab) => {
   if (tab === 'lectures' && book.value) {
     fetchReadingsForLecturesTab()
+  } else if (tab === 'notes' && book.value) {
+    loadBookRatings()
   }
 })
 
-function setActiveTab(tab: 'detail' | 'lectures') {
+function setActiveTab(tab: 'detail' | 'lectures' | 'notes') {
   activeTab.value = tab
-  const query = tab === 'lectures' ? { tab: 'lectures' } : {}
+  const query = tab === 'lectures' ? { tab: 'lectures' } : tab === 'notes' ? { tab: 'notes' } : {}
   router.replace({ path: route.path, query })
 }
 
@@ -1287,6 +1321,54 @@ function readingAbandonne(reading: Record<string, unknown>): boolean {
   return false
 }
 
+// Récupérer les membres de la famille
+const familyMembers = computed(() => familyStore.familyMembers)
+
+// Notes du livre (chargées séparément)
+const bookRatings = ref<Array<{ id: number; rating: number; member: { id: number } }>>([])
+
+// Charger les notes du livre
+const loadBookRatings = async () => {
+  if (!book.value) return
+  const result = await familyStore.getBookRatings(book.value.documentId || book.value.id)
+  if (result.success && result.data) {
+    bookRatings.value = result.data
+  }
+}
+
+// Récupérer la note d'un membre pour ce livre (basée sur book-rating)
+const getMemberRating = (memberId: number): number => {
+  if (!bookRatings.value || bookRatings.value.length === 0) return 0
+  const rating = bookRatings.value.find(r => Number(r.member.id) === Number(memberId))
+  return rating ? rating.rating : 0
+}
+
+// Définir la note d'un membre pour ce livre (utilise book-rating, pas book-reading)
+const setMemberRating = async (memberId: number, rating: number) => {
+  if (!book.value) return
+  
+  const result = await familyStore.setBookRating(
+    book.value.documentId || book.value.id,
+    memberId,
+    rating
+  )
+  
+  if (result.success) {
+    // Recharger les notes du livre
+    await loadBookRatings()
+    // Recharger aussi la famille pour mettre à jour les données du livre
+    await familyStore.fetchFamily()
+  }
+}
+
+// Calculer la note moyenne
+const averageRating = computed(() => {
+  if (!bookRatings.value || bookRatings.value.length === 0) return 0
+  
+  const sum = bookRatings.value.reduce((acc, r) => acc + r.rating, 0)
+  return sum / bookRatings.value.length
+})
+
 /** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */
 function readingDurationDays(reading: Record<string, unknown>): number | null {
   const debut = readingDate(reading, 'date_debut')
@@ -1357,5 +1439,9 @@ const handleEditBook = () => {
 
 onMounted(async () => {
   await loadBook()
+  // Si l'onglet Notes est actif, charger les notes
+  if (activeTab.value === 'notes' && book.value) {
+    await loadBookRatings()
+  }
 })
 </script>

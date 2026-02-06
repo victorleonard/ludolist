@@ -144,113 +144,117 @@
           >
             <!-- Card avec image et infos synthétiques -->
             <UCard class="bg-white dark:bg-gray-800 overflow-hidden">
-              <div class="flex flex-col">
+              <div class="flex flex-col md:flex-row md:gap-6">
                 <!-- Image du jeu -->
-                <div class="w-full">
-                  <img
-                    v-if="jeu && jeu.image"
-                    :src="jeu.image"
-                    :alt="jeu.titre || 'Image du jeu'"
-                    class="w-full h-full object-contain p-2 sm:p-4"
-                  >
-                  <div
-                    v-else
-                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-8"
-                  >
-                    <UIcon
-                      name="i-ion-game-controller"
-                      class="w-20 h-20 sm:w-24 sm:h-24 mb-3 opacity-50"
-                    />
-                    <span class="text-sm text-center font-medium">Aucune image</span>
+                <div class="w-full md:w-1/3 md:max-w-xs md:flex-shrink-0">
+                  <div class="w-full aspect-square md:aspect-auto md:h-auto max-h-[400px] md:max-h-none flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg overflow-hidden">
+                    <img
+                      v-if="jeu && jeu.image"
+                      :src="jeu.image"
+                      :alt="jeu.titre || 'Image du jeu'"
+                      class="w-full h-full object-contain p-2 sm:p-4 md:p-6"
+                    >
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-8"
+                    >
+                      <UIcon
+                        name="i-ion-game-controller"
+                        class="w-20 h-20 sm:w-24 sm:h-24 mb-3 opacity-50"
+                      />
+                      <span class="text-sm text-center font-medium">Aucune image</span>
+                    </div>
                   </div>
                 </div>
 
                 <!-- Informations du jeu -->
-                <div class="space-y-3 mt-3">
-                  <div class="flex flex-wrap gap-2 sm:gap-3">
-                    <UBadge
-                      color="neutral"
-                      variant="subtle"
-                      size="md"
-                      class="px-3 py-1.5 text-gray-800 dark:text-gray-200"
-                    >
-                      <div class="flex items-center gap-1.5">
-                        <UIcon
-                          name="i-ion-person"
-                          class="w-4 h-4"
-                        />
-                        <span>{{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans</span>
-                      </div>
-                    </UBadge>
-                    <UBadge
-                      v-for="tag in jeu.tags"
-                      :key="tag"
-                      :color="tag.includes('joueurs') ? 'info' : tag.includes('min') ? 'warning' : 'primary'"
-                      variant="subtle"
-                      size="md"
-                      class="px-3 py-1.5"
-                      :class="tag.includes('joueurs') ? 'text-blue-800 dark:text-blue-200' : tag.includes('min') ? 'text-orange-800 dark:text-orange-200' : 'text-primary-800 dark:text-primary-200'"
-                    >
-                      <div class="flex items-center gap-1.5">
-                        <UIcon
-                          v-if="tag.includes('joueurs')"
-                          name="i-ion-people"
-                          class="w-4 h-4"
-                        />
-                        <UIcon
-                          v-else-if="tag.includes('min')"
-                          name="i-ion-time"
-                          class="w-4 h-4"
-                        />
-                        <UIcon
-                          v-else
-                          name="i-ion-information-circle"
-                          class="w-4 h-4"
-                        />
-                        <span>{{ tag }}</span>
-                      </div>
-                    </UBadge>
+                <div class="space-y-3 mt-3 md:mt-0 md:flex-1 md:flex md:flex-col md:justify-between">
+                  <div class="space-y-3">
+                    <div class="flex flex-wrap gap-2 sm:gap-3">
+                      <UBadge
+                        color="neutral"
+                        variant="subtle"
+                        size="md"
+                        class="px-3 py-1.5 text-gray-800 dark:text-gray-200"
+                      >
+                        <div class="flex items-center gap-1.5">
+                          <UIcon
+                            name="i-ion-person"
+                            class="w-4 h-4"
+                          />
+                          <span>{{ jeu.age_min }}{{ jeu.age_max ? `-${jeu.age_max}` : '+' }} ans</span>
+                        </div>
+                      </UBadge>
+                      <UBadge
+                        v-for="tag in jeu.tags"
+                        :key="tag"
+                        :color="tag.includes('joueurs') ? 'info' : tag.includes('min') ? 'warning' : 'primary'"
+                        variant="subtle"
+                        size="md"
+                        class="px-3 py-1.5"
+                        :class="tag.includes('joueurs') ? 'text-blue-800 dark:text-blue-200' : tag.includes('min') ? 'text-orange-800 dark:text-orange-200' : 'text-primary-800 dark:text-primary-200'"
+                      >
+                        <div class="flex items-center gap-1.5">
+                          <UIcon
+                            v-if="tag.includes('joueurs')"
+                            name="i-ion-people"
+                            class="w-4 h-4"
+                          />
+                          <UIcon
+                            v-else-if="tag.includes('min')"
+                            name="i-ion-time"
+                            class="w-4 h-4"
+                          />
+                          <UIcon
+                            v-else
+                            name="i-ion-information-circle"
+                            class="w-4 h-4"
+                          />
+                          <span>{{ tag }}</span>
+                        </div>
+                      </UBadge>
+                    </div>
+
+                    <!-- Propriétaire -->
+                    <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                      <UIcon
+                        name="i-ion-person-circle"
+                        class="w-4 h-4 text-gray-500"
+                      />
+                      <span class="font-medium">Propriétaire :</span>
+                      <span v-if="jeu?.owner">{{ jeu.owner.username }}</span>
+                      <span
+                        v-else
+                        class="text-gray-400 italic"
+                      >
+                        Non défini
+                      </span>
+                      <UButton
+                        v-if="!memberStore.isMemberConnected"
+                        color="primary"
+                        variant="ghost"
+                        size="xs"
+                        icon="i-ion-swap-horizontal"
+                        @click="openChangeOwnerModal"
+                      >
+                        Changer
+                      </UButton>
+                    </div>
                   </div>
 
-                  <!-- Propriétaire -->
-                  <div class="flex items-center gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                    <UIcon
-                      name="i-ion-person-circle"
-                      class="w-4 h-4 text-gray-500"
-                    />
-                    <span class="font-medium">Propriétaire :</span>
-                    <span v-if="jeu?.owner">{{ jeu.owner.username }}</span>
-                    <span
-                      v-else
-                      class="text-gray-400 italic"
-                    >
-                      Non défini
-                    </span>
+                  <!-- Bouton Modifier en bas -->
+                  <div class="pt-4 md:pt-6">
                     <UButton
-                      v-if="!memberStore.isMemberConnected"
                       color="primary"
-                      variant="ghost"
-                      size="xs"
-                      icon="i-ion-swap-horizontal"
-                      @click="openChangeOwnerModal"
+                      variant="outline"
+                      icon="i-ion-create-outline"
+                      size="md"
+                      class="w-full min-h-[44px] sm:min-h-0 md:w-auto md:min-w-[200px]"
+                      @click="openEditModal"
                     >
-                      Changer
+                      Modifier les détails
                     </UButton>
                   </div>
-                </div>
-
-                <!-- Bouton Modifier en bas -->
-                <div class="pt-4">
-                  <UButton
-                    color="primary"
-                    variant="outline"
-                    icon="i-ion-create-outline"
-                    size="md"
-                    class="w-full min-h-[44px] sm:min-h-0"
-                    @click="openEditModal"
-                  >
-                    Modifier les détails
-                  </UButton>
                 </div>
               </div>
             </UCard>
@@ -290,16 +294,24 @@
             <!-- Podium des top 3 -->
             <UCard
               v-if="top3Winners.length > 0"
-              class="bg-white dark:bg-gray-800 mb-6 overflow-hidden min-h-[350px] flex flex-col"
+              class="bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-yellow-900/20 mb-6 overflow-hidden min-h-[350px] flex flex-col relative"
             >
-              <div class="flex items-end justify-center gap-3 px-4 pt-6 pb-4 mt-auto">
+              <!-- Effets de confettis décoratifs -->
+              <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                <div class="absolute top-10 left-10 w-2 h-2 bg-yellow-400 rounded-full animate-pulse opacity-60" />
+                <div class="absolute top-20 right-20 w-2 h-2 bg-pink-400 rounded-full animate-pulse opacity-60" style="animation-delay: 0.5s;" />
+                <div class="absolute bottom-20 left-20 w-2 h-2 bg-purple-400 rounded-full animate-pulse opacity-60" style="animation-delay: 1s;" />
+                <div class="absolute bottom-10 right-10 w-2 h-2 bg-blue-400 rounded-full animate-pulse opacity-60" style="animation-delay: 1.5s;" />
+              </div>
+
+              <div class="flex items-end justify-center gap-3 px-4 pt-6 pb-4 mt-auto relative z-10">
                 <!-- 2ème place -->
                 <div
                   v-if="top3Winners[1]"
                   class="flex flex-col items-center flex-1 max-w-[120px]"
                 >
                   <div
-                    class="mb-3"
+                    class="mb-3 relative"
                     style="min-height: 80px;"
                   >
                     <Transition
@@ -308,20 +320,23 @@
                     >
                       <div
                         v-if="showSecond"
+                        class="relative"
                       >
+                        <div class="absolute -inset-2 bg-gradient-to-br from-slate-300 to-slate-500 rounded-full blur-md opacity-50 animate-pulse" />
                         <MemberAvatar
                           :member="top3Winners[1].member"
                           size="xl"
+                          class="relative z-10 ring-4 ring-slate-300 dark:ring-slate-600"
                         />
                       </div>
                     </Transition>
                   </div>
                   <div
-                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center relative"
+                    class="w-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 dark:from-slate-700 dark:via-slate-600 dark:to-slate-500 rounded-t-lg p-3 text-center relative shadow-lg border-2 border-slate-400 dark:border-slate-500"
                     style="height: 90px;"
                   >
-                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span class="text-2xl">🥈</span>
+                    <div class="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                      <span class="text-3xl animate-bounce" style="animation-duration: 2s;">🥈</span>
                     </div>
                     <Transition
                       name="fade"
@@ -331,11 +346,11 @@
                         v-if="showSecond"
                         class="flex flex-col items-center justify-center h-full pt-2"
                       >
-                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">2ème</span>
-                        <span class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate w-full">
+                        <span class="text-xs font-bold text-slate-800 dark:text-slate-100 mb-1">2ème</span>
+                        <span class="text-xs font-bold text-slate-900 dark:text-slate-50 truncate w-full">
                           {{ top3Winners[1].member.username }}
                         </span>
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <span class="text-xs text-slate-700 dark:text-slate-200 mt-1 font-semibold">
                           {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
                         </span>
                       </div>
@@ -349,7 +364,7 @@
                   class="flex flex-col items-center flex-1 max-w-[140px]"
                 >
                   <div
-                    class="mb-3"
+                    class="mb-3 relative"
                     style="min-height: 100px;"
                   >
                     <Transition
@@ -358,22 +373,43 @@
                     >
                       <div
                         v-if="showFirst"
+                        class="relative"
                       >
+                        <!-- Effet de couronne/auréole -->
+                        <div class="absolute -inset-3 bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 rounded-full blur-lg opacity-70 animate-pulse" />
+                        <div class="absolute -inset-1 bg-gradient-to-br from-yellow-200 to-yellow-300 rounded-full opacity-50" />
                         <MemberAvatar
                           :member="top3Winners[0].member"
                           size="2xl"
+                          class="relative z-10 ring-4 ring-yellow-400 dark:ring-yellow-500 shadow-2xl"
                         />
+                        <!-- Étoiles autour du gagnant -->
+                        <div class="absolute -top-2 -left-2 text-yellow-400 animate-ping" style="animation-duration: 2s;">
+                          <UIcon name="i-ion-star" class="w-4 h-4" />
+                        </div>
+                        <div class="absolute -top-2 -right-2 text-yellow-400 animate-ping" style="animation-duration: 2.5s; animation-delay: 0.5s;">
+                          <UIcon name="i-ion-star" class="w-4 h-4" />
+                        </div>
+                        <div class="absolute -bottom-2 -left-2 text-yellow-400 animate-ping" style="animation-duration: 2.2s; animation-delay: 1s;">
+                          <UIcon name="i-ion-star" class="w-4 h-4" />
+                        </div>
+                        <div class="absolute -bottom-2 -right-2 text-yellow-400 animate-ping" style="animation-duration: 2.3s; animation-delay: 1.5s;">
+                          <UIcon name="i-ion-star" class="w-4 h-4" />
+                        </div>
                       </div>
                     </Transition>
                   </div>
                   <div
-                    class="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-lg p-4 text-center border-2 border-yellow-300 dark:border-yellow-700 relative"
+                    class="w-full bg-gradient-to-br from-yellow-300 via-yellow-400 to-yellow-500 dark:from-yellow-600 dark:via-yellow-700 dark:to-yellow-800 rounded-t-lg p-4 text-center border-4 border-yellow-400 dark:border-yellow-500 relative shadow-2xl"
                     style="height: 120px;"
                   >
-                    <div class="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                    <!-- Effet de brillance animé -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer rounded-t-lg" />
+                    <div class="absolute -top-6 left-1/2 transform -translate-x-1/2">
                       <UIcon
                         name="i-ion-trophy"
-                        class="w-6 h-6 text-yellow-500"
+                        class="w-8 h-8 text-yellow-600 dark:text-yellow-300 animate-bounce"
+                        style="animation-duration: 2s; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));"
                       />
                     </div>
                     <Transition
@@ -382,13 +418,13 @@
                     >
                       <div
                         v-if="showFirst"
-                        class="flex flex-col items-center justify-center h-full pt-2"
+                        class="flex flex-col items-center justify-center h-full pt-2 relative z-10"
                       >
-                        <span class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">1er</span>
-                        <span class="text-base font-semibold text-yellow-900 dark:text-yellow-100 truncate w-full">
+                        <span class="text-sm font-bold text-yellow-900 dark:text-yellow-50 mb-1 drop-shadow-sm">1er</span>
+                        <span class="text-base font-bold text-yellow-950 dark:text-yellow-50 truncate w-full drop-shadow-sm">
                           {{ top3Winners[0].member.username }}
                         </span>
-                        <span class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                        <span class="text-xs text-yellow-800 dark:text-yellow-100 mt-1 font-semibold drop-shadow-sm">
                           {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
                         </span>
                       </div>
@@ -402,7 +438,7 @@
                   class="flex flex-col items-center flex-1 max-w-[120px]"
                 >
                   <div
-                    class="mb-3"
+                    class="mb-3 relative"
                     style="min-height: 80px;"
                   >
                     <Transition
@@ -411,20 +447,23 @@
                     >
                       <div
                         v-if="showThird"
+                        class="relative"
                       >
+                        <div class="absolute -inset-2 bg-gradient-to-br from-amber-300 to-amber-600 rounded-full blur-md opacity-50 animate-pulse" />
                         <MemberAvatar
                           :member="top3Winners[2].member"
                           size="xl"
+                          class="relative z-10 ring-4 ring-amber-400 dark:ring-amber-600"
                         />
                       </div>
                     </Transition>
                   </div>
                   <div
-                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center relative"
+                    class="w-full bg-gradient-to-br from-amber-200 via-amber-300 to-amber-400 dark:from-amber-700 dark:via-amber-800 dark:to-amber-900 rounded-t-lg p-3 text-center relative shadow-lg border-2 border-amber-400 dark:border-amber-600"
                     style="height: 80px;"
                   >
                     <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <span class="text-2xl">🥉</span>
+                      <span class="text-3xl animate-bounce" style="animation-duration: 2.2s;">🥉</span>
                     </div>
                     <Transition
                       name="fade"
@@ -434,11 +473,11 @@
                         v-if="showThird"
                         class="flex flex-col items-center justify-center h-full pt-2"
                       >
-                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">3ème</span>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate w-full leading-tight">
+                        <span class="text-xs font-bold text-amber-900 dark:text-amber-50 mb-0.5">3ème</span>
+                        <span class="text-sm font-bold text-amber-950 dark:text-amber-50 truncate w-full leading-tight">
                           {{ top3Winners[2].member.username }}
                         </span>
-                        <span class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                        <span class="text-xs text-amber-800 dark:text-amber-100 mt-0.5 font-semibold">
                           {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
                         </span>
                       </div>
@@ -502,7 +541,7 @@
             <p class="text-sm text-gray-600 dark:text-gray-400">
               Sélectionnez le nouveau propriétaire de ce jeu :
             </p>
-            
+
             <div class="space-y-2">
               <!-- Option Famille (pas de propriétaire) -->
               <button
@@ -524,7 +563,7 @@
                   class="w-5 h-5 text-primary-500 ml-auto"
                 />
               </button>
-              
+
               <!-- Membres individuels -->
               <button
                 v-for="member in familyStore.familyMembers"
@@ -689,13 +728,13 @@ const startPodiumAnimation = () => {
     if (top3Winners.value[2]) {
       showThird.value = true
     }
-    
+
     // Animer le 2ème après un délai
     setTimeout(() => {
       if (top3Winners.value[1]) {
         showSecond.value = true
       }
-      
+
       // Animer le 1er après un autre délai
       setTimeout(() => {
         if (top3Winners.value[0]) {
@@ -825,17 +864,17 @@ const changeOwner = async () => {
 <style scoped>
 /* Animation slide-up pour les avatars */
 .slide-up-enter-active {
-  transition: all 1.5s ease-out;
+  transition: all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .slide-up-enter-from {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(50px) scale(0.8) rotate(-5deg);
 }
 
 .slide-up-enter-to {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1) rotate(0deg);
 }
 
 /* Animation fade pour les informations */
@@ -849,5 +888,19 @@ const changeOwner = async () => {
 
 .fade-enter-to {
   opacity: 1;
+}
+
+/* Animation de brillance pour le podium */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
 }
 </style>

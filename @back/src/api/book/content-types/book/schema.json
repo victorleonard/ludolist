@@ -64,6 +64,12 @@
       "target": "api::book-reading.book-reading",
       "mappedBy": "book"
     },
+    "ratings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::book-rating.book-rating",
+      "mappedBy": "book"
+    },
     "added_by": {
       "type": "relation",
       "relation": "manyToOne",

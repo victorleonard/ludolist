@@ -430,6 +430,46 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiBookRatingBookRating extends Struct.CollectionTypeSchema {
+  collectionName: 'book_ratings';
+  info: {
+    description: 'Notes des membres sur les livres';
+    displayName: 'Book Rating';
+    pluralName: 'book-ratings';
+    singularName: 'book-rating';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    book: Schema.Attribute.Relation<'manyToOne', 'api::book.book'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-rating.book-rating'
+    > &
+      Schema.Attribute.Private;
+    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
+    publishedAt: Schema.Attribute.DateTime;
+    rating: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 10;
+          min: 1;
+        },
+        number
+      >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiBookReadingBookReading extends Struct.CollectionTypeSchema {
   collectionName: 'book_readings';
   info: {
@@ -513,6 +553,10 @@ export interface ApiBookBook extends Struct.CollectionTypeSchema {
     open_library_key: Schema.Attribute.String;
     owner: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     publishedAt: Schema.Attribute.DateTime;
+    ratings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-rating.book-rating'
+    >;
     sujets: Schema.Attribute.JSON;
     titre: Schema.Attribute.String & Schema.Attribute.Required;
     updatedAt: Schema.Attribute.DateTime;
@@ -727,6 +771,10 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    book_ratings: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::book-rating.book-rating'
+    >;
     book_readings: Schema.Attribute.Relation<
       'oneToMany',
       'api::book-reading.book-reading'
@@ -1346,6 +1394,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::book-rating.book-rating': ApiBookRatingBookRating;
       'api::book-reading.book-reading': ApiBookReadingBookReading;
       'api::book.book': ApiBookBook;
       'api::dish-rating.dish-rating': ApiDishRatingDishRating;

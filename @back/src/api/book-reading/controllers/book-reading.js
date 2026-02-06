@@ -95,12 +95,22 @@ module.exports = createCoreController('api::book-reading.book-reading', ({ strap
         limit: 1
       });
 
+      // Préserver la note existante si elle n'est pas fournie dans la requête
+      let noteValue = null;
+      if (note !== undefined && note !== null) {
+        // Une nouvelle note est fournie, l'utiliser
+        noteValue = parseFloat(note);
+      } else if (existingReading && existingReading.length > 0 && existingReading[0].note != null) {
+        // Aucune note fournie mais une lecture existe avec une note, la préserver
+        noteValue = existingReading[0].note;
+      }
+
       const readingData = {
         member: memberId,
         book: bookIdForRelation,
         date_debut: date_debut || null,
         date_fin: date_fin || null,
-        note: note !== undefined && note !== null ? parseFloat(note) : null,
+        note: noteValue,
         pages_lues: pages_lues !== undefined && pages_lues !== null ? parseInt(pages_lues, 10) : null,
         abandonne: abandonne !== undefined ? Boolean(abandonne) : false
       };

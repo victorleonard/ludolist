@@ -18,6 +18,17 @@ export interface Rating {
   };
 }
 
+export interface BookRating {
+  id: number;
+  rating: number;
+  member: {
+    id: number;
+  };
+  book: {
+    id: number;
+  };
+}
+
 export interface DishRating {
   id: number;
   rating: number;
@@ -133,6 +144,7 @@ interface StrapiBook {
   sujets?: any;
   open_library_key?: string | null;
   book_readings?: BookReading[];
+  ratings?: BookRating[];
   added_by?: { id: number; username?: string } | null;
   owner?: { id: number; username?: string } | null;
   publishedAt?: string;
@@ -171,6 +183,7 @@ export interface TransformedBook {
   sujets?: any;
   open_library_key?: string | null;
   book_readings?: BookReading[];
+  ratings?: BookRating[];
   added_by?: { id: number; username?: string } | null;
   owner?: { id: number; username?: string } | null;
   createdAt: string;
@@ -400,6 +413,7 @@ export const useFamilyStore = defineStore("family", {
             sujets: strapiBook.sujets || null,
             open_library_key: strapiBook.open_library_key || null,
             book_readings: strapiBook.book_readings || [],
+            ratings: strapiBook.ratings || [],
             added_by: strapiBook.added_by || null,
             owner: strapiBook.owner || null,
             createdAt: strapiBook.createdAt || new Date().toISOString(),
@@ -761,6 +775,97 @@ export const useFamilyStore = defineStore("family", {
           err?.data?.error?.message ||
           err?.message ||
           "Erreur lors de l'enregistrement";
+
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+    },
+
+    // Ajouter ou mettre à jour une note de livre de manière sécurisée
+    async setBookRating(bookId: number | string, memberId: number, rating: number) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token || !this.family) {
+        return { success: false, error: "Aucune famille trouvée" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        // Utiliser l'endpoint sécurisé qui gère à la fois la création et la mise à jour
+        const response = await $fetch<{ data: BookRating | null }>(
+          `${config.public.apiUrl}/api/book-ratings/set`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+            body: {
+              bookId,
+              memberId,
+              rating,
+            },
+          },
+        );
+
+        // Recharger la famille pour avoir les notes à jour
+        await this.fetchFamily();
+
+        return { success: true, data: response.data || null };
+      } catch (error: unknown) {
+        console.error("Erreur lors de l'enregistrement de la note:", error);
+
+        // Gestion des erreurs spécifiques
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de l'enregistrement";
+
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+    },
+
+    // Récupérer les notes d'un livre
+    async getBookRatings(bookId: number | string) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        const response = await $fetch<{ data: BookRating[] }>(
+          `${config.public.apiUrl}/api/book-ratings/book/${bookId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          },
+        );
+
+        return { success: true, data: response.data || [] };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la récupération des notes:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de la récupération des notes";
 
         return {
           success: false,

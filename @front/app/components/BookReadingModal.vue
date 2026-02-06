@@ -139,33 +139,6 @@
 
           <div class="form-field">
             <label
-              for="note"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-star"
-                class="w-4 h-4 shrink-0"
-              />
-              Note (sur 10)
-            </label>
-            <UInput
-              id="note"
-              v-model.number="state.note"
-              type="number"
-              min="0"
-              max="10"
-              step="0.5"
-              placeholder="Ex: 8.5"
-              :disabled="submitting"
-              class="w-full input-touch"
-            />
-            <p class="mt-1.5 sm:mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Notez ce livre de 0 à 10
-            </p>
-          </div>
-
-          <div class="form-field">
-            <label
               for="pages_lues"
               class="label-mobile"
             >
@@ -316,7 +289,6 @@ const state = reactive({
   memberId: null as number | null,
   date_debut: '',
   date_fin: '',
-  note: null as number | null,
   pages_lues: null as number | null,
   abandonne: false
 })
@@ -330,7 +302,6 @@ const loadReadingData = () => {
     state.memberId = props.reading.member.id
     state.date_debut = props.reading.date_debut || ''
     state.date_fin = props.reading.date_fin || ''
-    state.note = props.reading.note || null
     state.pages_lues = props.reading.pages_lues || null
     state.abandonne = props.reading.abandonne || false
   }
@@ -340,7 +311,6 @@ const resetForm = () => {
   state.memberId = null
   state.date_debut = ''
   state.date_fin = ''
-  state.note = null
   state.pages_lues = null
   state.abandonne = false
   submitError.value = null
@@ -383,9 +353,9 @@ async function handleSubmit() {
       {
         date_debut: state.date_debut || null,
         date_fin: state.date_fin || null,
-        note: state.note || null,
         pages_lues: state.pages_lues || null,
         abandonne: state.abandonne
+        // Note : la note n'est pas modifiée ici pour éviter les doublons avec l'onglet Notes
       }
     )
 

@@ -70,7 +70,7 @@
                 <span>{{ group.title }}</span>
                 <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.books.length }})</span>
               </h2>
-              
+
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <UCard
                   v-for="book in group.books"
@@ -78,233 +78,81 @@
                   class="cursor-pointer hover:shadow-lg transition-shadow duration-200 bg-white dark:bg-gray-800"
                   @click="navigateTo(`/livres/${book.documentId || book.id}`)"
                 >
-              <template #header>
-                <div class="flex items-start justify-between gap-2">
-                  <h2 class="text-lg font-bold break-words min-w-0 flex-1 line-clamp-2">
-                    {{ book.titre }}
-                  </h2>
-                </div>
-              </template>
+                  <template #header>
+                    <div class="flex items-start justify-between gap-2">
+                      <h2 class="text-lg font-bold break-words min-w-0 flex-1 line-clamp-2">
+                        {{ book.titre }}
+                      </h2>
+                    </div>
+                  </template>
 
-              <div class="flex flex-col gap-2.5">
-                <div class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                  <img
-                    v-if="book.image"
-                    :src="book.image"
-                    :alt="book.titre"
-                    class="w-full h-full object-contain"
-                  >
-                  <div
-                    v-else
-                    class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
-                  >
-                    <UIcon
-                      name="i-ion-book"
-                      class="w-16 h-16 mb-2"
-                    />
-                    <span class="text-xs text-center">Aucune image</span>
-                  </div>
-                </div>
-
-                <div
-                  v-if="book.auteur"
-                  class="text-sm text-gray-600 dark:text-gray-400"
-                >
-                  <UIcon
-                    name="i-ion-person"
-                    class="w-3 h-3 inline mr-1"
-                  />
-                  {{ book.auteur }}
-                </div>
-
-                <!-- Propriétaire -->
-                <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                  <UIcon
-                    :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
-                    class="w-3 h-3"
-                  />
-                  <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
-                </div>
-
-                <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
-                <div
-                  v-if="showMemberReadingTags(book) && getBookStatus(book)"
-                  class="flex flex-wrap items-center gap-2"
-                >
-                  <UBadge
-                    :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
-                    :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
-                    size="xs"
-                    :class="getBookStatus(book) === 'Lu' ? 'text-green-800 dark:text-green-200' : getBookStatus(book) === 'En cours' ? 'text-orange-800 dark:text-orange-200' : getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : 'text-gray-800 dark:text-gray-200'"
-                  >
-                    {{ getBookStatus(book) }}
-                  </UBadge>
-                </div>
-
-                <!-- Barre de progression (membre connecté) -->
-                <div
-                  v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
-                >
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Progression
-                    </span>
-                    <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
-                      {{ Math.round((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100) }}%
-                    </span>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div
-                      class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
-                      :style="{ width: `${Math.min((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100, 100)}%` }"
-                    />
-                  </div>
-                </div>
-
-                <!-- Nombre de pages lues avec bouton de modification (membre connecté, uniquement lectures en cours) -->
-                <div
-                  v-if="memberStore.isMemberConnected && getBookStatus(book) === 'En cours'"
-                  class="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer"
-                  role="button"
-                  tabindex="0"
-                  @click.stop="openUpdatePagesModal(book)"
-                  @keyup.enter.stop="openUpdatePagesModal(book)"
-                >
-                  <div class="flex items-center gap-2 flex-1">
-                    <UIcon
-                      name="i-ion-document-text"
-                      class="w-4 h-4 text-gray-500 dark:text-gray-400"
-                    />
-                    <span class="text-sm text-gray-700 dark:text-gray-300">
-                      <span class="font-semibold">{{ readingPagesLues(getDisplayReading(book)) || 0 }}</span>
-                      <span v-if="book.nombre_pages"> / {{ book.nombre_pages }}</span>
-                      pages
-                    </span>
-                  </div>
-                  <UIcon
-                    name="i-ion-create"
-                    class="w-4 h-4 text-primary-500 dark:text-primary-400 shrink-0"
-                  />
-                </div>
-
-                <!-- Progressions des autres membres (mode famille) -->
-                <div
-                  v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
-                  class="space-y-2"
-                >
-                  <div
-                    v-for="reading in getAllBookReadings(book).slice(0, 3)"
-                    :key="(reading as BookReading).id || Math.random()"
-                  >
-                    <div
-                      v-if="getReadingMember(reading) && readingPagesLues(reading) != null && book.nombre_pages && book.nombre_pages > 0"
-                      class="space-y-0.5"
-                    >
-                      <div class="flex items-center gap-1.5">
-                        <MemberAvatar
-                          :member="getReadingMember(reading)!"
-                          size="xs"
+                  <div class="flex flex-col gap-2.5">
+                    <div class="w-full h-64 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                      <img
+                        v-if="book.image"
+                        :src="book.image"
+                        :alt="book.titre"
+                        class="w-full h-full object-contain"
+                      >
+                      <div
+                        v-else
+                        class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-4"
+                      >
+                        <UIcon
+                          name="i-ion-book"
+                          class="w-16 h-16 mb-2"
                         />
-                        <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">
-                          {{ getReadingMember(reading)!.username }}
-                        </span>
-                        <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
-                          {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
-                        </span>
-                      </div>
-                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                        <div
-                          class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
-                          :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
-                        />
+                        <span class="text-xs text-center">Aucune image</span>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </UCard>
-              </div>
-            </div>
-          </div>
 
-          <!-- Vue mobile : liste avec UPageList -->
-          <div class="md:hidden space-y-6">
-            <div
-              v-for="(group, groupIndex) in groupedBooks"
-              :key="'group-mobile-' + groupIndex"
-            >
-              <!-- Titre de section -->
-              <h2
-                v-if="group.title"
-                class="text-base font-bold mb-3 flex items-center gap-2"
-              >
-                <span>{{ group.title }}</span>
-                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ group.books.length }})</span>
-              </h2>
-              
-              <UPageList class="space-y-4">
-                <UPageCard
-                  v-for="book in group.books"
-                  :key="book.id"
-                  variant="ghost"
-                  class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer [&_[data-slot=body]]:w-full"
-                  @click="navigateTo(`/livres/${book.documentId || book.id}`)"
-                >
-              <template #body>
-                <div class="flex items-start gap-4 w-full">
-                  <div class="w-16 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0">
-                    <img
-                      v-if="book.image"
-                      :src="book.image"
-                      :alt="book.titre"
-                      class="w-full h-full object-cover"
-                    >
                     <div
-                      v-else
-                      class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
+                      v-if="book.auteur"
+                      class="text-sm text-gray-600 dark:text-gray-400"
                     >
                       <UIcon
-                        name="i-ion-book"
-                        class="w-8 h-8"
+                        name="i-ion-person"
+                        class="w-3 h-3 inline mr-1"
                       />
-                    </div>
-                  </div>
-                  <div class="flex-1 min-w-0 flex flex-col gap-2">
-                    <div>
-                      <h3 class="text-base font-semibold break-words line-clamp-2 mb-1">
-                        {{ book.titre }}
-                      </h3>
-                      <p
-                        v-if="book.auteur"
-                        class="text-sm text-gray-600 dark:text-gray-400"
-                      >
-                        {{ book.auteur }}
-                      </p>
-                      <!-- Propriétaire -->
-                      <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-2">
-                        <UIcon
-                          :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
-                          class="w-3 h-3"
-                        />
-                        <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
-                      </p>
-                      <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
-                      <div
-                        v-if="showMemberReadingTags(book) && getBookStatus(book)"
-                        class="flex flex-wrap items-center gap-2"
-                      >
-                        <UBadge
-                          :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
-                          :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
-                          size="xs"
-                          :class="getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : ''"
-                        >
-                          {{ getBookStatus(book) }}
-                        </UBadge>
-                      </div>
+                      {{ book.auteur }}
                     </div>
 
-                    <!-- Barre de progression (mobile, membre connecté) -->
+                    <!-- Propriétaire -->
+                    <div class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                      <UIcon
+                        :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
+                        class="w-3 h-3"
+                      />
+                      <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
+                    </div>
+
+                    <!-- Note moyenne -->
+                    <div
+                      v-if="getAverageRating(book) > 0"
+                      class="flex items-center gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg"
+                    >
+                      <RatingDisplay10
+                        :model-value="getAverageRating(book)"
+                        readonly
+                      />
+                    </div>
+
+                    <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
+                    <div
+                      v-if="showMemberReadingTags(book) && getBookStatus(book)"
+                      class="flex flex-wrap items-center gap-2"
+                    >
+                      <UBadge
+                        :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
+                        :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
+                        size="xs"
+                        :class="getBookStatus(book) === 'Lu' ? 'text-green-800 dark:text-green-200' : getBookStatus(book) === 'En cours' ? 'text-orange-800 dark:text-orange-200' : getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : 'text-gray-800 dark:text-gray-200'"
+                      >
+                        {{ getBookStatus(book) }}
+                      </UBadge>
+                    </div>
+
+                    <!-- Barre de progression (membre connecté) -->
                     <div
                       v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
                     >
@@ -316,7 +164,7 @@
                           {{ Math.round((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100) }}%
                         </span>
                       </div>
-                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div
                           class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
                           :style="{ width: `${Math.min((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100, 100)}%` }"
@@ -324,7 +172,7 @@
                       </div>
                     </div>
 
-                    <!-- Nombre de pages lues avec bouton de modification (mobile, membre connecté, uniquement lectures en cours) -->
+                    <!-- Nombre de pages lues avec bouton de modification (membre connecté, uniquement lectures en cours) -->
                     <div
                       v-if="memberStore.isMemberConnected && getBookStatus(book) === 'En cours'"
                       class="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer"
@@ -350,20 +198,20 @@
                       />
                     </div>
 
-                    <!-- Progressions des autres membres (mobile, mode famille) -->
+                    <!-- Progressions des autres membres (mode famille) -->
                     <div
                       v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
                       class="space-y-2"
                     >
                       <div
-                        v-for="reading in getAllBookReadings(book).slice(0, 2)"
+                        v-for="reading in getAllBookReadings(book).slice(0, 3)"
                         :key="(reading as BookReading).id || Math.random()"
                       >
                         <div
                           v-if="getReadingMember(reading) && readingPagesLues(reading) != null && book.nombre_pages && book.nombre_pages > 0"
                           class="space-y-0.5"
                         >
-                          <div class="flex items-center gap-1.5 mb-0.5">
+                          <div class="flex items-center gap-1.5">
                             <MemberAvatar
                               :member="getReadingMember(reading)!"
                               size="xs"
@@ -385,9 +233,183 @@
                       </div>
                     </div>
                   </div>
-                </div>
-              </template>
-            </UPageCard>
+                </UCard>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vue mobile : liste avec UPageList -->
+          <div class="md:hidden space-y-6">
+            <div
+              v-for="(group, groupIndex) in groupedBooks"
+              :key="'group-mobile-' + groupIndex"
+            >
+              <!-- Titre de section -->
+              <h2
+                v-if="group.title"
+                class="text-base font-bold mb-3 flex items-center gap-2"
+              >
+                <span>{{ group.title }}</span>
+                <span class="text-xs font-normal text-gray-500 dark:text-gray-400">({{ group.books.length }})</span>
+              </h2>
+
+              <UPageList class="space-y-4">
+                <UPageCard
+                  v-for="book in group.books"
+                  :key="book.id"
+                  variant="ghost"
+                  class="border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer [&_[data-slot=body]]:w-full"
+                  @click="navigateTo(`/livres/${book.documentId || book.id}`)"
+                >
+                  <template #body>
+                    <div class="flex items-start gap-4 w-full">
+                      <div class="w-16 h-24 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0">
+                        <img
+                          v-if="book.image"
+                          :src="book.image"
+                          :alt="book.titre"
+                          class="w-full h-full object-cover"
+                        >
+                        <div
+                          v-else
+                          class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-2"
+                        >
+                          <UIcon
+                            name="i-ion-book"
+                            class="w-8 h-8"
+                          />
+                        </div>
+                      </div>
+                      <div class="flex-1 min-w-0 flex flex-col gap-2">
+                        <div>
+                          <h3 class="text-base font-semibold break-words line-clamp-2 mb-1">
+                            {{ book.titre }}
+                          </h3>
+                          <p
+                            v-if="book.auteur"
+                            class="text-sm text-gray-600 dark:text-gray-400"
+                          >
+                            {{ book.auteur }}
+                          </p>
+                          <!-- Propriétaire -->
+                          <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-2">
+                            <UIcon
+                              :name="book.owner ? 'i-ion-person-circle' : 'i-ion-people'"
+                              class="w-3 h-3"
+                            />
+                            <span>{{ book.owner ? book.owner.username : 'Famille' }}</span>
+                          </p>
+                          <!-- Note moyenne -->
+                          <div
+                            v-if="getAverageRating(book) > 0"
+                            class="flex items-center gap-2 mb-2"
+                          >
+                            <RatingDisplay10
+                              :model-value="getAverageRating(book)"
+                              readonly
+                            />
+                          </div>
+
+                          <!-- Statut (membre connecté : sa lecture ; sinon première lecture) -->
+                          <div
+                            v-if="showMemberReadingTags(book) && getBookStatus(book)"
+                            class="flex flex-wrap items-center gap-2"
+                          >
+                            <UBadge
+                              :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
+                              :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
+                              size="xs"
+                              :class="getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : ''"
+                            >
+                              {{ getBookStatus(book) }}
+                            </UBadge>
+                          </div>
+                        </div>
+
+                        <!-- Barre de progression (mobile, membre connecté) -->
+                        <div
+                          v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
+                        >
+                          <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                              Progression
+                            </span>
+                            <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                              {{ Math.round((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100) }}%
+                            </span>
+                          </div>
+                          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
+                              :style="{ width: `${Math.min((readingPagesLues(getDisplayReading(book))! / book.nombre_pages) * 100, 100)}%` }"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Nombre de pages lues avec bouton de modification (mobile, membre connecté, uniquement lectures en cours) -->
+                        <div
+                          v-if="memberStore.isMemberConnected && getBookStatus(book) === 'En cours'"
+                          class="flex items-center justify-between gap-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer"
+                          role="button"
+                          tabindex="0"
+                          @click.stop="openUpdatePagesModal(book)"
+                          @keyup.enter.stop="openUpdatePagesModal(book)"
+                        >
+                          <div class="flex items-center gap-2 flex-1">
+                            <UIcon
+                              name="i-ion-document-text"
+                              class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                            />
+                            <span class="text-sm text-gray-700 dark:text-gray-300">
+                              <span class="font-semibold">{{ readingPagesLues(getDisplayReading(book)) || 0 }}</span>
+                              <span v-if="book.nombre_pages"> / {{ book.nombre_pages }}</span>
+                              pages
+                            </span>
+                          </div>
+                          <UIcon
+                            name="i-ion-create"
+                            class="w-4 h-4 text-primary-500 dark:text-primary-400 shrink-0"
+                          />
+                        </div>
+
+                        <!-- Progressions des autres membres (mobile, mode famille) -->
+                        <div
+                          v-if="!memberStore.isMemberConnected && getAllBookReadings(book).length > 0"
+                          class="space-y-2"
+                        >
+                          <div
+                            v-for="reading in getAllBookReadings(book).slice(0, 2)"
+                            :key="(reading as BookReading).id || Math.random()"
+                          >
+                            <div
+                              v-if="getReadingMember(reading) && readingPagesLues(reading) != null && book.nombre_pages && book.nombre_pages > 0"
+                              class="space-y-0.5"
+                            >
+                              <div class="flex items-center gap-1.5 mb-0.5">
+                                <MemberAvatar
+                                  :member="getReadingMember(reading)!"
+                                  size="xs"
+                                />
+                                <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 truncate">
+                                  {{ getReadingMember(reading)!.username }}
+                                </span>
+                                <span class="text-xs font-bold text-primary-600 dark:text-primary-400 tabular-nums">
+                                  {{ Math.round((readingPagesLues(reading)! / book.nombre_pages) * 100) }}%
+                                </span>
+                              </div>
+                              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  class="h-full bg-gradient-to-r from-primary-500 to-primary-600 dark:from-primary-400 dark:to-primary-500 transition-all duration-500 rounded-full"
+                                  :style="{ width: `${Math.min((readingPagesLues(reading)! / book.nombre_pages) * 100, 100)}%` }"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </UPageCard>
               </UPageList>
             </div>
           </div>
@@ -409,12 +431,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores/family'
+import { useFamilyStore, type TransformedBook, type BookReading, type BookRating } from '~/stores/family'
 import { useMemberStore, type MemberLike } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import StarRating from '~/components/StarRating.vue'
 import MemberAvatar from '~/components/MemberAvatar.vue'
 import UpdatePagesModal from '~/components/UpdatePagesModal.vue'
+import RatingDisplay10 from '~/components/RatingDisplay10.vue'
 
 definePageMeta({
   layout: 'default',
@@ -443,34 +466,34 @@ const handlePagesUpdated = async () => {
 /** Livres à afficher : tous les livres de la famille, triés par catégorie */
 const books = computed(() => {
   const allBooks = familyStore.transformedBooks
-  
+
   // En mode famille (parent), retourner tous les livres sans tri spécial
   if (!memberStore.isMemberConnected || !memberStore.currentMember) return allBooks
-  
+
   const memberId = memberStore.currentMember.id
-  
+
   // En mode membre, trier tous les livres : 1. En cours, 2. Propriétaire, 3. Autres
   return allBooks.slice().sort((a, b) => {
     const aReading = memberReadingsMap.value.get(String(a.id)) || memberReadingsMap.value.get(a.documentId ?? '')
     const bReading = memberReadingsMap.value.get(String(b.id)) || memberReadingsMap.value.get(b.documentId ?? '')
-    
+
     const aIsOwner = a.owner != null && (Number(a.owner.id) === Number(memberId) || a.owner.id === memberId)
     const bIsOwner = b.owner != null && (Number(b.owner.id) === Number(memberId) || b.owner.id === memberId)
-    
+
     // Vérifier si en cours de lecture (date_debut mais pas date_fin)
     const aInProgress = aReading && readingHasDate(aReading, 'date_debut') && !readingHasDate(aReading, 'date_fin')
     const bInProgress = bReading && readingHasDate(bReading, 'date_debut') && !readingHasDate(bReading, 'date_fin')
-    
+
     // 1. Livres en cours en premier
     if (aInProgress && !bInProgress) return -1
     if (!aInProgress && bInProgress) return 1
-    
+
     // 2. Si ni l'un ni l'autre en cours, propriétaire en premier
     if (!aInProgress && !bInProgress) {
       if (aIsOwner && !bIsOwner) return -1
       if (!aIsOwner && bIsOwner) return 1
     }
-    
+
     // 3. Sinon, garder l'ordre original (par date de création)
     return 0
   })
@@ -481,19 +504,19 @@ const groupedBooks = computed(() => {
   if (!memberStore.isMemberConnected || !memberStore.currentMember) {
     return [{ title: null, books: books.value }]
   }
-  
+
   const memberId = memberStore.currentMember.id
   const inProgress: TransformedBook[] = []
   const owned: TransformedBook[] = []
   const others: TransformedBook[] = []
   const abandoned: TransformedBook[] = []
-  
+
   for (const book of books.value) {
     const reading = memberReadingsMap.value.get(String(book.id)) || memberReadingsMap.value.get(book.documentId ?? '')
     const isOwner = book.owner != null && (Number(book.owner.id) === Number(memberId) || book.owner.id === memberId)
     const isInProgress = reading && readingHasDate(reading, 'date_debut') && !readingHasDate(reading, 'date_fin')
     const isAbandoned = reading && readingAbandonne(reading)
-    
+
     // Les livres abandonnés vont dans une section séparée en bas
     if (isAbandoned) {
       abandoned.push(book)
@@ -505,42 +528,42 @@ const groupedBooks = computed(() => {
       others.push(book)
     }
   }
-  
+
   const groups: Array<{ title: string | null, books: TransformedBook[], icon?: string }> = []
-  
+
   if (inProgress.length > 0) {
-    groups.push({ 
-      title: 'Lectures en cours', 
+    groups.push({
+      title: 'Lectures en cours',
       books: inProgress,
       icon: 'i-ion-book-outline'
     })
   }
-  
+
   if (owned.length > 0) {
-    groups.push({ 
-      title: 'Mes livres', 
+    groups.push({
+      title: 'Mes livres',
       books: owned,
       icon: 'i-ion-person-circle-outline'
     })
   }
-  
+
   if (others.length > 0) {
-    groups.push({ 
-      title: 'Autres livres', 
+    groups.push({
+      title: 'Autres livres',
       books: others,
       icon: 'i-ion-library-outline'
     })
   }
-  
+
   // Section abandonnés toujours en bas
   if (abandoned.length > 0) {
-    groups.push({ 
-      title: 'Lectures abandonnées', 
+    groups.push({
+      title: 'Lectures abandonnées',
       books: abandoned,
       icon: 'i-ion-close-circle'
     })
   }
-  
+
   return groups
 })
 
@@ -691,10 +714,10 @@ function getBookStatus(book: TransformedBook): 'Lu' | 'En cours' | 'Abandonné' 
   if (memberStore.isMemberConnected) {
     if (!reading) return 'À lire'
   } else if (!reading) return null
-  
+
   // Vérifier d'abord si la lecture est abandonnée
   if (readingAbandonne(reading!)) return 'Abandonné'
-  
+
   const hasEnd = readingHasDate(reading!, 'date_fin')
   const hasStart = readingHasDate(reading!, 'date_debut')
   if (hasEnd) return 'Lu'
@@ -713,6 +736,17 @@ function getBookFirstCategory(book: TransformedBook): string | null {
   if (!sujets || !Array.isArray(sujets) || sujets.length === 0) return null
   const first = sujets[0]
   return typeof first === 'string' ? first : null
+}
+
+/** Calculer la note moyenne d'un livre */
+function getAverageRating(book: TransformedBook): number {
+  if (!book.ratings || book.ratings.length === 0) return 0
+  
+  const ratings = book.ratings.filter((r: BookRating) => r.rating > 0)
+  if (ratings.length === 0) return 0
+  
+  const sum = ratings.reduce((acc: number, r: BookRating) => acc + r.rating, 0)
+  return sum / ratings.length
 }
 
 /** Extrait pages_lues d'une lecture (gère les structures Strapi). */

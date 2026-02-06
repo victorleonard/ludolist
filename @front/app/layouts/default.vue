@@ -75,33 +75,8 @@ const handleBackFromGame = () => {
 
 // Fonction pour gérer le retour depuis une page de livre
 const handleBackFromBook = () => {
-  // Essayer de déterminer d'où on vient via le referrer
-  if (typeof window !== 'undefined' && document.referrer) {
-    try {
-      const referrerUrl = new URL(document.referrer)
-      const referrerPath = referrerUrl.pathname
-
-      // Si on vient de la page home, retourner à la page home
-      if (referrerPath === '/' || referrerPath === '') {
-        navigateTo('/')
-        return
-      }
-      // Si on vient de la page livres, retourner à la page livres
-      if (referrerPath === '/livres/' || referrerPath.startsWith('/livres/')) {
-        navigateTo('/livres/')
-        return
-      }
-    } catch {
-      // En cas d'erreur, utiliser router.back()
-    }
-  }
-
-  // Par défaut, utiliser router.back() ou rediriger vers /livres/
-  if (window.history.length > 1) {
-    router.back()
-  } else {
-    navigateTo('/livres/')
-  }
+  // Toujours rediriger vers la liste des livres
+  navigateTo('/livres/')
 }
 
 // Fonction pour gérer le retour depuis une page de plat
