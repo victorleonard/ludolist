@@ -447,7 +447,20 @@
                     <!-- Badges statut + durée -->
                     <div class="mt-3 sm:mt-4 flex flex-wrap items-center gap-2">
                       <UBadge
-                        v-if="readingDate(reading, 'date_fin')"
+                        v-if="readingAbandonne(reading)"
+                        color="red"
+                        variant="solid"
+                        size="sm"
+                        class="text-xs font-medium text-white dark:text-white bg-red-600 dark:bg-red-600"
+                      >
+                        <UIcon
+                          name="i-ion-close-circle"
+                          class="w-3.5 h-3.5 mr-1 shrink-0"
+                        />
+                        Abandonné
+                      </UBadge>
+                      <UBadge
+                        v-else-if="readingDate(reading, 'date_fin')"
                         color="success"
                         variant="subtle"
                         size="sm"
@@ -771,7 +784,8 @@ const readingsList = computed(() => {
         date_debut: att.date_debut ?? r.date_debut,
         date_fin: att.date_fin ?? r.date_fin,
         note: att.note ?? r.note,
-        pages_lues: att.pages_lues ?? r.pages_lues
+        pages_lues: att.pages_lues ?? r.pages_lues,
+        abandonne: att.abandonne ?? r.abandonne
       }
     }
     return r
@@ -1260,6 +1274,17 @@ function readingPagesLues(reading: Record<string, unknown>): number | null {
     if (n != null) return Number(n)
   }
   return null
+}
+
+function readingAbandonne(reading: Record<string, unknown>): boolean {
+  const v = reading?.abandonne
+  if (typeof v === 'boolean') return v
+  if (reading?.attributes && typeof reading.attributes === 'object' && 'abandonne' in (reading.attributes as object)) {
+    const a = (reading.attributes as { abandonne?: unknown }).abandonne
+    if (typeof a === 'boolean') return a
+    return Boolean(a)
+  }
+  return false
 }
 
 /** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */

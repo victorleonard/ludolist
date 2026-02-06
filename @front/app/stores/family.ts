@@ -146,6 +146,7 @@ export interface BookReading {
   date_fin?: string | null;
   note?: number | null;
   pages_lues?: number | null;
+  abandonne?: boolean;
   member: {
     id: number;
     username: string;
@@ -1554,6 +1555,7 @@ export const useFamilyStore = defineStore("family", {
         date_fin?: string | null;
         note?: number | null;
         pages_lues?: number | null;
+        abandonne?: boolean;
       },
     ) {
       const authStore = useAuthStore();

@@ -37,6 +37,10 @@
     "pages_lues": {
       "type": "integer",
       "min": 0
+    },
+    "abandonne": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -441,6 +441,7 @@ export interface ApiBookReadingBookReading extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    abandonne: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     book: Schema.Attribute.Relation<'manyToOne', 'api::book.book'> &
       Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;

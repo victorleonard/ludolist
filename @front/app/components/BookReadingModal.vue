@@ -189,6 +189,39 @@
             </p>
           </div>
 
+          <div class="form-field">
+            <div class="flex items-start gap-3 p-3 rounded-lg border-2 transition-colors"
+                 :class="state.abandonne 
+                   ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-800' 
+                   : 'bg-gray-50 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700'">
+              <UCheckbox
+                id="abandonne"
+                v-model="state.abandonne"
+                :disabled="submitting"
+                color="error"
+                size="sm"
+                class="shrink-0 mt-0.5"
+              />
+              <div class="flex-1 min-w-0">
+                <label
+                  for="abandonne"
+                  class="block text-sm font-medium cursor-pointer"
+                  :class="state.abandonne 
+                    ? 'text-red-700 dark:text-red-300' 
+                    : 'text-gray-700 dark:text-gray-300'"
+                >
+                  J'ai abandonné cette lecture
+                </label>
+                <p class="mt-1 text-xs"
+                   :class="state.abandonne 
+                     ? 'text-red-600 dark:text-red-400' 
+                     : 'text-gray-500 dark:text-gray-400'">
+                  Ce livre ne vous a pas plu et vous ne souhaitez pas continuer sa lecture
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div
             v-if="submitError"
             class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
@@ -284,7 +317,8 @@ const state = reactive({
   date_debut: '',
   date_fin: '',
   note: null as number | null,
-  pages_lues: null as number | null
+  pages_lues: null as number | null,
+  abandonne: false
 })
 
 const errors = reactive({
@@ -298,6 +332,7 @@ const loadReadingData = () => {
     state.date_fin = props.reading.date_fin || ''
     state.note = props.reading.note || null
     state.pages_lues = props.reading.pages_lues || null
+    state.abandonne = props.reading.abandonne || false
   }
 }
 
@@ -307,6 +342,7 @@ const resetForm = () => {
   state.date_fin = ''
   state.note = null
   state.pages_lues = null
+  state.abandonne = false
   submitError.value = null
   errors.memberId = ''
 }
@@ -348,7 +384,8 @@ async function handleSubmit() {
         date_debut: state.date_debut || null,
         date_fin: state.date_fin || null,
         note: state.note || null,
-        pages_lues: state.pages_lues || null
+        pages_lues: state.pages_lues || null,
+        abandonne: state.abandonne
       }
     )
 

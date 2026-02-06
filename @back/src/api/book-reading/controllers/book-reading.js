@@ -17,7 +17,7 @@ module.exports = createCoreController('api::book-reading.book-reading', ({ strap
         return ctx.unauthorized('Vous devez être connecté');
       }
 
-      const { memberId, bookId, date_debut, date_fin, note, pages_lues } = ctx.request.body;
+      const { memberId, bookId, date_debut, date_fin, note, pages_lues, abandonne } = ctx.request.body;
 
       if (!memberId || !bookId) {
         return ctx.badRequest('memberId et bookId sont requis');
@@ -101,7 +101,8 @@ module.exports = createCoreController('api::book-reading.book-reading', ({ strap
         date_debut: date_debut || null,
         date_fin: date_fin || null,
         note: note !== undefined && note !== null ? parseFloat(note) : null,
-        pages_lues: pages_lues !== undefined && pages_lues !== null ? parseInt(pages_lues, 10) : null
+        pages_lues: pages_lues !== undefined && pages_lues !== null ? parseInt(pages_lues, 10) : null,
+        abandonne: abandonne !== undefined ? Boolean(abandonne) : false
       };
 
       let reading;

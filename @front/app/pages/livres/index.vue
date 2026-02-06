@@ -132,10 +132,10 @@
                   class="flex flex-wrap items-center gap-2"
                 >
                   <UBadge
-                    :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : 'neutral'"
-                    variant="subtle"
+                    :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
+                    :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
                     size="xs"
-                    :class="getBookStatus(book) === 'Lu' ? 'text-green-800 dark:text-green-200' : getBookStatus(book) === 'En cours' ? 'text-orange-800 dark:text-orange-200' : 'text-gray-800 dark:text-gray-200'"
+                    :class="getBookStatus(book) === 'Lu' ? 'text-green-800 dark:text-green-200' : getBookStatus(book) === 'En cours' ? 'text-orange-800 dark:text-orange-200' : getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : 'text-gray-800 dark:text-gray-200'"
                   >
                     {{ getBookStatus(book) }}
                   </UBadge>
@@ -294,9 +294,10 @@
                         class="flex flex-wrap items-center gap-2"
                       >
                         <UBadge
-                          :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : 'neutral'"
-                          variant="subtle"
+                          :color="getBookStatus(book) === 'Lu' ? 'success' : getBookStatus(book) === 'En cours' ? 'warning' : getBookStatus(book) === 'Abandonné' ? 'red' : 'neutral'"
+                          :variant="getBookStatus(book) === 'Abandonné' ? 'solid' : 'subtle'"
                           size="xs"
+                          :class="getBookStatus(book) === 'Abandonné' ? 'text-white dark:text-white bg-red-600 dark:bg-red-600' : ''"
                         >
                           {{ getBookStatus(book) }}
                         </UBadge>
@@ -637,6 +638,13 @@ function readingDateValue(reading: BookReading | Record<string, unknown> | null,
   return typeof v === 'string' ? v : ''
 }
 
+function readingAbandonne(reading: BookReading | Record<string, unknown> | null): boolean {
+  if (!reading || typeof reading !== 'object') return false
+  const r = reading as Record<string, unknown>
+  const abandonne = r.abandonne ?? (r.attributes as Record<string, unknown> | undefined)?.abandonne
+  return Boolean(abandonne)
+}
+
 /** Durée de lecture en jours (début → fin). Retourne null si début ou fin manquant. */
 function readingDurationDays(reading: BookReading | Record<string, unknown> | null): number | null {
   const debut = readingDateValue(reading, 'date_debut')
@@ -663,12 +671,16 @@ function getBookNoteRaw(book: TransformedBook): number {
   return Math.min(10, Math.max(0, Math.round(note)))
 }
 
-/** Statut de lecture : Lu, En cours, À lire. Si membre connecté sans lecture, on affiche "À lire". */
-function getBookStatus(book: TransformedBook): 'Lu' | 'En cours' | 'À lire' | null {
+/** Statut de lecture : Lu, En cours, Abandonné, À lire. Si membre connecté sans lecture, on affiche "À lire". */
+function getBookStatus(book: TransformedBook): 'Lu' | 'En cours' | 'Abandonné' | 'À lire' | null {
   const reading = getDisplayReading(book)
   if (memberStore.isMemberConnected) {
     if (!reading) return 'À lire'
   } else if (!reading) return null
+  
+  // Vérifier d'abord si la lecture est abandonnée
+  if (readingAbandonne(reading!)) return 'Abandonné'
+  
   const hasEnd = readingHasDate(reading!, 'date_fin')
   const hasStart = readingHasDate(reading!, 'date_debut')
   if (hasEnd) return 'Lu'
