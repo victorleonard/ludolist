@@ -522,6 +522,30 @@
             />
           </div>
 
+          <div class="form-field">
+            <label
+              for="imageUrl"
+              class="label-mobile"
+            >
+              <UIcon
+                name="i-ion-image-outline"
+                class="w-4 h-4 shrink-0"
+              />
+              URL de l'image (couverture)
+            </label>
+            <UInput
+              id="imageUrl"
+              v-model="state.coverUrl"
+              type="url"
+              :disabled="submitting"
+              class="w-full input-touch"
+              placeholder="https://..."
+            />
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              Collez un lien vers une image de couverture si vous en avez un
+            </p>
+          </div>
+
           <div
             v-if="submitError"
             class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
