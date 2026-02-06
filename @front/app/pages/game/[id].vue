@@ -290,36 +290,56 @@
             <!-- Podium des top 3 -->
             <UCard
               v-if="top3Winners.length > 0"
-              class="bg-white dark:bg-gray-800 mb-6 overflow-hidden"
+              class="bg-white dark:bg-gray-800 mb-6 overflow-hidden min-h-[350px] flex flex-col"
             >
-              <div class="flex items-end justify-center gap-3 px-4 pt-6 pb-4">
+              <div class="flex items-end justify-center gap-3 px-4 pt-6 pb-4 mt-auto">
                 <!-- 2ème place -->
                 <div
                   v-if="top3Winners[1]"
                   class="flex flex-col items-center flex-1 max-w-[120px]"
                 >
-                  <div class="mb-2">
-                    <span class="text-2xl">🥈</span>
-                  </div>
-                  <div class="mb-3">
-                    <MemberAvatar
-                      :member="top3Winners[1].member"
-                      size="xl"
-                    />
+                  <div
+                    class="mb-3"
+                    style="min-height: 80px;"
+                  >
+                    <Transition
+                      name="slide-up"
+                      appear
+                    >
+                      <div
+                        v-if="showSecond"
+                      >
+                        <MemberAvatar
+                          :member="top3Winners[1].member"
+                          size="xl"
+                        />
+                      </div>
+                    </Transition>
                   </div>
                   <div
-                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center"
+                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center relative"
                     style="height: 90px;"
                   >
-                    <div class="flex flex-col items-center justify-center h-full">
-                      <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">2ème</span>
-                      <span class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate w-full">
-                        {{ top3Winners[1].member.username }}
-                      </span>
-                      <span class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                        {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
-                      </span>
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span class="text-2xl">🥈</span>
                     </div>
+                    <Transition
+                      name="fade"
+                      appear
+                    >
+                      <div
+                        v-if="showSecond"
+                        class="flex flex-col items-center justify-center h-full pt-2"
+                      >
+                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">2ème</span>
+                        <span class="text-xs font-semibold text-gray-900 dark:text-gray-100 truncate w-full">
+                          {{ top3Winners[1].member.username }}
+                        </span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                          {{ top3Winners[1].wins }} {{ top3Winners[1].wins > 1 ? 'victoires' : 'victoire' }}
+                        </span>
+                      </div>
+                    </Transition>
                   </div>
                 </div>
 
@@ -328,31 +348,51 @@
                   v-if="top3Winners[0]"
                   class="flex flex-col items-center flex-1 max-w-[140px]"
                 >
-                  <div class="mb-2">
-                    <UIcon
-                      name="i-ion-trophy"
-                      class="w-6 h-6 text-yellow-500"
-                    />
-                  </div>
-                  <div class="mb-3">
-                    <MemberAvatar
-                      :member="top3Winners[0].member"
-                      size="2xl"
-                    />
+                  <div
+                    class="mb-3"
+                    style="min-height: 100px;"
+                  >
+                    <Transition
+                      name="slide-up"
+                      appear
+                    >
+                      <div
+                        v-if="showFirst"
+                      >
+                        <MemberAvatar
+                          :member="top3Winners[0].member"
+                          size="2xl"
+                        />
+                      </div>
+                    </Transition>
                   </div>
                   <div
-                    class="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-lg p-4 text-center border-2 border-yellow-300 dark:border-yellow-700"
+                    class="w-full bg-yellow-100 dark:bg-yellow-900/30 rounded-t-lg p-4 text-center border-2 border-yellow-300 dark:border-yellow-700 relative"
                     style="height: 120px;"
                   >
-                    <div class="flex flex-col items-center justify-center h-full">
-                      <span class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">1er</span>
-                      <span class="text-base font-semibold text-yellow-900 dark:text-yellow-100 truncate w-full">
-                        {{ top3Winners[0].member.username }}
-                      </span>
-                      <span class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                        {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
-                      </span>
+                    <div class="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                      <UIcon
+                        name="i-ion-trophy"
+                        class="w-6 h-6 text-yellow-500"
+                      />
                     </div>
+                    <Transition
+                      name="fade"
+                      appear
+                    >
+                      <div
+                        v-if="showFirst"
+                        class="flex flex-col items-center justify-center h-full pt-2"
+                      >
+                        <span class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-1">1er</span>
+                        <span class="text-base font-semibold text-yellow-900 dark:text-yellow-100 truncate w-full">
+                          {{ top3Winners[0].member.username }}
+                        </span>
+                        <span class="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                          {{ top3Winners[0].wins }} {{ top3Winners[0].wins > 1 ? 'victoires' : 'victoire' }}
+                        </span>
+                      </div>
+                    </Transition>
                   </div>
                 </div>
 
@@ -361,28 +401,48 @@
                   v-if="top3Winners[2]"
                   class="flex flex-col items-center flex-1 max-w-[120px]"
                 >
-                  <div class="mb-2">
-                    <span class="text-2xl">🥉</span>
-                  </div>
-                  <div class="mb-3">
-                    <MemberAvatar
-                      :member="top3Winners[2].member"
-                      size="xl"
-                    />
+                  <div
+                    class="mb-3"
+                    style="min-height: 80px;"
+                  >
+                    <Transition
+                      name="slide-up"
+                      appear
+                    >
+                      <div
+                        v-if="showThird"
+                      >
+                        <MemberAvatar
+                          :member="top3Winners[2].member"
+                          size="xl"
+                        />
+                      </div>
+                    </Transition>
                   </div>
                   <div
-                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center"
+                    class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg p-3 text-center relative"
                     style="height: 80px;"
                   >
-                    <div class="flex flex-col items-center justify-center h-full">
-                      <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">3ème</span>
-                      <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate w-full leading-tight">
-                        {{ top3Winners[2].member.username }}
-                      </span>
-                      <span class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
-                        {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
-                      </span>
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                      <span class="text-2xl">🥉</span>
                     </div>
+                    <Transition
+                      name="fade"
+                      appear
+                    >
+                      <div
+                        v-if="showThird"
+                        class="flex flex-col items-center justify-center h-full pt-2"
+                      >
+                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">3ème</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate w-full leading-tight">
+                          {{ top3Winners[2].member.username }}
+                        </span>
+                        <span class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                          {{ top3Winners[2].wins }} {{ top3Winners[2].wins > 1 ? 'victoires' : 'victoire' }}
+                        </span>
+                      </div>
+                    </Transition>
                   </div>
                 </div>
               </div>
@@ -540,6 +600,11 @@ const error = ref<string | null>(null)
 const top3Winners = ref<Array<{ member: { id: number, username: string }, wins: number }>>([])
 const activeTab = ref<'detail' | 'notes' | 'parties' | 'podium'>('detail')
 
+// États pour l'animation du podium
+const showThird = ref(false)
+const showSecond = ref(false)
+const showFirst = ref(false)
+
 // Récupérer l'identifiant depuis la route (peut être documentId ou id)
 const gameIdentifier = computed(() => {
   const id = route.params.id
@@ -590,6 +655,11 @@ onMounted(async () => {
       error.value = 'Jeu non trouvé'
     } else {
       await loadTop3Winners()
+      // Si l'onglet podium est actif, démarrer l'animation
+      if (activeTab.value === 'podium' && top3Winners.value.length > 0) {
+        await nextTick()
+        startPodiumAnimation()
+      }
     }
   } catch (err) {
     console.error('Erreur lors du chargement du jeu:', err)
@@ -605,6 +675,50 @@ watch(jeu, () => {
     loadTop3Winners()
   }
 })
+
+// Fonction pour démarrer l'animation du podium
+const startPodiumAnimation = () => {
+  // Réinitialiser les états
+  showThird.value = false
+  showSecond.value = false
+  showFirst.value = false
+
+  // Attendre un peu pour que le podium vide soit visible
+  setTimeout(() => {
+    // Animer le 3ème
+    if (top3Winners.value[2]) {
+      showThird.value = true
+    }
+    
+    // Animer le 2ème après un délai
+    setTimeout(() => {
+      if (top3Winners.value[1]) {
+        showSecond.value = true
+      }
+      
+      // Animer le 1er après un autre délai
+      setTimeout(() => {
+        if (top3Winners.value[0]) {
+          showFirst.value = true
+        }
+      }, 1200)
+    }, 1200)
+  }, 800)
+}
+
+// Watcher pour déclencher l'animation quand on change d'onglet vers podium
+watch(activeTab, (newTab) => {
+  if (newTab === 'podium' && top3Winners.value.length > 0) {
+    startPodiumAnimation()
+  }
+})
+
+// Watcher pour déclencher l'animation quand les données changent
+watch(top3Winners, (newWinners) => {
+  if (activeTab.value === 'podium' && newWinners.length > 0) {
+    startPodiumAnimation()
+  }
+}, { deep: true })
 
 // Ouvrir le modal de modification
 const openEditModal = () => {
@@ -707,3 +821,33 @@ const changeOwner = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Animation slide-up pour les avatars */
+.slide-up-enter-active {
+  transition: all 1.5s ease-out;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animation fade pour les informations */
+.fade-enter-active {
+  transition: opacity 1.5s ease-out;
+}
+
+.fade-enter-from {
+  opacity: 0;
+}
+
+.fade-enter-to {
+  opacity: 1;
+}
+</style>
