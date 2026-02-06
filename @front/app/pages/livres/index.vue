@@ -486,13 +486,18 @@ const groupedBooks = computed(() => {
   const inProgress: TransformedBook[] = []
   const owned: TransformedBook[] = []
   const others: TransformedBook[] = []
+  const abandoned: TransformedBook[] = []
   
   for (const book of books.value) {
     const reading = memberReadingsMap.value.get(String(book.id)) || memberReadingsMap.value.get(book.documentId ?? '')
     const isOwner = book.owner != null && (Number(book.owner.id) === Number(memberId) || book.owner.id === memberId)
     const isInProgress = reading && readingHasDate(reading, 'date_debut') && !readingHasDate(reading, 'date_fin')
+    const isAbandoned = reading && readingAbandonne(reading)
     
-    if (isInProgress) {
+    // Les livres abandonnés vont dans une section séparée en bas
+    if (isAbandoned) {
+      abandoned.push(book)
+    } else if (isInProgress) {
       inProgress.push(book)
     } else if (isOwner) {
       owned.push(book)
@@ -524,6 +529,15 @@ const groupedBooks = computed(() => {
       title: 'Autres livres', 
       books: others,
       icon: 'i-ion-library-outline'
+    })
+  }
+  
+  // Section abandonnés toujours en bas
+  if (abandoned.length > 0) {
+    groups.push({ 
+      title: 'Lectures abandonnées', 
+      books: abandoned,
+      icon: 'i-ion-close-circle'
     })
   }
   
