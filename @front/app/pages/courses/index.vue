@@ -4,19 +4,10 @@
       <div>
         <div class="mt-4 sm:mt-6">
           <div class="mb-6 sm:mb-8">
-            <div class="mb-4 sm:mb-6 flex items-center justify-between gap-4">
+            <div class="mb-4 sm:mb-6">
               <h1 class="text-xl sm:text-2xl font-bold">
                 Liste de courses
               </h1>
-              <UButton
-                color="primary"
-                icon="i-ion-add"
-                size="sm"
-                aria-label="Ajouter un produit"
-                @click="openModal"
-              >
-                Ajouter
-              </UButton>
             </div>
           </div>
 
@@ -56,12 +47,6 @@
             <p class="text-gray-500 dark:text-gray-400 mb-4">
               Votre liste de courses est vide
             </p>
-            <UButton
-              color="primary"
-              @click="openModal"
-            >
-              Ajouter le premier produit
-            </UButton>
           </div>
 
           <template v-else>
@@ -118,6 +103,20 @@
         </div>
       </div>
     </UContainer>
+
+    <!-- Bouton flottant pour ajouter un produit -->
+    <button
+      type="button"
+      class="fixed right-4 z-40 rounded-full w-14 h-14 min-w-[56px] min-h-[56px] bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center p-0 border-0 cursor-pointer"
+      style="bottom: calc(80px + max(0.5rem, env(safe-area-inset-bottom, 0.5rem)));"
+      aria-label="Ajouter un produit"
+      @click="openModal"
+    >
+      <UIcon
+        name="i-ion-add"
+        class="w-6 h-6 text-white"
+      />
+    </button>
 
     <AddGroceryItemModal
       :model-value="isModalOpen"
