@@ -663,6 +663,10 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
       'api::game-session.game-session'
     >;
     games: Schema.Attribute.Relation<'manyToMany', 'api::game.game'>;
+    grocery_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::grocery-item.grocery-item'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -672,6 +676,10 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
     members: Schema.Attribute.Relation<'oneToMany', 'api::member.member'>;
     name: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    shopping_list: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::shopping-list.shopping-list'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -754,6 +762,41 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
     playing_time: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
     ratings: Schema.Attribute.Relation<'oneToMany', 'api::rating.rating'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiGroceryItemGroceryItem extends Struct.CollectionTypeSchema {
+  collectionName: 'grocery_items';
+  info: {
+    displayName: 'Grocery Item';
+    pluralName: 'grocery-items';
+    singularName: 'grocery-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    created_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'>;
+    is_checked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::grocery-item.grocery-item'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    shopping_list: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::shopping-list.shopping-list'
+    >;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -878,6 +921,39 @@ export interface ApiRatingRating extends Struct.CollectionTypeSchema {
         },
         number
       >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiShoppingListShoppingList
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'shopping_lists';
+  info: {
+    displayName: 'Shopping List';
+    pluralName: 'shopping-lists';
+    singularName: 'shopping-list';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'oneToOne', 'api::family.family'>;
+    items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::grocery-item.grocery-item'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::shopping-list.shopping-list'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -1402,9 +1478,11 @@ declare module '@strapi/strapi' {
       'api::family.family': ApiFamilyFamily;
       'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;
+      'api::grocery-item.grocery-item': ApiGroceryItemGroceryItem;
       'api::member.member': ApiMemberMember;
       'api::player-score.player-score': ApiPlayerScorePlayerScore;
       'api::rating.rating': ApiRatingRating;
+      'api::shopping-list.shopping-list': ApiShoppingListShoppingList;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

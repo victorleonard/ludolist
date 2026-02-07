@@ -220,6 +220,30 @@ export interface TransformedDish {
   createdAt: string;
 }
 
+export interface GroceryItem {
+  id: number;
+  documentId?: string;
+  name: string;
+  is_checked: boolean;
+  family?: number;
+  created_by?: {
+    id: number;
+    username: string;
+  } | null;
+  shopping_list?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ShoppingList {
+  id: number;
+  documentId?: string;
+  family?: number;
+  items?: GroceryItem[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface Family {
   id: number;
   name: string;
@@ -227,6 +251,8 @@ interface Family {
   games?: StrapiGame[];
   books?: StrapiBook[];
   dishes?: StrapiDish[];
+  shopping_list?: ShoppingList;
+  grocery_items?: GroceryItem[];
 }
 
 export const useFamilyStore = defineStore("family", {
@@ -244,10 +270,16 @@ export const useFamilyStore = defineStore("family", {
     familyBooksCount: (state) => state.family?.books?.length || 0,
     familyDishes: (state) => state.family?.dishes || [],
     familyDishesCount: (state) => state.family?.dishes?.length || 0,
+    familyShoppingList: (state) => state.family?.shopping_list || null,
+    familyGroceryItems: (state) => state.family?.grocery_items || [],
+    familyGroceryItemsCount: (state) => state.family?.grocery_items?.length || 0,
+    uncheckedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => !item.is_checked),
+    checkedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => item.is_checked),
     hasFamily: (state) => !!state.family,
     hasFamilyGames: (state) => (state.family?.games?.length || 0) > 0,
     hasFamilyBooks: (state) => (state.family?.books?.length || 0) > 0,
     hasFamilyDishes: (state) => (state.family?.dishes?.length || 0) > 0,
+    hasGroceryItems: (state) => (state.family?.grocery_items?.length || 0) > 0,
 
     // Getter pour les jeux transformés
     transformedGames(state): TransformedGame[] {

@@ -7,7 +7,7 @@
     <template #content>
       <div
         class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-        style="padding-bottom: env(safe-area-inset-bottom, 0px);"
+        style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
         <!-- En-tête -->
         <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">

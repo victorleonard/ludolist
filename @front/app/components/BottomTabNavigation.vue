@@ -44,6 +44,11 @@ const tabs = [
     label: 'Plats',
     icon: 'i-ion-restaurant',
     to: '/plats/'
+  },
+  {
+    label: 'Courses',
+    icon: 'i-ion-cart',
+    to: '/courses'
   }
 ]
 

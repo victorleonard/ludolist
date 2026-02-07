@@ -164,7 +164,7 @@
       @update:open="(value) => { if (!value) closeAddSessionModal() }"
     >
       <template #content>
-        <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900">
+        <div class="flex flex-col max-h-[85vh] bg-white dark:bg-gray-900" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
           <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
             <h3 class="text-lg font-semibold">
               Ajouter une partie

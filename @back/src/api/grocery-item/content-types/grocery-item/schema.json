@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "grocery_items",
+  "info": {
+    "singularName": "grocery-item",
+    "pluralName": "grocery-items",
+    "displayName": "Grocery Item"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family",
+      "inversedBy": "grocery_items"
+    },
+    "is_checked": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_by": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member"
+    },
+    "shopping_list": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::shopping-list.shopping-list",
+      "inversedBy": "items"
+    }
+  }
+}

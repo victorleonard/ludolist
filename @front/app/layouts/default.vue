@@ -130,6 +130,11 @@ const menuItems = [
     label: 'Plats',
     icon: 'i-ion-restaurant',
     to: '/plats/'
+  },
+  {
+    label: 'Courses',
+    icon: 'i-ion-cart',
+    to: '/courses'
   }
 ]
 
@@ -371,7 +376,7 @@ const handleMemberLogout = () => {
       @update:open="(value) => { isMenuOpen = value }"
     >
       <template #content>
-        <div class="flex flex-col h-full bg-white dark:bg-gray-900">
+        <div class="flex flex-col h-full bg-white dark:bg-gray-900" style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));">
           <!-- Header du menu -->
           <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800">
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">
