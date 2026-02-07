@@ -151,7 +151,8 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}']
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
+      globIgnores: ['**/suppress-warnings.js', '**/node_modules/**/*']
     },
     devOptions: {
       enabled: true,

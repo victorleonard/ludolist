@@ -1,31 +1,85 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const showUpdatePrompt = ref(false)
+let updateCheckInterval: ReturnType<typeof setInterval> | null = null
+let registration: ServiceWorkerRegistration | null = null
 
 onMounted(() => {
   if ('serviceWorker' in navigator) {
-    // Écouter les mises à jour du service worker
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      showUpdatePrompt.value = true
+    // Obtenir la registration du service worker
+    navigator.serviceWorker.ready.then((reg) => {
+      registration = reg
+      
+      // Vérifier immédiatement s'il y a une mise à jour disponible
+      checkForUpdate(reg)
+      
+      // Écouter les mises à jour du service worker
+      // Cet événement se déclenche quand un nouveau service worker est trouvé
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing
+        if (newWorker) {
+          // Écouter l'état du nouveau service worker
+          newWorker.addEventListener('statechange', () => {
+            // Quand le nouveau service worker est installé mais pas encore activé
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // Il y a une mise à jour disponible
+              showUpdatePrompt.value = true
+            }
+          })
+        }
+      })
+      
+      // Écouter le changement de contrôleur (quand le nouveau service worker prend le contrôle)
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // Si on arrive ici, c'est que le service worker a déjà changé
+        // On affiche quand même la modal pour informer l'utilisateur
+        if (!showUpdatePrompt.value) {
+          showUpdatePrompt.value = true
+        }
+      })
     })
 
-    // Vérifier périodiquement les mises à jour
-    setInterval(() => {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.update()
+    // Vérifier périodiquement les mises à jour (toutes les minutes)
+    updateCheckInterval = setInterval(() => {
+      navigator.serviceWorker.ready.then((reg) => {
+        checkForUpdate(reg)
       })
     }, 60000) // Toutes les minutes
   }
 })
 
+function checkForUpdate(reg: ServiceWorkerRegistration) {
+  // Vérifier s'il y a une mise à jour disponible
+  reg.update().then(() => {
+    // Si update() se résout sans erreur, cela signifie qu'une vérification a été effectuée
+    // L'événement 'updatefound' sera déclenché si une mise à jour est trouvée
+  }).catch((error) => {
+    console.error('Erreur lors de la vérification des mises à jour:', error)
+  })
+}
+
 function updateApp() {
+  // Recharger la page pour activer le nouveau service worker
   window.location.reload()
 }
 
 function dismissUpdate() {
   showUpdatePrompt.value = false
+  // Réinitialiser le prompt après 5 minutes pour permettre à l'utilisateur de le voir à nouveau
+  setTimeout(() => {
+    if (registration) {
+      checkForUpdate(registration)
+    }
+  }, 300000) // 5 minutes
 }
+
+onUnmounted(() => {
+  // Nettoyer l'intervalle lors du démontage du composant
+  if (updateCheckInterval) {
+    clearInterval(updateCheckInterval)
+  }
+})
 </script>
 
 <template>

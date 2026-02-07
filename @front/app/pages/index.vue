@@ -1,21 +1,22 @@
 <template>
   <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl sm:pb-6">
-    <!-- Loader pendant le chargement initial -->
-    <div
-      v-if="pageLoading"
-      class="flex flex-col items-center justify-center min-h-[50vh] gap-4"
-    >
-      <UIcon
-        name="i-ion-refresh-circle"
-        class="w-12 h-12 text-primary-500 animate-spin"
-      />
-      <p class="text-sm text-gray-500 dark:text-gray-400">
-        Chargement…
-      </p>
-    </div>
+    <ClientOnly>
+      <!-- Loader pendant le chargement initial -->
+      <div
+        v-if="pageLoading"
+        class="flex flex-col items-center justify-center min-h-[50vh] gap-4"
+      >
+        <UIcon
+          name="i-ion-refresh-circle"
+          class="w-12 h-12 text-primary-500 animate-spin"
+        />
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Chargement…
+        </p>
+      </div>
 
-    <div v-else>
-      <div class="mt-4 sm:mt-6 pb-0">
+      <div v-else>
+        <div class="mt-4 sm:mt-6 pb-0">
         <!-- Dernières parties : carousel horizontal, cartes carrées, image en fond + infos en overlay -->
         <div
           v-if="latestSessions && latestSessions.length > 0"
@@ -41,7 +42,6 @@
             <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
-                aria-hidden="true"
                 style="min-width: 20px;"
               />
               <button
@@ -153,7 +153,6 @@
             <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
-                aria-hidden="true"
                 style="min-width: 20px;"
               />
               <button
@@ -230,7 +229,6 @@
             <div class="flex flex-nowrap justify-start gap-4 sm:gap-5 overflow-x-auto pb-3 ml-0 -mr-4 pl-4 pr-4 sm:-mx-6 sm:pl-6 sm:pr-6 snap-x snap-proximity scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent scrollbar-thumb-rounded-full">
               <div
                 class="shrink-0 w-5 sm:w-6"
-                aria-hidden="true"
                 style="min-width: 20px;"
               />
               <button
@@ -307,8 +305,21 @@
             Ajouter un plat
           </NuxtLink>
         </div>
+        </div>
       </div>
-    </div>
+      <template #fallback>
+        <!-- Fallback pour SSR : afficher le loader -->
+        <div class="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+          <UIcon
+            name="i-ion-refresh-circle"
+            class="w-12 h-12 text-primary-500 animate-spin"
+          />
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Chargement…
+          </p>
+        </div>
+      </template>
+    </ClientOnly>
   </UContainer>
 </template>
 
@@ -320,7 +331,8 @@ import { useMemberStore } from '~/stores/member'
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth'
+  middleware: 'auth',
+  ssr: false // Désactiver le SSR pour éviter les problèmes d'hydratation avec les données asynchrones
 })
 
 const familyStore = useFamilyStore()
@@ -328,6 +340,7 @@ const memberStore = useMemberStore()
 const { fetchReadingsForBook } = useBookReadings()
 const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 
+// Initialiser pageLoading à true de manière cohérente pour SSR
 const pageLoading = ref(true)
 const latestSessions = ref<GameSession[]>([])
 

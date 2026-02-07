@@ -286,57 +286,72 @@ const handleMemberLogout = () => {
       </template>
 
       <template #right>
-        <div class="flex items-center gap-2 sm:gap-3">
-          <!-- Avatar ou icône choix du membre → drawer liste des membres -->
-          <UButton
-            v-if="isMemberConnected && currentMember"
-            :aria-label="`Membre connecté : ${currentMember.username}`"
-            variant="ghost"
-            color="neutral"
-            class="rounded-full p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
-            @click="openMemberDrawer"
-          >
-            <MemberAvatar
-              :member="currentMember"
-              size="xs"
-              show-ring
-            />
-          </UButton>
-          <!-- Mode famille : afficher tous les avatars en superposition -->
-          <UButton
-            v-else-if="!isMemberConnected && familyMembers && familyMembers.length > 0"
-            color="neutral"
-            variant="ghost"
-            class="p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
-            aria-label="Mode famille — Choisir un membre"
-            @click="openMemberDrawer"
-          >
-            <div class="flex items-center">
-              <div
-                v-for="(member, index) in familyMembers.slice(0, 4)"
-                :key="member.id"
-                class="relative"
-                :class="index > 0 ? '-ml-4' : ''"
-                :style="{ zIndex: 10 - index }"
-              >
-                <MemberAvatar
-                  :member="member"
-                  size="xs"
-                  :class="index > 0 ? 'ring-2 ring-white dark:ring-gray-900' : ''"
-                />
+        <ClientOnly>
+          <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Avatar ou icône choix du membre → drawer liste des membres -->
+            <UButton
+              v-if="isMemberConnected && currentMember"
+              :aria-label="`Membre connecté : ${currentMember.username}`"
+              variant="ghost"
+              color="neutral"
+              class="rounded-full p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
+              @click="openMemberDrawer"
+            >
+              <MemberAvatar
+                :member="currentMember"
+                size="xs"
+                show-ring
+              />
+            </UButton>
+            <!-- Mode famille : afficher tous les avatars en superposition -->
+            <UButton
+              v-else-if="!isMemberConnected && familyMembers && familyMembers.length > 0"
+              color="neutral"
+              variant="ghost"
+              class="p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
+              aria-label="Mode famille — Choisir un membre"
+              @click="openMemberDrawer"
+            >
+              <div class="flex items-center">
+                <div
+                  v-for="(member, index) in familyMembers.slice(0, 4)"
+                  :key="member.id"
+                  class="relative"
+                  :class="index > 0 ? '-ml-4' : ''"
+                  :style="{ zIndex: 10 - index }"
+                >
+                  <MemberAvatar
+                    :member="member"
+                    size="xs"
+                    :class="index > 0 ? 'ring-2 ring-white dark:ring-gray-900' : ''"
+                  />
+                </div>
               </div>
+            </UButton>
+            <UButton
+              v-else
+              color="neutral"
+              variant="ghost"
+              icon="i-ion-person-circle"
+              size="sm"
+              aria-label="Choisir un membre"
+              @click="openMemberDrawer"
+            />
+          </div>
+          <template #fallback>
+            <!-- Fallback pour SSR : afficher juste l'icône -->
+            <div class="flex items-center gap-2 sm:gap-3">
+              <UButton
+                color="neutral"
+                variant="ghost"
+                icon="i-ion-person-circle"
+                size="sm"
+                aria-label="Choisir un membre"
+                @click="openMemberDrawer"
+              />
             </div>
-          </UButton>
-          <UButton
-            v-else
-            color="neutral"
-            variant="ghost"
-            icon="i-ion-person-circle"
-            size="sm"
-            aria-label="Choisir un membre"
-            @click="openMemberDrawer"
-          />
-        </div>
+          </template>
+        </ClientOnly>
       </template>
     </UHeader>
 

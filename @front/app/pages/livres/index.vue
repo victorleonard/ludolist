@@ -1,52 +1,53 @@
 <template>
   <UContainer class="px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <div>
-      <div class="mt-4 sm:mt-6">
-        <div class="mb-6 sm:mb-8">
-          <div class="mb-4 sm:mb-6 flex items-center justify-between gap-4 flex-wrap">
-            <div>
-              <h1 class="text-xl sm:text-2xl font-bold">
-                Ma collection de livres
-              </h1>
-              <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
-                Gérez votre collection de livres ici
-              </p>
+    <ClientOnly>
+      <div>
+        <div class="mt-4 sm:mt-6">
+          <div class="mb-6 sm:mb-8">
+            <div class="mb-4 sm:mb-6 flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <h1 class="text-xl sm:text-2xl font-bold">
+                  Ma collection de livres
+                </h1>
+                <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">
+                  Gérez votre collection de livres ici
+                </p>
+              </div>
+              <UButton
+                color="primary"
+                icon="i-ion-add"
+                size="sm"
+                aria-label="Ajouter un livre"
+                @click="openAddBookModal()"
+              >
+                Ajouter un livre
+              </UButton>
             </div>
-            <UButton
-              color="primary"
-              icon="i-ion-add"
-              size="sm"
-              aria-label="Ajouter un livre"
-              @click="openAddBookModal()"
-            >
-              Ajouter un livre
-            </UButton>
           </div>
-        </div>
 
-        <!-- Loader pendant le chargement -->
-        <div
-          v-if="loading"
-          class="flex flex-col items-center justify-center py-24"
-        >
-          <UIcon
-            name="i-ion-refresh-circle"
-            class="w-12 h-12 animate-spin text-primary-500 mb-4"
-          />
-          <p class="text-gray-600 dark:text-gray-400">
-            Chargement de votre collection...
-          </p>
-        </div>
+          <!-- Loader pendant le chargement -->
+          <div
+            v-if="loading"
+            class="flex flex-col items-center justify-center py-24"
+          >
+            <UIcon
+              name="i-ion-refresh-circle"
+              class="w-12 h-12 animate-spin text-primary-500 mb-4"
+            />
+            <p class="text-gray-600 dark:text-gray-400">
+              Chargement de votre collection...
+            </p>
+          </div>
 
-        <!-- État vide -->
-        <div
-          v-else-if="books.length === 0"
-          class="flex flex-col items-center justify-center py-24"
-        >
-          <UIcon
-            name="i-ion-book-open"
-            class="w-24 h-24 text-gray-300 dark:text-gray-600 mb-4"
-          />
+          <!-- État vide -->
+          <div
+            v-else-if="books.length === 0"
+            class="flex flex-col items-center justify-center py-24"
+          >
+            <UIcon
+              name="i-ion-book-open"
+              class="w-24 h-24 text-gray-300 dark:text-gray-600 mb-4"
+            />
           <p class="text-lg text-gray-500 dark:text-gray-400 text-center mb-4">
             Votre collection de livres apparaîtra ici
           </p>
@@ -154,7 +155,7 @@
 
                     <!-- Barre de progression (membre connecté) -->
                     <div
-                      v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
+                      v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0 && getBookStatus(book) !== 'Lu'"
                     >
                       <div class="flex items-center justify-between mb-1">
                         <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -328,7 +329,7 @@
 
                         <!-- Barre de progression (mobile, membre connecté) -->
                         <div
-                          v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0"
+                          v-if="memberStore.isMemberConnected && getDisplayReading(book) && readingPagesLues(getDisplayReading(book)) != null && book.nombre_pages && book.nombre_pages > 0 && getBookStatus(book) !== 'Lu'"
                         >
                           <div class="flex items-center justify-between mb-1">
                             <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -416,6 +417,19 @@
         </template>
       </div>
     </div>
+    <template #fallback>
+        <!-- Fallback pour SSR : afficher le loader -->
+        <div class="flex flex-col items-center justify-center py-24">
+          <UIcon
+            name="i-ion-refresh-circle"
+            class="w-12 h-12 animate-spin text-primary-500 mb-4"
+          />
+          <p class="text-gray-600 dark:text-gray-400">
+            Chargement de votre collection...
+          </p>
+        </div>
+      </template>
+    </ClientOnly>
 
     <!-- Modal de mise à jour des pages -->
     <UpdatePagesModal
@@ -441,7 +455,8 @@ import RatingDisplay10 from '~/components/RatingDisplay10.vue'
 
 definePageMeta({
   layout: 'default',
-  middleware: 'auth'
+  middleware: 'auth',
+  ssr: false // Désactiver le SSR pour éviter les problèmes d'hydratation avec les données asynchrones
 })
 
 const familyStore = useFamilyStore()
