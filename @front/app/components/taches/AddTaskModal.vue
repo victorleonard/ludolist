@@ -308,13 +308,13 @@ const getPriorityColor = (priority: string) => {
 const getPriorityBadgeClass = (priority: string) => {
   switch (priority) {
     case 'urgent':
-      return 'text-white dark:text-white bg-red-600 dark:bg-red-600'
+      return '!bg-red-600 !text-white dark:!bg-red-600 dark:!text-white'
     case 'high':
-      return 'text-orange-800 dark:text-orange-200'
+      return '!bg-orange-100 !text-orange-800 dark:!bg-orange-900/50 dark:!text-orange-200'
     case 'medium':
-      return 'text-yellow-800 dark:text-yellow-200'
+      return '!bg-amber-100 !text-amber-800 dark:!bg-amber-900/50 dark:!text-amber-200'
     case 'low':
-      return 'text-green-800 dark:text-green-200'
+      return '!bg-green-100 !text-green-800 dark:!bg-green-900/50 dark:!text-green-200'
     default:
       return ''
   }

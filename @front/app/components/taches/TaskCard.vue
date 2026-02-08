@@ -52,10 +52,7 @@
           :color="getPriorityColor(task.priority)"
           :variant="task.priority === 'urgent' ? 'solid' : 'subtle'"
           size="sm"
-          :class="[
-            'shrink-0',
-            task.priority === 'urgent' ? '!bg-red-600 !text-white dark:!bg-red-600 dark:!text-white' : ''
-          ]"
+          :class="['shrink-0', getPriorityBadgeClass(task.priority)]"
         >
           {{ getPriorityLabel(task.priority) }}
         </UBadge>
@@ -166,6 +163,22 @@ const getPriorityLabel = (priority: string) => {
       return 'Basse'
     default:
       return priority
+  }
+}
+
+/** Classes Tailwind explicites pour des couleurs de badge cohérentes */
+const getPriorityBadgeClass = (priority: string) => {
+  switch (priority) {
+    case 'urgent':
+      return '!bg-red-600 !text-white dark:!bg-red-600 dark:!text-white'
+    case 'high':
+      return '!bg-orange-100 !text-orange-800 dark:!bg-orange-900/50 dark:!text-orange-200'
+    case 'medium':
+      return '!bg-amber-100 !text-amber-800 dark:!bg-amber-900/50 dark:!text-amber-200'
+    case 'low':
+      return '!bg-green-100 !text-green-800 dark:!bg-green-900/50 dark:!text-green-200'
+    default:
+      return ''
   }
 }
 
