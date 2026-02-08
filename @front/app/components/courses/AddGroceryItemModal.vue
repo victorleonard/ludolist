@@ -7,8 +7,8 @@
     <template #content>
       <div
         ref="modalContentRef"
-        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-        style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        class="flex flex-col bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        :style="modalStyle"
       >
         <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
           <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
@@ -175,6 +175,33 @@ const scrollContainerRef = ref<HTMLElement | null>(null)
 const modalContentRef = ref<HTMLElement | null>(null)
 const inputFieldRef = ref<HTMLElement | null>(null)
 const focusTransferred = ref(false)
+const keyboardHeight = ref(0)
+
+// Style dynamique pour le modal qui s'adapte au clavier iOS
+const modalStyle = computed(() => {
+  const baseStyle: Record<string, string> = {
+    paddingBottom: `max(1rem, env(safe-area-inset-bottom, 1rem))`,
+  }
+  
+  // Sur iOS, ajuster la hauteur maximale en fonction du clavier
+  if (typeof window !== 'undefined' && window.visualViewport) {
+    const viewportHeight = window.visualViewport.height
+    const fullHeight = window.innerHeight
+    
+    // Si le clavier est ouvert (viewportHeight < fullHeight)
+    if (viewportHeight < fullHeight - 50) {
+      // Ajuster la hauteur maximale pour que le drawer s'adapte au clavier
+      baseStyle.maxHeight = `${viewportHeight - 40}px` // 40px de marge totale
+      baseStyle.height = `${viewportHeight - 40}px` // Forcer la hauteur
+    } else {
+      baseStyle.maxHeight = '90dvh'
+    }
+  } else {
+    baseStyle.maxHeight = '90dvh'
+  }
+  
+  return baseStyle
+})
 
 // Suggestions basées sur les produits existants
 const suggestions = computed(() => {
@@ -203,36 +230,45 @@ const transferToRealInput = () => {
       // Mettre le focus d'abord
       nativeInput.focus({ preventScroll: false })
       
-      // Attendre que le clavier s'affiche, puis scroller pour rendre l'input visible
+      // Attendre que le clavier s'affiche et que le modal s'adapte
       setTimeout(() => {
-        // Utiliser le conteneur du champ (label + input) pour le scroll
-        const fieldContainer = inputFieldRef.value || inputElement.parentElement
-        if (fieldContainer) {
-          // Scroller le conteneur du champ en haut de la zone visible
-          fieldContainer.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          })
-          
-          // Après le scroll initial, ajuster précisément avec le conteneur scrollable
-          setTimeout(() => {
-            const visualViewport = window.visualViewport
-            if (visualViewport) {
-              const viewportHeight = visualViewport.height
+        // Mettre à jour la hauteur du clavier pour forcer le recalcul du style
+        const fullHeight = window.innerHeight
+        const viewportHeight = window.visualViewport?.height || fullHeight
+        keyboardHeight.value = fullHeight - viewportHeight
+        
+        // Forcer l'ajustement de la hauteur du modal si le clavier est ouvert
+        if (modalContentRef.value && window.visualViewport && viewportHeight < fullHeight - 50) {
+          const vpHeight = window.visualViewport.height
+          modalContentRef.value.style.maxHeight = `${vpHeight - 40}px`
+          modalContentRef.value.style.height = `${vpHeight - 40}px`
+        }
+        
+        // Scroller pour rendre l'input visible
+        setTimeout(() => {
+          const fieldContainer = inputFieldRef.value || inputElement.parentElement
+          if (fieldContainer && window.visualViewport) {
+            const viewportHeight = window.visualViewport.height
+            
+            // Scroller le champ en haut de la zone visible
+            fieldContainer.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
+            })
+            
+            // Ajuster précisément après le scroll initial
+            setTimeout(() => {
               const fieldRect = fieldContainer.getBoundingClientRect()
-              
-              // Zone disponible au-dessus du clavier (avec une marge de 100px)
               const availableHeight = viewportHeight - 100
               
-              // Si le champ est sous la zone visible
               if (fieldRect.bottom > availableHeight) {
                 const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
                 if (scrollContainer) {
                   const currentScrollTop = scrollContainer.scrollTop
                   const containerRect = scrollContainer.getBoundingClientRect()
                   const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
-                  const targetTop = 80 // Position cible : 80px du haut du conteneur
+                  const targetTop = 100
                   const scrollNeeded = fieldTopRelativeToContainer - targetTop
                   
                   scrollContainer.scrollTo({
@@ -241,17 +277,10 @@ const transferToRealInput = () => {
                   })
                 }
               }
-            }
-          }, 300)
-        } else {
-          // Fallback : scroller l'input directement
-          inputElement.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          })
-        }
-      }, 600) // Délai pour laisser le clavier s'afficher complètement
+            }, 200)
+          }
+        }, 200) // Délai pour laisser le modal s'adapter
+      }, 400) // Délai pour laisser le clavier s'afficher
     }
   }
 }
@@ -277,7 +306,7 @@ defineExpose({
   triggerFocus
 })
 
-// Écouter les changements de visualViewport pour ajuster le scroll quand le clavier apparaît
+// Écouter les changements de visualViewport pour ajuster la hauteur du modal et le scroll
 let viewportResizeHandler: (() => void) | null = null
 
 watch(isOpen, async (newValue) => {
@@ -290,27 +319,45 @@ watch(isOpen, async (newValue) => {
     // Écouter les changements de visualViewport (quand le clavier apparaît/disparaît)
     if (window.visualViewport && !viewportResizeHandler) {
       viewportResizeHandler = () => {
+        // Mettre à jour la hauteur du clavier pour forcer le recalcul du style
+        const fullHeight = window.innerHeight
+        const viewportHeight = window.visualViewport?.height || fullHeight
+        keyboardHeight.value = fullHeight - viewportHeight
+        
+        // Forcer le recalcul du style du modal
+        if (modalContentRef.value && window.visualViewport) {
+          const vpHeight = window.visualViewport.height
+          if (vpHeight < fullHeight - 50) {
+            // Clavier ouvert : ajuster la hauteur du modal
+            modalContentRef.value.style.maxHeight = `${vpHeight - 40}px`
+            modalContentRef.value.style.height = `${vpHeight - 40}px`
+          } else {
+            // Clavier fermé : remettre la hauteur par défaut
+            modalContentRef.value.style.maxHeight = '90dvh'
+            modalContentRef.value.style.height = ''
+          }
+        }
+        
         // Quand le clavier apparaît, ajuster le scroll pour rendre l'input visible
         const inputElement = document.getElementById('grocery-item-name')
         if (inputElement && focusTransferred.value) {
           const nativeInput = inputElement.querySelector('input') as HTMLInputElement
           if (nativeInput && document.activeElement === nativeInput) {
             setTimeout(() => {
-              const visualViewport = window.visualViewport
-              if (visualViewport) {
-                const viewportHeight = visualViewport.height
-                const inputRect = inputElement.getBoundingClientRect()
-                const labelElement = inputElement.previousElementSibling as HTMLElement
-                const labelHeight = labelElement ? labelElement.getBoundingClientRect().height : 0
-                const inputTop = inputRect.top - labelHeight
+              const fieldContainer = inputFieldRef.value || inputElement.parentElement
+              if (fieldContainer && window.visualViewport) {
+                const viewportHeight = window.visualViewport.height
+                const fieldRect = fieldContainer.getBoundingClientRect()
                 
-                // Si l'input est sous la zone visible
-                if (inputTop < 0 || inputRect.bottom > viewportHeight - 20) {
+                // Si le champ est sous la zone visible
+                if (fieldRect.bottom > viewportHeight - 100) {
                   const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
                   if (scrollContainer) {
                     const currentScrollTop = scrollContainer.scrollTop
+                    const containerRect = scrollContainer.getBoundingClientRect()
+                    const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
                     const targetTop = 80
-                    const scrollNeeded = inputTop - targetTop
+                    const scrollNeeded = fieldTopRelativeToContainer - targetTop
                     
                     scrollContainer.scrollTo({
                       top: currentScrollTop + scrollNeeded,
@@ -330,6 +377,7 @@ watch(isOpen, async (newValue) => {
     // Le focus sera déclenché depuis l'événement de clic (via triggerFocus)
   } else {
     focusTransferred.value = false
+    keyboardHeight.value = 0
     
     // Nettoyer l'écouteur quand le modal se ferme
     if (viewportResizeHandler && window.visualViewport) {
