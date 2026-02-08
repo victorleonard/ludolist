@@ -170,6 +170,25 @@ const suggestions = computed(() => {
     .slice(0, 5) // Limiter à 5 suggestions
 })
 
+// Fonction helper pour mettre le focus et afficher le clavier sur mobile
+const focusInput = (inputId: string) => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const inputElement = document.getElementById(inputId)
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+        if (nativeInput) {
+          // Sur mobile, utiliser click() en plus de focus() pour déclencher le clavier
+          nativeInput.click()
+          nativeInput.focus({ preventScroll: false })
+          // Forcer le scroll vers l'input si nécessaire
+          nativeInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    }, 200) // Délai plus long pour s'assurer que le modal est complètement rendu
+  })
+}
+
 // Réinitialiser le formulaire et mettre le focus quand le modal s'ouvre
 watch(isOpen, async (newValue) => {
   if (newValue) {
@@ -178,15 +197,7 @@ watch(isOpen, async (newValue) => {
     alreadyExistsMessage.value = ''
     // Mettre le focus sur le champ input après l'ouverture du modal
     await nextTick()
-    setTimeout(() => {
-      const inputElement = document.getElementById('grocery-item-name')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') || inputElement
-        if (nativeInput && typeof nativeInput.focus === 'function') {
-          nativeInput.focus()
-        }
-      }
-    }, 100)
+    focusInput('grocery-item-name')
   }
 })
 

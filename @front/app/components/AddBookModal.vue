@@ -593,6 +593,25 @@ watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
 
+// Fonction helper pour mettre le focus et afficher le clavier sur mobile
+const focusInput = (inputId: string) => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const inputElement = document.getElementById(inputId)
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+        if (nativeInput) {
+          // Sur mobile, utiliser click() en plus de focus() pour déclencher le clavier
+          nativeInput.click()
+          nativeInput.focus({ preventScroll: false })
+          // Forcer le scroll vers l'input si nécessaire
+          nativeInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    }, 200) // Délai plus long pour s'assurer que le modal est complètement rendu
+  })
+}
+
 watch(isOpen, async (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
@@ -605,29 +624,13 @@ watch(isOpen, async (newValue) => {
     showPreview.value = false
     // Mettre le focus sur le champ titre après l'ouverture du modal
     await nextTick()
-    setTimeout(() => {
-      const inputElement = document.getElementById('title')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') || inputElement
-        if (nativeInput && typeof nativeInput.focus === 'function') {
-          nativeInput.focus()
-        }
-      }
-    }, 100)
+    focusInput('title')
   } else {
     showManualForm.value = false
     showPreview.value = false
     // Mettre le focus sur le champ de recherche après l'ouverture du modal
     await nextTick()
-    setTimeout(() => {
-      const inputElement = document.getElementById('book-search')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') || inputElement
-        if (nativeInput && typeof nativeInput.focus === 'function') {
-          nativeInput.focus()
-        }
-      }
-    }, 100)
+    focusInput('book-search')
   }
 })
 

@@ -674,6 +674,25 @@ watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
 
+// Fonction helper pour mettre le focus et afficher le clavier sur mobile
+const focusInput = (inputId: string) => {
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      const inputElement = document.getElementById(inputId)
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+        if (nativeInput) {
+          // Sur mobile, utiliser click() en plus de focus() pour déclencher le clavier
+          nativeInput.click()
+          nativeInput.focus({ preventScroll: false })
+          // Forcer le scroll vers l'input si nécessaire
+          nativeInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
+    }, 200) // Délai plus long pour s'assurer que le modal est complètement rendu
+  })
+}
+
 watch(isOpen, async (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
@@ -684,28 +703,12 @@ watch(isOpen, async (newValue) => {
     showManualForm.value = true // En mode édition, afficher directement le formulaire
     // Mettre le focus sur le champ nom après l'ouverture du modal
     await nextTick()
-    setTimeout(() => {
-      const inputElement = document.getElementById('name')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') || inputElement
-        if (nativeInput && typeof nativeInput.focus === 'function') {
-          nativeInput.focus()
-        }
-      }
-    }, 100)
+    focusInput('name')
   } else {
     showManualForm.value = false // En mode ajout, commencer par la recherche
     // Mettre le focus sur le champ de recherche BGG après l'ouverture du modal
     await nextTick()
-    setTimeout(() => {
-      const inputElement = document.getElementById('bgg-search')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') || inputElement
-        if (nativeInput && typeof nativeInput.focus === 'function') {
-          nativeInput.focus()
-        }
-      }
-    }, 100)
+    focusInput('bgg-search')
   }
 })
 
