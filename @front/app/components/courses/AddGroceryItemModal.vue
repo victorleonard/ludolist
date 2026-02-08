@@ -26,6 +26,7 @@
         </div>
 
         <div
+          ref="scrollContainerRef"
           class="space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
         >
           <!-- Input réel mais invisible pour iOS - focusé immédiatement depuis l'événement de clic -->
@@ -166,6 +167,7 @@ const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
 const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
 const iosInputRef = ref<HTMLInputElement | null>(null)
+const scrollContainerRef = ref<HTMLElement | null>(null)
 const focusTransferred = ref(false)
 
 // Suggestions basées sur les produits existants
@@ -193,6 +195,49 @@ const transferToRealInput = () => {
     const nativeInput = inputElement.querySelector('input') as HTMLInputElement
     if (nativeInput) {
       nativeInput.focus({ preventScroll: false })
+      
+      // Sur iOS, attendre que le clavier s'affiche puis scroller pour rendre l'input visible
+      setTimeout(() => {
+        // Obtenir les dimensions de la fenêtre et du clavier
+        const viewportHeight = window.innerHeight
+        const viewportWidth = window.innerWidth
+        // Sur iOS, le clavier fait généralement environ 300-350px de haut
+        // On peut aussi détecter la hauteur réelle en comparant avec window.visualViewport
+        const keyboardHeight = window.visualViewport 
+          ? viewportHeight - window.visualViewport.height 
+          : 300
+        
+        const inputRect = inputElement.getBoundingClientRect()
+        const availableHeight = viewportHeight - keyboardHeight
+        
+        // Si l'input est sous le clavier, scroller pour le rendre visible
+        if (inputRect.bottom > availableHeight) {
+          // Utiliser la référence du conteneur scrollable
+          const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
+          if (scrollContainer) {
+            const containerRect = scrollContainer.getBoundingClientRect()
+            const currentScrollTop = scrollContainer.scrollTop
+            
+            // Calculer combien scroller pour que l'input soit visible au-dessus du clavier
+            // On veut que l'input soit à environ 20px du haut de la zone visible (au-dessus du clavier)
+            const targetTop = 20
+            const inputTopRelativeToContainer = inputRect.top - containerRect.top
+            const scrollOffset = currentScrollTop + inputTopRelativeToContainer - targetTop
+            
+            scrollContainer.scrollTo({
+              top: Math.max(0, scrollOffset),
+              behavior: 'smooth'
+            })
+          } else {
+            // Si pas de conteneur scrollable, utiliser scrollIntoView avec block: 'center' pour centrer dans la zone visible
+            nativeInput.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            })
+          }
+        }
+      }, 400) // Délai plus long pour laisser le clavier s'afficher complètement
     }
   }
 }
@@ -210,7 +255,7 @@ const triggerFocus = () => {
       if (!focusTransferred.value) {
         transferToRealInput()
       }
-    }, 100)
+    }, 200) // Délai un peu plus long pour laisser le clavier s'afficher
   }
 }
 
