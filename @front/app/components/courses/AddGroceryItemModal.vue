@@ -27,7 +27,6 @@
 
         <div
           class="space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
-          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
           <div class="form-field">
             <label
@@ -41,6 +40,7 @@
               Nom du produit <span class="text-red-500">*</span>
             </label>
             <UInput
+              ref="nameInputRef"
               id="grocery-item-name"
               v-model="itemName"
               :disabled="submitting"
@@ -95,21 +95,24 @@
           >
             {{ alreadyExistsMessage }}
           </UAlert>
+        </div>
 
-          <!-- Bouton d'ajout -->
-          <div class="pt-2">
-            <UButton
-              type="button"
-              color="primary"
-              size="lg"
-              block
-              :loading="submitting"
-              :disabled="!itemName.trim() || submitting"
-              @click="handleAdd"
-            >
-              {{ submitting ? 'Ajout en cours...' : 'Ajouter à la liste' }}
-            </UButton>
-          </div>
+        <!-- Footer avec bouton d'action -->
+        <div
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <UButton
+            type="button"
+            color="primary"
+            size="lg"
+            block
+            :loading="submitting"
+            :disabled="!itemName.trim() || submitting"
+            @click="handleAdd"
+          >
+            {{ submitting ? 'Ajout en cours...' : 'Ajouter à la liste' }}
+          </UButton>
         </div>
       </div>
     </template>
@@ -117,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
@@ -167,12 +170,23 @@ const suggestions = computed(() => {
     .slice(0, 5) // Limiter à 5 suggestions
 })
 
-// Réinitialiser le formulaire quand le modal s'ouvre
-watch(isOpen, (newValue) => {
+// Réinitialiser le formulaire et mettre le focus quand le modal s'ouvre
+watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
     errors.value = {}
     alreadyExistsMessage.value = ''
+    // Mettre le focus sur le champ input après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('grocery-item-name')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   }
 })
 

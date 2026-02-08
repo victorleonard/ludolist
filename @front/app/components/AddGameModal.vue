@@ -13,43 +13,16 @@
           <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingGame ? 'Modifier le jeu' : 'Ajouter un nouveau jeu' }}
           </h3>
-          <div class="flex items-center gap-2 shrink-0">
-            <UButton
-              v-if="editingGame"
-              color="red"
-              variant="outline"
-              icon="i-ion-trash"
-              size="sm"
-              class="min-h-[44px] sm:min-h-0"
-              :loading="deleting"
-              :disabled="submitting"
-              @click="handleDelete"
-            >
-              <span class="sm:inline hidden">Supprimer</span>
-            </UButton>
-            <UButton
-              v-if="editingGame || showManualForm"
-              type="submit"
-              form="game-form"
-              color="primary"
-              size="sm"
-              class="min-h-[44px] sm:min-h-0"
-              :loading="submitting"
-              :disabled="deleting"
-            >
-              {{ editingGame ? 'Enregistrer' : 'Ajouter' }}
-            </UButton>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-ion-close"
-              size="sm"
-              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
-              :disabled="submitting || deleting"
-              aria-label="Fermer"
-              @click="closeModal"
-            />
-          </div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-ion-close"
+            size="sm"
+            class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
+            :disabled="submitting || deleting"
+            aria-label="Fermer"
+            @click="closeModal"
+          />
         </div>
 
         <!-- Mode recherche BGG (par défaut pour l'ajout) -->
@@ -412,13 +385,61 @@
             </p>
           </div>
         </form>
+
+        <!-- Footer avec boutons d'action -->
+        <div
+          v-if="editingGame || showManualForm"
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 flex flex-col gap-2"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <div
+            v-if="editingGame"
+            class="flex gap-2"
+          >
+            <UButton
+              color="red"
+              variant="outline"
+              icon="i-ion-trash"
+              size="lg"
+              block
+              :loading="deleting"
+              :disabled="submitting"
+              @click="handleDelete"
+            >
+              Supprimer
+            </UButton>
+            <UButton
+              type="submit"
+              form="game-form"
+              color="primary"
+              size="lg"
+              block
+              :loading="submitting"
+              :disabled="deleting"
+            >
+              Enregistrer
+            </UButton>
+          </div>
+          <UButton
+            v-else
+            type="submit"
+            form="game-form"
+            color="primary"
+            size="lg"
+            block
+            :loading="submitting"
+            :disabled="deleting"
+          >
+            Ajouter
+          </UButton>
+        </div>
       </div>
     </template>
   </UDrawer>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, nextTick } from 'vue'
 import type { TransformedGame as Game } from '~/stores/family'
 import { useAuthStore } from '~/stores/auth'
 import { useFamilyStore } from '~/stores/family'
@@ -653,7 +674,7 @@ watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
 
-watch(isOpen, (newValue) => {
+watch(isOpen, async (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
     resetForm()
@@ -661,8 +682,30 @@ watch(isOpen, (newValue) => {
   } else if (newValue && editingGame.value) {
     loadGameData()
     showManualForm.value = true // En mode édition, afficher directement le formulaire
+    // Mettre le focus sur le champ nom après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('name')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   } else {
     showManualForm.value = false // En mode ajout, commencer par la recherche
+    // Mettre le focus sur le champ de recherche BGG après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('bgg-search')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   }
 })
 

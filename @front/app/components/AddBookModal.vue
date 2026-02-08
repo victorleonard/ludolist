@@ -13,29 +13,16 @@
           <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre' }}
           </h3>
-          <div class="flex items-center gap-2 shrink-0">
-            <UButton
-              v-if="editingBook || showManualForm"
-              type="submit"
-              form="book-form"
-              color="primary"
-              size="sm"
-              class="min-h-[44px] sm:min-h-0"
-              :loading="submitting"
-            >
-              {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
-            </UButton>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-ion-close"
-              size="sm"
-              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
-              :disabled="submitting"
-              aria-label="Fermer"
-              @click="closeModal"
-            />
-          </div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-ion-close"
+            size="sm"
+            class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
+            :disabled="submitting"
+            aria-label="Fermer"
+            @click="closeModal"
+          />
         </div>
 
         <!-- Mode prévisualisation -->
@@ -372,7 +359,6 @@
           v-else
           id="book-form"
           class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
-          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
@@ -555,13 +541,31 @@
             </p>
           </div>
         </form>
+
+        <!-- Footer avec bouton d'action -->
+        <div
+          v-if="editingBook || showManualForm"
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <UButton
+            type="submit"
+            form="book-form"
+            color="primary"
+            size="lg"
+            block
+            :loading="submitting"
+          >
+            {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
+          </UButton>
+        </div>
       </div>
     </template>
   </UDrawer>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, nextTick } from 'vue'
 import { useFamilyStore } from '~/stores/family'
 import type { Book } from '~/composables/useAddBookModal'
 
@@ -589,7 +593,7 @@ watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
 
-watch(isOpen, (newValue) => {
+watch(isOpen, async (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
     resetForm()
@@ -599,9 +603,31 @@ watch(isOpen, (newValue) => {
     loadBookData()
     showManualForm.value = true
     showPreview.value = false
+    // Mettre le focus sur le champ titre après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('title')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   } else {
     showManualForm.value = false
     showPreview.value = false
+    // Mettre le focus sur le champ de recherche après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('book-search')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   }
 })
 

@@ -13,48 +13,21 @@
           <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
             {{ editingDish ? 'Modifier le plat' : 'Ajouter un plat' }}
           </h3>
-          <div class="flex items-center gap-2 shrink-0">
-            <UButton
-              v-if="editingDish"
-              color="red"
-              variant="outline"
-              icon="i-ion-trash"
-              size="sm"
-              class="min-h-[44px] sm:min-h-0"
-              :loading="deleting"
-              :disabled="submitting"
-              @click="handleDelete"
-            >
-              <span class="sm:inline hidden">Supprimer</span>
-            </UButton>
-            <UButton
-              type="submit"
-              form="plat-form"
-              color="primary"
-              size="sm"
-              class="min-h-[44px] sm:min-h-0"
-              :loading="submitting"
-              :disabled="deleting"
-            >
-              {{ editingDish ? 'Enregistrer' : 'Ajouter' }}
-            </UButton>
-            <UButton
-              color="neutral"
-              variant="ghost"
-              icon="i-ion-close"
-              size="sm"
-              class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
-              :disabled="submitting || deleting"
-              aria-label="Fermer"
-              @click="closeModal"
-            />
-          </div>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            icon="i-ion-close"
+            size="sm"
+            class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
+            :disabled="submitting || deleting"
+            aria-label="Fermer"
+            @click="closeModal"
+          />
         </div>
 
         <form
           id="plat-form"
           class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
-          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
           <div class="form-field">
@@ -278,13 +251,60 @@
             </p>
           </div>
         </form>
+
+        <!-- Footer avec boutons d'action -->
+        <div
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 flex flex-col gap-2"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <div
+            v-if="editingDish"
+            class="flex gap-2"
+          >
+            <UButton
+              color="red"
+              variant="outline"
+              icon="i-ion-trash"
+              size="lg"
+              block
+              :loading="deleting"
+              :disabled="submitting"
+              @click="handleDelete"
+            >
+              Supprimer
+            </UButton>
+            <UButton
+              type="submit"
+              form="plat-form"
+              color="primary"
+              size="lg"
+              block
+              :loading="submitting"
+              :disabled="deleting"
+            >
+              Enregistrer
+            </UButton>
+          </div>
+          <UButton
+            v-else
+            type="submit"
+            form="plat-form"
+            color="primary"
+            size="lg"
+            block
+            :loading="submitting"
+            :disabled="deleting"
+          >
+            Ajouter
+          </UButton>
+        </div>
       </div>
     </template>
   </UDrawer>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useFamilyStore } from '~/stores/family'
 import type { TransformedDish } from '~/stores/family'
@@ -400,12 +420,24 @@ watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
 })
 
-watch(isOpen, (newValue) => {
+watch(isOpen, async (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
     resetForm()
   } else if (editingDish.value) {
     loadDishData()
+  } else {
+    // Mettre le focus sur le champ nom après l'ouverture du modal
+    await nextTick()
+    setTimeout(() => {
+      const inputElement = document.getElementById('plat-name')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input') || inputElement
+        if (nativeInput && typeof nativeInput.focus === 'function') {
+          nativeInput.focus()
+        }
+      }
+    }, 100)
   }
 })
 
