@@ -119,6 +119,7 @@
     </button>
 
     <AddGroceryItemModal
+      ref="addGroceryItemModalRef"
       :model-value="isModalOpen"
       :existing-items="allItems"
       @update:model-value="(v) => { if (!v) closeModal() }"
@@ -128,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
 import AddGroceryItemModal from '~/components/courses/AddGroceryItemModal.vue'
 import GroceryItemCard from '~/components/courses/GroceryItemCard.vue'

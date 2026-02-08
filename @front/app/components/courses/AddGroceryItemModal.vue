@@ -88,6 +88,16 @@
           class="pb-6"
         >
           <div class="relative">
+            <!-- Input invisible pour iOS - focusé depuis l'événement de clic -->
+            <input
+              ref="iosInputRef"
+              type="text"
+              autocomplete="off"
+              class="absolute opacity-0 pointer-events-none"
+              style="position: fixed; left: 0; top: 0; width: 1px; height: 1px; z-index: -1;"
+              tabindex="0"
+              @blur="transferToRealInput"
+            />
             <UInput
               ref="nameInputRef"
               id="grocery-item-name"
@@ -98,7 +108,6 @@
               class="w-full input-touch"
               placeholder="Ajouter des éléments supplémentaires"
               autocomplete="off"
-              autofocus
               size="lg"
               @input="handleInput"
               @keyup.enter="handleAdd"
@@ -169,6 +178,8 @@ const submitting = ref(false)
 const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
 const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
+const iosInputRef = ref<HTMLInputElement | null>(null)
+const focusTransferred = ref(false)
 
 // Suggestions basées sur les produits existants
 const suggestions = computed(() => {
@@ -185,49 +196,62 @@ const suggestions = computed(() => {
     .slice(0, 5) // Limiter à 5 suggestions
 })
 
+// Fonction pour transférer le focus de l'input iOS vers le vrai input
+const transferToRealInput = () => {
+  if (focusTransferred.value) return
+  focusTransferred.value = true
+
+  const inputElement = document.getElementById('grocery-item-name')
+  if (inputElement) {
+    const nativeInput = inputElement.querySelector('input')
+    if (nativeInput instanceof HTMLInputElement) {
+      // Mettre le focus sur le vrai input
+      nativeInput.focus({ preventScroll: false })
+    }
+  }
+}
+
+// Exposer une méthode pour déclencher le focus depuis l'extérieur
+const triggerFocus = () => {
+  // Focuser l'input iOS immédiatement (dans la chaîne d'événements utilisateur)
+  if (iosInputRef.value) {
+    iosInputRef.value.focus()
+    // Le transfert vers le vrai input se fera automatiquement via @blur
+    setTimeout(() => {
+      if (!focusTransferred.value) {
+        transferToRealInput()
+      }
+    }, 300)
+  }
+}
+
+defineExpose({
+  triggerFocus
+})
+
 // Focus automatique sur l'input quand le modal s'ouvre
 watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
     errors.value = {}
     alreadyExistsMessage.value = ''
+    focusTransferred.value = false
     
-    // Attendre que le composant soit complètement rendu (plus de délais pour Teleport)
-    await nextTick()
+    // Attendre que le composant soit complètement rendu
     await nextTick()
     await nextTick()
     
-    // Focuser l'input - plusieurs tentatives pour iOS
-    const focusInput = () => {
-      const inputElement = document.getElementById('grocery-item-name')
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input')
-        if (nativeInput instanceof HTMLInputElement) {
-          // Essayer plusieurs méthodes pour iOS
-          nativeInput.click() // Cliquer d'abord pour iOS
-          setTimeout(() => {
-            nativeInput.focus({ preventScroll: false })
-            // Forcer le focus avec un événement de clic simulé pour iOS
-            if (document.activeElement !== nativeInput) {
-              const clickEvent = new MouseEvent('click', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-              })
-              nativeInput.dispatchEvent(clickEvent)
-              nativeInput.focus({ preventScroll: false })
-            }
-          }, 50)
+    // Déclencher le focus via l'input iOS
+    if (iosInputRef.value) {
+      iosInputRef.value.focus()
+      setTimeout(() => {
+        if (!focusTransferred.value) {
+          transferToRealInput()
         }
-      }
+      }, 300)
     }
-    
-    // Première tentative après un délai pour laisser le Teleport se rendre
-    setTimeout(focusInput, 150)
-    
-    // Tentatives supplémentaires pour iOS
-    setTimeout(focusInput, 300)
-    setTimeout(focusInput, 500)
+  } else {
+    focusTransferred.value = false
   }
 })
 
@@ -249,6 +273,9 @@ const closeModal = () => {
     if (nativeInput instanceof HTMLInputElement) {
       nativeInput.blur()
     }
+  }
+  if (iosInputRef.value) {
+    iosInputRef.value.blur()
   }
   
   // Fermer le modal
