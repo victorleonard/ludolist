@@ -6,6 +6,7 @@
   >
     <template #content>
       <div
+        ref="modalContentRef"
         class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
         style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
@@ -39,7 +40,10 @@
             tabindex="0"
             @blur="transferToRealInput"
           />
-          <div class="form-field">
+          <div
+            ref="inputFieldRef"
+            class="form-field"
+          >
             <label
               for="grocery-item-name"
               class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
@@ -131,7 +135,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
@@ -168,6 +172,8 @@ const alreadyExistsMessage = ref('')
 const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
 const iosInputRef = ref<HTMLInputElement | null>(null)
 const scrollContainerRef = ref<HTMLElement | null>(null)
+const modalContentRef = ref<HTMLElement | null>(null)
+const inputFieldRef = ref<HTMLElement | null>(null)
 const focusTransferred = ref(false)
 
 // Suggestions basées sur les produits existants
@@ -194,50 +200,58 @@ const transferToRealInput = () => {
   if (inputElement) {
     const nativeInput = inputElement.querySelector('input') as HTMLInputElement
     if (nativeInput) {
+      // Mettre le focus d'abord
       nativeInput.focus({ preventScroll: false })
       
-      // Sur iOS, attendre que le clavier s'affiche puis scroller pour rendre l'input visible
+      // Attendre que le clavier s'affiche, puis scroller pour rendre l'input visible
       setTimeout(() => {
-        // Obtenir les dimensions de la fenêtre et du clavier
-        const viewportHeight = window.innerHeight
-        const viewportWidth = window.innerWidth
-        // Sur iOS, le clavier fait généralement environ 300-350px de haut
-        // On peut aussi détecter la hauteur réelle en comparant avec window.visualViewport
-        const keyboardHeight = window.visualViewport 
-          ? viewportHeight - window.visualViewport.height 
-          : 300
-        
-        const inputRect = inputElement.getBoundingClientRect()
-        const availableHeight = viewportHeight - keyboardHeight
-        
-        // Si l'input est sous le clavier, scroller pour le rendre visible
-        if (inputRect.bottom > availableHeight) {
-          // Utiliser la référence du conteneur scrollable
-          const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
-          if (scrollContainer) {
-            const containerRect = scrollContainer.getBoundingClientRect()
-            const currentScrollTop = scrollContainer.scrollTop
-            
-            // Calculer combien scroller pour que l'input soit visible au-dessus du clavier
-            // On veut que l'input soit à environ 20px du haut de la zone visible (au-dessus du clavier)
-            const targetTop = 20
-            const inputTopRelativeToContainer = inputRect.top - containerRect.top
-            const scrollOffset = currentScrollTop + inputTopRelativeToContainer - targetTop
-            
-            scrollContainer.scrollTo({
-              top: Math.max(0, scrollOffset),
-              behavior: 'smooth'
-            })
-          } else {
-            // Si pas de conteneur scrollable, utiliser scrollIntoView avec block: 'center' pour centrer dans la zone visible
-            nativeInput.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
-            })
-          }
+        // Utiliser le conteneur du champ (label + input) pour le scroll
+        const fieldContainer = inputFieldRef.value || inputElement.parentElement
+        if (fieldContainer) {
+          // Scroller le conteneur du champ en haut de la zone visible
+          fieldContainer.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          })
+          
+          // Après le scroll initial, ajuster précisément avec le conteneur scrollable
+          setTimeout(() => {
+            const visualViewport = window.visualViewport
+            if (visualViewport) {
+              const viewportHeight = visualViewport.height
+              const fieldRect = fieldContainer.getBoundingClientRect()
+              
+              // Zone disponible au-dessus du clavier (avec une marge de 100px)
+              const availableHeight = viewportHeight - 100
+              
+              // Si le champ est sous la zone visible
+              if (fieldRect.bottom > availableHeight) {
+                const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
+                if (scrollContainer) {
+                  const currentScrollTop = scrollContainer.scrollTop
+                  const containerRect = scrollContainer.getBoundingClientRect()
+                  const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
+                  const targetTop = 80 // Position cible : 80px du haut du conteneur
+                  const scrollNeeded = fieldTopRelativeToContainer - targetTop
+                  
+                  scrollContainer.scrollTo({
+                    top: currentScrollTop + scrollNeeded,
+                    behavior: 'smooth'
+                  })
+                }
+              }
+            }
+          }, 300)
+        } else {
+          // Fallback : scroller l'input directement
+          inputElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          })
         }
-      }, 400) // Délai plus long pour laisser le clavier s'afficher complètement
+      }, 600) // Délai pour laisser le clavier s'afficher complètement
     }
   }
 }
@@ -250,12 +264,12 @@ const triggerFocus = () => {
   if (iosInputRef.value) {
     iosInputRef.value.focus()
     // Le transfert vers le vrai input se fera automatiquement via @blur
-    // après un court délai pour laisser le clavier s'ouvrir
+    // après un délai pour laisser le clavier s'ouvrir
     setTimeout(() => {
       if (!focusTransferred.value) {
         transferToRealInput()
       }
-    }, 200) // Délai un peu plus long pour laisser le clavier s'afficher
+    }, 300) // Délai pour laisser le clavier s'afficher complètement
   }
 }
 
@@ -263,16 +277,66 @@ defineExpose({
   triggerFocus
 })
 
-// Réinitialiser le formulaire quand le modal s'ouvre
+// Écouter les changements de visualViewport pour ajuster le scroll quand le clavier apparaît
+let viewportResizeHandler: (() => void) | null = null
+
 watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
     errors.value = {}
     alreadyExistsMessage.value = ''
     focusTransferred.value = false
+    
+    // Écouter les changements de visualViewport (quand le clavier apparaît/disparaît)
+    if (window.visualViewport && !viewportResizeHandler) {
+      viewportResizeHandler = () => {
+        // Quand le clavier apparaît, ajuster le scroll pour rendre l'input visible
+        const inputElement = document.getElementById('grocery-item-name')
+        if (inputElement && focusTransferred.value) {
+          const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+          if (nativeInput && document.activeElement === nativeInput) {
+            setTimeout(() => {
+              const visualViewport = window.visualViewport
+              if (visualViewport) {
+                const viewportHeight = visualViewport.height
+                const inputRect = inputElement.getBoundingClientRect()
+                const labelElement = inputElement.previousElementSibling as HTMLElement
+                const labelHeight = labelElement ? labelElement.getBoundingClientRect().height : 0
+                const inputTop = inputRect.top - labelHeight
+                
+                // Si l'input est sous la zone visible
+                if (inputTop < 0 || inputRect.bottom > viewportHeight - 20) {
+                  const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
+                  if (scrollContainer) {
+                    const currentScrollTop = scrollContainer.scrollTop
+                    const targetTop = 80
+                    const scrollNeeded = inputTop - targetTop
+                    
+                    scrollContainer.scrollTo({
+                      top: currentScrollTop + scrollNeeded,
+                      behavior: 'smooth'
+                    })
+                  }
+                }
+              }
+            }, 100)
+          }
+        }
+      }
+      window.visualViewport.addEventListener('resize', viewportResizeHandler)
+      window.visualViewport.addEventListener('scroll', viewportResizeHandler)
+    }
+    
     // Le focus sera déclenché depuis l'événement de clic (via triggerFocus)
   } else {
     focusTransferred.value = false
+    
+    // Nettoyer l'écouteur quand le modal se ferme
+    if (viewportResizeHandler && window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', viewportResizeHandler)
+      window.visualViewport.removeEventListener('scroll', viewportResizeHandler)
+      viewportResizeHandler = null
+    }
   }
 })
 
@@ -287,6 +351,26 @@ const selectSuggestion = (suggestion: GroceryItem) => {
 }
 
 const closeModal = () => {
+  // S'assurer que le clavier est fermé avant de fermer le modal
+  const inputElement = document.getElementById('grocery-item-name')
+  if (inputElement) {
+    const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+    if (nativeInput) {
+      nativeInput.blur()
+    }
+  }
+  if (iosInputRef.value) {
+    iosInputRef.value.blur()
+  }
+  
+  // Nettoyer les écouteurs
+  if (viewportResizeHandler && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', viewportResizeHandler)
+    window.visualViewport.removeEventListener('scroll', viewportResizeHandler)
+    viewportResizeHandler = null
+  }
+  
+  // Fermer le modal
   isOpen.value = false
 }
 
