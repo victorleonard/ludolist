@@ -1,145 +1,143 @@
 <template>
-  <UDrawer
-    ref="drawerRef"
-    :open="isOpen"
-    direction="bottom"
-    @update:open="handleDrawerUpdate"
-  >
-    <template #content>
-      <div
-        ref="modalContentRef"
-        class="flex flex-col bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-        :style="modalStyle"
+  <Teleport to="body">
+    <div>
+      <!-- Overlay sombre en arrière-plan -->
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
-        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
-            Ajouter un produit
+        <div
+          v-if="isOpen"
+          class="fixed inset-0 bg-black/50 z-[100]"
+          @click="closeModal"
+        />
+      </Transition>
+
+      <!-- Barre de saisie flottante compacte au-dessus du clavier -->
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="opacity-0 translate-y-full"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition ease-in duration-150"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 translate-y-full"
+      >
+        <div
+          v-if="isOpen"
+          class="fixed inset-x-0 bottom-0 z-[101] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+
+      <div class="px-4 py-4 sm:px-6 sm:py-5">
+        <!-- En-tête avec titre et bouton fermer -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Ajouter des éléments
           </h3>
           <UButton
-            color="neutral"
             variant="ghost"
+            color="neutral"
             icon="i-ion-close"
             size="sm"
-            class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
             :disabled="submitting"
             aria-label="Fermer"
+            class="min-w-[40px] min-h-[40px] flex items-center justify-center -mr-2"
             @click="closeModal"
           />
         </div>
 
+        <!-- Suggestions de produits existants (affichées en haut) -->
         <div
-          ref="scrollContainerRef"
-          class="space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          v-if="suggestions.length > 0 && itemName.trim().length > 0"
+          class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto"
         >
-          <!-- Input réel mais invisible pour iOS - focusé immédiatement depuis l'événement de clic -->
-          <input
-            ref="iosInputRef"
-            type="text"
-            autocomplete="off"
-            class="absolute opacity-0 pointer-events-none"
-            style="position: fixed; left: 0; top: 0; width: 1px; height: 1px; z-index: -1;"
-            tabindex="0"
-            @blur="transferToRealInput"
-          />
-          <div
-            ref="inputFieldRef"
-            class="form-field"
-          >
-            <label
-              for="grocery-item-name"
-              class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
+          <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2.5">
+            Produits similaires :
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="suggestion in suggestions"
+              :key="suggestion.documentId"
+              type="button"
+              class="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+              @click="selectSuggestion(suggestion)"
             >
-              <UIcon
-                name="i-ion-cart"
-                class="w-4 h-4 shrink-0"
-              />
-              Nom du produit <span class="text-red-500">*</span>
-            </label>
+              {{ suggestion.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Message si produit déjà existant -->
+        <UAlert
+          v-if="alreadyExistsMessage"
+          color="blue"
+          variant="subtle"
+          icon="i-ion-information-circle"
+          class="mb-4 text-xs"
+        >
+          {{ alreadyExistsMessage }}
+        </UAlert>
+
+        <!-- Formulaire avec input et bouton intégré (en bas) -->
+        <form
+          @submit.prevent="handleAdd"
+          class="pb-6"
+        >
+          <div class="relative">
             <UInput
               ref="nameInputRef"
               id="grocery-item-name"
               v-model="itemName"
               :disabled="submitting"
               :error="!!errors.name"
+              :ui="{ trailing: 'pr-0.5' }"
               class="w-full input-touch"
-              placeholder="Ex. Lait, Pain, Pommes..."
+              placeholder="Ajouter des éléments supplémentaires"
               autocomplete="off"
+              autofocus
+              size="lg"
               @input="handleInput"
-            />
+              @keyup.enter="handleAdd"
+            >
+              <template #trailing>
+                <UButton
+                  type="submit"
+                  color="primary"
+                  icon="i-ion-add"
+                  variant="link"
+                  size="sm"
+                  :loading="submitting"
+                  :disabled="!itemName.trim() || submitting"
+                  class="min-w-[40px]"
+                  aria-label="Ajouter"
+                />
+              </template>
+            </UInput>
             <p
               v-if="errors.name"
-              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
+              class="mt-1.5 text-xs text-red-600 dark:text-red-400 absolute -bottom-5 left-0"
             >
               {{ errors.name }}
             </p>
           </div>
-
-          <!-- Suggestions de produits existants -->
-          <div
-            v-if="suggestions.length > 0 && itemName.trim().length > 0"
-            class="space-y-2"
-          >
-            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Produits similaires :
-            </p>
-            <div class="space-y-1 max-h-48 overflow-y-auto">
-              <button
-                v-for="suggestion in suggestions"
-                :key="suggestion.documentId"
-                type="button"
-                class="w-full text-left px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-between group"
-                @click="selectSuggestion(suggestion)"
-              >
-                <span class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ suggestion.name }}
-                </span>
-                <UIcon
-                  name="i-ion-add-circle"
-                  class="w-5 h-5 text-primary-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                />
-              </button>
-            </div>
-          </div>
-
-          <!-- Message si produit déjà existant -->
-          <UAlert
-            v-if="alreadyExistsMessage"
-            color="blue"
-            variant="subtle"
-            icon="i-ion-information-circle"
-            class="mt-2"
-          >
-            {{ alreadyExistsMessage }}
-          </UAlert>
-        </div>
-
-        <!-- Footer avec bouton d'action -->
-        <div
-          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
-        >
-          <UButton
-            type="button"
-            color="primary"
-            size="lg"
-            block
-            :loading="submitting"
-            :disabled="!itemName.trim() || submitting"
-            @click="handleAdd"
-          >
-            {{ submitting ? 'Ajout en cours...' : 'Ajouter à la liste' }}
-          </UButton>
-        </div>
+        </form>
       </div>
-    </template>
-  </UDrawer>
+    </div>
+  </Transition>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
+import type { UInput } from '#components'
 
 interface Props {
   modelValue: boolean
@@ -171,51 +169,6 @@ const submitting = ref(false)
 const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
 const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
-const iosInputRef = ref<HTMLInputElement | null>(null)
-const scrollContainerRef = ref<HTMLElement | null>(null)
-const modalContentRef = ref<HTMLElement | null>(null)
-const inputFieldRef = ref<HTMLElement | null>(null)
-const drawerRef = ref<HTMLElement | null>(null)
-const focusTransferred = ref(false)
-const keyboardHeight = ref(0)
-
-// Style dynamique pour le drawer qui s'adapte au clavier iOS
-const drawerStyle = computed(() => {
-  const baseStyle: Record<string, string> = {}
-  
-  // Sur iOS, ajuster la position bottom du drawer pour qu'il soit au-dessus du clavier
-  if (typeof window !== 'undefined' && window.visualViewport && keyboardHeight.value > 0) {
-    const viewportHeight = window.visualViewport.height
-    const fullHeight = window.innerHeight
-    const keyboardH = fullHeight - viewportHeight
-    
-    // Positionner le drawer au-dessus du clavier avec une petite marge
-    // Utiliser une valeur plus grande pour que le drawer monte plus haut
-    baseStyle.bottom = `${keyboardH}px`
-    baseStyle.transform = 'translateY(0)'
-  }
-  
-  return baseStyle
-})
-
-// Style dynamique pour le modal qui s'adapte au clavier iOS
-const modalStyle = computed(() => {
-  const baseStyle: Record<string, string> = {
-    paddingBottom: `max(1rem, env(safe-area-inset-bottom, 1rem))`,
-  }
-  
-  // Sur iOS, ajuster la hauteur maximale en fonction du clavier
-  if (typeof window !== 'undefined' && window.visualViewport && keyboardHeight.value > 0) {
-    const viewportHeight = window.visualViewport.height
-    // Ajuster la hauteur maximale pour que le drawer s'adapte au clavier
-    baseStyle.maxHeight = `${viewportHeight - 50}px` // 50px de marge totale
-    baseStyle.height = `${viewportHeight - 50}px` // Forcer la hauteur
-  } else {
-    baseStyle.maxHeight = '90dvh'
-  }
-  
-  return baseStyle
-})
 
 // Suggestions basées sur les produits existants
 const suggestions = computed(() => {
@@ -232,251 +185,41 @@ const suggestions = computed(() => {
     .slice(0, 5) // Limiter à 5 suggestions
 })
 
-// Fonction pour transférer le focus de l'input iOS vers le vrai input
-const transferToRealInput = () => {
-  if (focusTransferred.value) return
-  focusTransferred.value = true
-
-  const inputElement = document.getElementById('grocery-item-name')
-  if (inputElement) {
-    const nativeInput = inputElement.querySelector('input') as HTMLInputElement
-    if (nativeInput) {
-      // Mettre le focus d'abord
-      nativeInput.focus({ preventScroll: false })
-
-      // Attendre que le clavier s'affiche et que le modal s'adapte
-      setTimeout(() => {
-        // Mettre à jour la hauteur du clavier pour forcer le recalcul du style
-        const fullHeight = window.innerHeight
-        const viewportHeight = window.visualViewport?.height || fullHeight
-        keyboardHeight.value = fullHeight - viewportHeight
-
-        // Ajuster la position du drawer lui-même si le clavier est ouvert
-        if (window.visualViewport && viewportHeight < fullHeight - 50) {
-          // Chercher l'élément drawer dans le DOM - UDrawer utilise généralement un wrapper avec position fixed
-          let drawerElement: HTMLElement | null = null
-          
-          if (modalContentRef.value) {
-            // Remonter dans le DOM pour trouver le wrapper du drawer
-            let parent = modalContentRef.value.parentElement
-            while (parent && parent !== document.body) {
-              const computedStyle = window.getComputedStyle(parent)
-              if (computedStyle.position === 'fixed' && (computedStyle.bottom === '0px' || computedStyle.bottom === '0')) {
-                drawerElement = parent
-                break
-              }
-              parent = parent.parentElement
-            }
-          }
-          
-          // Fallback : chercher par sélecteur
-          if (!drawerElement) {
-            drawerElement = document.querySelector('[class*="fixed"][class*="bottom-0"]') as HTMLElement
-              || document.querySelector('[data-headlessui-state]')?.closest('[class*="fixed"]') as HTMLElement
-          }
-          
-          if (drawerElement) {
-            const keyboardH = fullHeight - viewportHeight
-            drawerElement.style.bottom = `${keyboardH}px`
-            drawerElement.style.transition = 'bottom 0.2s ease-out'
-          }
-        }
-
-        // Forcer l'ajustement de la hauteur du modal si le clavier est ouvert
-        if (modalContentRef.value && window.visualViewport && viewportHeight < fullHeight - 50) {
-          const vpHeight = window.visualViewport.height
-          modalContentRef.value.style.maxHeight = `${vpHeight - 50}px`
-          modalContentRef.value.style.height = `${vpHeight - 50}px`
-        }
-
-        // Scroller pour rendre l'input visible
-        setTimeout(() => {
-          const fieldContainer = inputFieldRef.value || inputElement.parentElement
-          if (fieldContainer && window.visualViewport) {
-            const viewportHeight = window.visualViewport.height
-
-            // Scroller le champ en haut de la zone visible
-            fieldContainer.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start',
-              inline: 'nearest'
-            })
-
-            // Ajuster précisément après le scroll initial
-            setTimeout(() => {
-              const fieldRect = fieldContainer.getBoundingClientRect()
-              const availableHeight = viewportHeight - 100
-
-              if (fieldRect.bottom > availableHeight) {
-                const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
-                if (scrollContainer) {
-                  const currentScrollTop = scrollContainer.scrollTop
-                  const containerRect = scrollContainer.getBoundingClientRect()
-                  const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
-                  const targetTop = 100
-                  const scrollNeeded = fieldTopRelativeToContainer - targetTop
-
-                  scrollContainer.scrollTo({
-                    top: currentScrollTop + scrollNeeded,
-                    behavior: 'smooth'
-                  })
-                }
-              }
-            }, 200)
-          }
-        }, 200) // Délai pour laisser le modal s'adapter
-      }, 400) // Délai pour laisser le clavier s'afficher
-    }
-  }
-}
-
-// Exposer une méthode pour déclencher le focus depuis l'extérieur
-// Cette méthode doit être appelée DIRECTEMENT depuis l'événement de clic
-const triggerFocus = () => {
-  // Focuser l'input iOS immédiatement (dans la chaîne d'événements utilisateur)
-  // Pas de délai, pas de requestAnimationFrame - directement depuis le clic
-  if (iosInputRef.value) {
-    iosInputRef.value.focus()
-    // Le transfert vers le vrai input se fera automatiquement via @blur
-    // après un délai pour laisser le clavier s'ouvrir
-    setTimeout(() => {
-      if (!focusTransferred.value) {
-        transferToRealInput()
-      }
-    }, 300) // Délai pour laisser le clavier s'afficher complètement
-  }
-}
-
-defineExpose({
-  triggerFocus
-})
-
-// Écouter les changements de visualViewport pour ajuster la hauteur du modal et le scroll
-let viewportResizeHandler: (() => void) | null = null
-
+// Focus automatique sur l'input quand le modal s'ouvre
 watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
     errors.value = {}
     alreadyExistsMessage.value = ''
-    focusTransferred.value = false
-
-    // Attendre que le drawer soit monté pour accéder à son élément DOM
+    
+    // Attendre que le composant soit complètement rendu
     await nextTick()
-    await nextTick() // Double nextTick pour s'assurer que le drawer est complètement rendu
+    await nextTick()
     
-    // Fonction pour ajuster la position du drawer
-    const adjustDrawerPosition = () => {
-      if (!window.visualViewport) return
-      
-      const fullHeight = window.innerHeight
-      const viewportHeight = window.visualViewport.height
-      keyboardHeight.value = fullHeight - viewportHeight
-      
-      // Chercher l'élément drawer dans le DOM - UDrawer utilise généralement un wrapper avec position fixed
-      // On cherche l'élément qui contient notre modalContentRef
-      let drawerElement: HTMLElement | null = null
-      
-      if (modalContentRef.value) {
-        // Remonter dans le DOM pour trouver le wrapper du drawer
-        let parent = modalContentRef.value.parentElement
-        while (parent && parent !== document.body) {
-          const computedStyle = window.getComputedStyle(parent)
-          if (computedStyle.position === 'fixed' && (computedStyle.bottom === '0px' || computedStyle.bottom === '0')) {
-            drawerElement = parent
-            break
-          }
-          parent = parent.parentElement
-        }
-      }
-      
-      // Fallback : chercher par sélecteur
-      if (!drawerElement) {
-        drawerElement = document.querySelector('[class*="fixed"][class*="bottom-0"]') as HTMLElement
-          || document.querySelector('[data-headlessui-state]')?.closest('[class*="fixed"]') as HTMLElement
-      }
-      
-      if (drawerElement && viewportHeight < fullHeight - 50) {
-        // Clavier ouvert : positionner le drawer au-dessus du clavier
-        const keyboardH = fullHeight - viewportHeight
-        drawerElement.style.bottom = `${keyboardH}px`
-        drawerElement.style.transition = 'bottom 0.2s ease-out'
-      } else if (drawerElement) {
-        // Clavier fermé : remettre la position par défaut
-        drawerElement.style.bottom = '0px'
-      }
-    }
-    
-    // Appeler une première fois après un court délai pour s'assurer que le drawer est rendu
-    setTimeout(adjustDrawerPosition, 100)
-
-    // Écouter les changements de visualViewport (quand le clavier apparaît/disparaît)
-    if (window.visualViewport && !viewportResizeHandler) {
-      viewportResizeHandler = () => {
-        adjustDrawerPosition()
-
-        // Forcer le recalcul du style du modal
-        if (modalContentRef.value && window.visualViewport) {
-          const fullHeight = window.innerHeight
-          const vpHeight = window.visualViewport.height
-          if (vpHeight < fullHeight - 50) {
-            // Clavier ouvert : ajuster la hauteur du modal
-            modalContentRef.value.style.maxHeight = `${vpHeight - 50}px`
-            modalContentRef.value.style.height = `${vpHeight - 50}px`
-          } else {
-            // Clavier fermé : remettre la hauteur par défaut
-            modalContentRef.value.style.maxHeight = '90dvh'
-            modalContentRef.value.style.height = ''
-          }
-        }
-
-        // Quand le clavier apparaît, ajuster le scroll pour rendre l'input visible
-        const inputElement = document.getElementById('grocery-item-name')
-        if (inputElement && focusTransferred.value) {
-          const nativeInput = inputElement.querySelector('input') as HTMLInputElement
-          if (nativeInput && document.activeElement === nativeInput) {
+    // Focuser l'input - plusieurs tentatives pour iOS
+    const focusInput = () => {
+      const inputElement = document.getElementById('grocery-item-name')
+      if (inputElement) {
+        const nativeInput = inputElement.querySelector('input')
+        if (nativeInput instanceof HTMLInputElement) {
+          nativeInput.focus()
+          // Vérifier si le focus a fonctionné
+          if (document.activeElement !== nativeInput) {
+            // Réessayer après un court délai
             setTimeout(() => {
-              const fieldContainer = inputFieldRef.value || inputElement.parentElement
-              if (fieldContainer && window.visualViewport) {
-                const viewportHeight = window.visualViewport.height
-                const fieldRect = fieldContainer.getBoundingClientRect()
-
-                // Si le champ est sous la zone visible
-                if (fieldRect.bottom > viewportHeight - 100) {
-                  const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
-                  if (scrollContainer) {
-                    const currentScrollTop = scrollContainer.scrollTop
-                    const containerRect = scrollContainer.getBoundingClientRect()
-                    const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
-                    const targetTop = 80
-                    const scrollNeeded = fieldTopRelativeToContainer - targetTop
-
-                    scrollContainer.scrollTo({
-                      top: currentScrollTop + scrollNeeded,
-                      behavior: 'smooth'
-                    })
-                  }
-                }
-              }
-            }, 100)
+              nativeInput.focus()
+            }, 50)
           }
         }
       }
-      window.visualViewport.addEventListener('resize', viewportResizeHandler)
-      window.visualViewport.addEventListener('scroll', viewportResizeHandler)
     }
-
-    // Le focus sera déclenché depuis l'événement de clic (via triggerFocus)
-  } else {
-    focusTransferred.value = false
-    keyboardHeight.value = 0
-
-    // Nettoyer l'écouteur quand le modal se ferme
-    if (viewportResizeHandler && window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', viewportResizeHandler)
-      window.visualViewport.removeEventListener('scroll', viewportResizeHandler)
-      viewportResizeHandler = null
-    }
+    
+    // Première tentative immédiate
+    focusInput()
+    
+    // Tentatives supplémentaires pour iOS
+    setTimeout(focusInput, 100)
+    setTimeout(focusInput, 200)
   }
 })
 
@@ -490,24 +233,8 @@ const selectSuggestion = (suggestion: GroceryItem) => {
   handleAdd()
 }
 
-const handleDrawerUpdate = (value: boolean) => {
-  if (!value) {
-    // Fermer le clavier avant de fermer le modal
-    const inputElement = document.getElementById('grocery-item-name')
-    if (inputElement) {
-      const nativeInput = inputElement.querySelector('input')
-      if (nativeInput instanceof HTMLInputElement) {
-        nativeInput.blur()
-      }
-    }
-    // Réinitialiser la hauteur du clavier
-    keyboardHeight.value = 0
-  }
-  isOpen.value = value
-}
-
 const closeModal = () => {
-  // S'assurer que le clavier est fermé avant de fermer le modal
+  // Fermer le clavier si ouvert
   const inputElement = document.getElementById('grocery-item-name')
   if (inputElement) {
     const nativeInput = inputElement.querySelector('input')
@@ -515,17 +242,7 @@ const closeModal = () => {
       nativeInput.blur()
     }
   }
-  if (iosInputRef.value) {
-    iosInputRef.value.blur()
-  }
-
-  // Nettoyer les écouteurs
-  if (viewportResizeHandler && window.visualViewport) {
-    window.visualViewport.removeEventListener('resize', viewportResizeHandler)
-    window.visualViewport.removeEventListener('scroll', viewportResizeHandler)
-    viewportResizeHandler = null
-  }
-
+  
   // Fermer le modal
   isOpen.value = false
 }
@@ -545,14 +262,10 @@ const handleAdd = async () => {
     const result = await addGroceryItem(itemName.value.trim(), memberId)
 
     if (result.success && result.data) {
-      if (result.alreadyExists) {
-        alreadyExistsMessage.value = 'Ce produit existe déjà dans la liste et a été ajouté'
-      }
       emit('success', result.data)
-      // Attendre un peu pour que l'utilisateur voie le message
-      setTimeout(() => {
-        closeModal()
-      }, 1000)
+      
+      // Fermer le modal après succès
+      closeModal()
     } else {
       errors.value.name = result.error || 'Erreur lors de l\'ajout du produit'
     }
@@ -564,4 +277,3 @@ const handleAdd = async () => {
   }
 }
 </script>
-
