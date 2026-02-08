@@ -119,6 +119,7 @@
     </button>
 
     <AddGroceryItemModal
+      ref="addGroceryItemModalRef"
       :model-value="isModalOpen"
       :existing-items="allItems"
       @update:model-value="(v) => { if (!v) closeModal() }"
@@ -128,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
 import AddGroceryItemModal from '~/components/courses/AddGroceryItemModal.vue'
 import GroceryItemCard from '~/components/courses/GroceryItemCard.vue'
@@ -144,6 +145,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const shoppingList = ref<{ items?: GroceryItem[] } | null>(null)
 const isModalOpen = ref(false)
+const addGroceryItemModalRef = ref<InstanceType<typeof AddGroceryItemModal> | null>(null)
 
 const allItems = computed(() => {
   return shoppingList.value?.items || []
@@ -182,7 +184,18 @@ const refresh = () => {
 }
 
 const openModal = () => {
+  // Ouvrir le modal d'abord
   isModalOpen.value = true
+  
+  // Sur iOS PWA, déclencher le focus DIRECTEMENT depuis l'événement de clic
+  // sans aucun délai pour préserver la chaîne d'événements utilisateur
+  nextTick(() => {
+    // Appeler triggerFocus immédiatement après nextTick
+    // Cela doit être fait dans la même chaîne d'événements
+    if (addGroceryItemModalRef.value) {
+      addGroceryItemModalRef.value.triggerFocus()
+    }
+  })
 }
 
 const closeModal = () => {

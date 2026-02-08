@@ -28,6 +28,16 @@
         <div
           class="space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
         >
+          <!-- Input réel mais invisible pour iOS - focusé immédiatement depuis l'événement de clic -->
+          <input
+            ref="iosInputRef"
+            type="text"
+            autocomplete="off"
+            class="absolute opacity-0 pointer-events-none"
+            style="position: fixed; left: 0; top: 0; width: 1px; height: 1px; z-index: -1;"
+            tabindex="0"
+            @blur="transferToRealInput"
+          />
           <div class="form-field">
             <label
               for="grocery-item-name"
@@ -154,6 +164,9 @@ const itemName = ref('')
 const submitting = ref(false)
 const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
+const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
+const iosInputRef = ref<HTMLInputElement | null>(null)
+const focusTransferred = ref(false)
 
 // Suggestions basées sur les produits existants
 const suggestions = computed(() => {
@@ -170,34 +183,51 @@ const suggestions = computed(() => {
     .slice(0, 5) // Limiter à 5 suggestions
 })
 
-// Fonction helper pour mettre le focus et afficher le clavier sur mobile
-const focusInput = (inputId: string) => {
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const inputElement = document.getElementById(inputId)
-      if (inputElement) {
-        const nativeInput = inputElement.querySelector('input') as HTMLInputElement
-        if (nativeInput) {
-          // Sur mobile, utiliser click() en plus de focus() pour déclencher le clavier
-          nativeInput.click()
-          nativeInput.focus({ preventScroll: false })
-          // Forcer le scroll vers l'input si nécessaire
-          nativeInput.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
-      }
-    }, 200) // Délai plus long pour s'assurer que le modal est complètement rendu
-  })
+// Fonction pour transférer le focus de l'input iOS vers le vrai input
+const transferToRealInput = () => {
+  if (focusTransferred.value) return
+  focusTransferred.value = true
+  
+  const inputElement = document.getElementById('grocery-item-name')
+  if (inputElement) {
+    const nativeInput = inputElement.querySelector('input') as HTMLInputElement
+    if (nativeInput) {
+      nativeInput.focus({ preventScroll: false })
+    }
+  }
 }
 
-// Réinitialiser le formulaire et mettre le focus quand le modal s'ouvre
+// Exposer une méthode pour déclencher le focus depuis l'extérieur
+// Cette méthode doit être appelée DIRECTEMENT depuis l'événement de clic
+const triggerFocus = () => {
+  // Focuser l'input iOS immédiatement (dans la chaîne d'événements utilisateur)
+  // Pas de délai, pas de requestAnimationFrame - directement depuis le clic
+  if (iosInputRef.value) {
+    iosInputRef.value.focus()
+    // Le transfert vers le vrai input se fera automatiquement via @blur
+    // après un court délai pour laisser le clavier s'ouvrir
+    setTimeout(() => {
+      if (!focusTransferred.value) {
+        transferToRealInput()
+      }
+    }, 100)
+  }
+}
+
+defineExpose({
+  triggerFocus
+})
+
+// Réinitialiser le formulaire quand le modal s'ouvre
 watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
     errors.value = {}
     alreadyExistsMessage.value = ''
-    // Mettre le focus sur le champ input après l'ouverture du modal
-    await nextTick()
-    focusInput('grocery-item-name')
+    focusTransferred.value = false
+    // Le focus sera déclenché depuis l'événement de clic (via triggerFocus)
+  } else {
+    focusTransferred.value = false
   }
 })
 
