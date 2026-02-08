@@ -78,6 +78,7 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
+                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -89,6 +90,7 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
+                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -116,6 +118,7 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
+                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -127,6 +130,7 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
+                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -253,17 +257,19 @@ const handleModalSuccess = () => {
 }
 
 const handleTaskUpdated = (updatedTask: Task) => {
-  // Mettre à jour la tâche dans la liste locale
   const index = tasks.value.findIndex(
     (task) => task.documentId === updatedTask.documentId
   )
-  if (index !== -1) {
-    tasks.value[index] = updatedTask
-  }
+  if (index !== -1) tasks.value[index] = updatedTask
+}
+
+const handleTaskDeleted = (taskId: string) => {
+  tasks.value = tasks.value.filter((task) => task.documentId !== taskId)
 }
 
 const handleTaskClick = (task: Task) => {
-  navigateTo(`/taches/${task.documentId}`)
+  selectedTask.value = task
+  isModalOpen.value = true
 }
 
 onMounted(() => {
