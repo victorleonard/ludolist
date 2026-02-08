@@ -192,7 +192,8 @@ watch(isOpen, async (newValue) => {
     errors.value = {}
     alreadyExistsMessage.value = ''
     
-    // Attendre que le composant soit complètement rendu
+    // Attendre que le composant soit complètement rendu (plus de délais pour Teleport)
+    await nextTick()
     await nextTick()
     await nextTick()
     
@@ -202,24 +203,31 @@ watch(isOpen, async (newValue) => {
       if (inputElement) {
         const nativeInput = inputElement.querySelector('input')
         if (nativeInput instanceof HTMLInputElement) {
-          nativeInput.focus()
-          // Vérifier si le focus a fonctionné
-          if (document.activeElement !== nativeInput) {
-            // Réessayer après un court délai
-            setTimeout(() => {
-              nativeInput.focus()
-            }, 50)
-          }
+          // Essayer plusieurs méthodes pour iOS
+          nativeInput.click() // Cliquer d'abord pour iOS
+          setTimeout(() => {
+            nativeInput.focus({ preventScroll: false })
+            // Forcer le focus avec un événement de clic simulé pour iOS
+            if (document.activeElement !== nativeInput) {
+              const clickEvent = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+              })
+              nativeInput.dispatchEvent(clickEvent)
+              nativeInput.focus({ preventScroll: false })
+            }
+          }, 50)
         }
       }
     }
     
-    // Première tentative immédiate
-    focusInput()
+    // Première tentative après un délai pour laisser le Teleport se rendre
+    setTimeout(focusInput, 150)
     
     // Tentatives supplémentaires pour iOS
-    setTimeout(focusInput, 100)
-    setTimeout(focusInput, 200)
+    setTimeout(focusInput, 300)
+    setTimeout(focusInput, 500)
   }
 })
 
