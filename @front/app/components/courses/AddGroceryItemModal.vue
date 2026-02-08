@@ -1,8 +1,9 @@
 <template>
   <UDrawer
+    ref="drawerRef"
     :open="isOpen"
     direction="bottom"
-    @update:open="(value) => { isOpen = value }"
+    @update:open="handleDrawerUpdate"
   >
     <template #content>
       <div
@@ -174,8 +175,28 @@ const iosInputRef = ref<HTMLInputElement | null>(null)
 const scrollContainerRef = ref<HTMLElement | null>(null)
 const modalContentRef = ref<HTMLElement | null>(null)
 const inputFieldRef = ref<HTMLElement | null>(null)
+const drawerRef = ref<HTMLElement | null>(null)
 const focusTransferred = ref(false)
 const keyboardHeight = ref(0)
+
+// Style dynamique pour le drawer qui s'adapte au clavier iOS
+const drawerStyle = computed(() => {
+  const baseStyle: Record<string, string> = {}
+  
+  // Sur iOS, ajuster la position bottom du drawer pour qu'il soit au-dessus du clavier
+  if (typeof window !== 'undefined' && window.visualViewport && keyboardHeight.value > 0) {
+    const viewportHeight = window.visualViewport.height
+    const fullHeight = window.innerHeight
+    const keyboardH = fullHeight - viewportHeight
+    
+    // Positionner le drawer au-dessus du clavier avec une petite marge
+    // Utiliser une valeur plus grande pour que le drawer monte plus haut
+    baseStyle.bottom = `${keyboardH}px`
+    baseStyle.transform = 'translateY(0)'
+  }
+  
+  return baseStyle
+})
 
 // Style dynamique pour le modal qui s'adapte au clavier iOS
 const modalStyle = computed(() => {
@@ -184,18 +205,11 @@ const modalStyle = computed(() => {
   }
   
   // Sur iOS, ajuster la hauteur maximale en fonction du clavier
-  if (typeof window !== 'undefined' && window.visualViewport) {
+  if (typeof window !== 'undefined' && window.visualViewport && keyboardHeight.value > 0) {
     const viewportHeight = window.visualViewport.height
-    const fullHeight = window.innerHeight
-    
-    // Si le clavier est ouvert (viewportHeight < fullHeight)
-    if (viewportHeight < fullHeight - 50) {
-      // Ajuster la hauteur maximale pour que le drawer s'adapte au clavier
-      baseStyle.maxHeight = `${viewportHeight - 40}px` // 40px de marge totale
-      baseStyle.height = `${viewportHeight - 40}px` // Forcer la hauteur
-    } else {
-      baseStyle.maxHeight = '90dvh'
-    }
+    // Ajuster la hauteur maximale pour que le drawer s'adapte au clavier
+    baseStyle.maxHeight = `${viewportHeight - 50}px` // 50px de marge totale
+    baseStyle.height = `${viewportHeight - 50}px` // Forcer la hauteur
   } else {
     baseStyle.maxHeight = '90dvh'
   }
@@ -222,46 +236,77 @@ const suggestions = computed(() => {
 const transferToRealInput = () => {
   if (focusTransferred.value) return
   focusTransferred.value = true
-  
+
   const inputElement = document.getElementById('grocery-item-name')
   if (inputElement) {
     const nativeInput = inputElement.querySelector('input') as HTMLInputElement
     if (nativeInput) {
       // Mettre le focus d'abord
       nativeInput.focus({ preventScroll: false })
-      
+
       // Attendre que le clavier s'affiche et que le modal s'adapte
       setTimeout(() => {
         // Mettre à jour la hauteur du clavier pour forcer le recalcul du style
         const fullHeight = window.innerHeight
         const viewportHeight = window.visualViewport?.height || fullHeight
         keyboardHeight.value = fullHeight - viewportHeight
-        
+
+        // Ajuster la position du drawer lui-même si le clavier est ouvert
+        if (window.visualViewport && viewportHeight < fullHeight - 50) {
+          // Chercher l'élément drawer dans le DOM - UDrawer utilise généralement un wrapper avec position fixed
+          let drawerElement: HTMLElement | null = null
+          
+          if (modalContentRef.value) {
+            // Remonter dans le DOM pour trouver le wrapper du drawer
+            let parent = modalContentRef.value.parentElement
+            while (parent && parent !== document.body) {
+              const computedStyle = window.getComputedStyle(parent)
+              if (computedStyle.position === 'fixed' && (computedStyle.bottom === '0px' || computedStyle.bottom === '0')) {
+                drawerElement = parent
+                break
+              }
+              parent = parent.parentElement
+            }
+          }
+          
+          // Fallback : chercher par sélecteur
+          if (!drawerElement) {
+            drawerElement = document.querySelector('[class*="fixed"][class*="bottom-0"]') as HTMLElement
+              || document.querySelector('[data-headlessui-state]')?.closest('[class*="fixed"]') as HTMLElement
+          }
+          
+          if (drawerElement) {
+            const keyboardH = fullHeight - viewportHeight
+            drawerElement.style.bottom = `${keyboardH}px`
+            drawerElement.style.transition = 'bottom 0.2s ease-out'
+          }
+        }
+
         // Forcer l'ajustement de la hauteur du modal si le clavier est ouvert
         if (modalContentRef.value && window.visualViewport && viewportHeight < fullHeight - 50) {
           const vpHeight = window.visualViewport.height
-          modalContentRef.value.style.maxHeight = `${vpHeight - 40}px`
-          modalContentRef.value.style.height = `${vpHeight - 40}px`
+          modalContentRef.value.style.maxHeight = `${vpHeight - 50}px`
+          modalContentRef.value.style.height = `${vpHeight - 50}px`
         }
-        
+
         // Scroller pour rendre l'input visible
         setTimeout(() => {
           const fieldContainer = inputFieldRef.value || inputElement.parentElement
           if (fieldContainer && window.visualViewport) {
             const viewportHeight = window.visualViewport.height
-            
+
             // Scroller le champ en haut de la zone visible
-            fieldContainer.scrollIntoView({ 
-              behavior: 'smooth', 
+            fieldContainer.scrollIntoView({
+              behavior: 'smooth',
               block: 'start',
               inline: 'nearest'
             })
-            
+
             // Ajuster précisément après le scroll initial
             setTimeout(() => {
               const fieldRect = fieldContainer.getBoundingClientRect()
               const availableHeight = viewportHeight - 100
-              
+
               if (fieldRect.bottom > availableHeight) {
                 const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
                 if (scrollContainer) {
@@ -270,7 +315,7 @@ const transferToRealInput = () => {
                   const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
                   const targetTop = 100
                   const scrollNeeded = fieldTopRelativeToContainer - targetTop
-                  
+
                   scrollContainer.scrollTo({
                     top: currentScrollTop + scrollNeeded,
                     behavior: 'smooth'
@@ -315,29 +360,76 @@ watch(isOpen, async (newValue) => {
     errors.value = {}
     alreadyExistsMessage.value = ''
     focusTransferred.value = false
+
+    // Attendre que le drawer soit monté pour accéder à son élément DOM
+    await nextTick()
+    await nextTick() // Double nextTick pour s'assurer que le drawer est complètement rendu
     
+    // Fonction pour ajuster la position du drawer
+    const adjustDrawerPosition = () => {
+      if (!window.visualViewport) return
+      
+      const fullHeight = window.innerHeight
+      const viewportHeight = window.visualViewport.height
+      keyboardHeight.value = fullHeight - viewportHeight
+      
+      // Chercher l'élément drawer dans le DOM - UDrawer utilise généralement un wrapper avec position fixed
+      // On cherche l'élément qui contient notre modalContentRef
+      let drawerElement: HTMLElement | null = null
+      
+      if (modalContentRef.value) {
+        // Remonter dans le DOM pour trouver le wrapper du drawer
+        let parent = modalContentRef.value.parentElement
+        while (parent && parent !== document.body) {
+          const computedStyle = window.getComputedStyle(parent)
+          if (computedStyle.position === 'fixed' && (computedStyle.bottom === '0px' || computedStyle.bottom === '0')) {
+            drawerElement = parent
+            break
+          }
+          parent = parent.parentElement
+        }
+      }
+      
+      // Fallback : chercher par sélecteur
+      if (!drawerElement) {
+        drawerElement = document.querySelector('[class*="fixed"][class*="bottom-0"]') as HTMLElement
+          || document.querySelector('[data-headlessui-state]')?.closest('[class*="fixed"]') as HTMLElement
+      }
+      
+      if (drawerElement && viewportHeight < fullHeight - 50) {
+        // Clavier ouvert : positionner le drawer au-dessus du clavier
+        const keyboardH = fullHeight - viewportHeight
+        drawerElement.style.bottom = `${keyboardH}px`
+        drawerElement.style.transition = 'bottom 0.2s ease-out'
+      } else if (drawerElement) {
+        // Clavier fermé : remettre la position par défaut
+        drawerElement.style.bottom = '0px'
+      }
+    }
+    
+    // Appeler une première fois après un court délai pour s'assurer que le drawer est rendu
+    setTimeout(adjustDrawerPosition, 100)
+
     // Écouter les changements de visualViewport (quand le clavier apparaît/disparaît)
     if (window.visualViewport && !viewportResizeHandler) {
       viewportResizeHandler = () => {
-        // Mettre à jour la hauteur du clavier pour forcer le recalcul du style
-        const fullHeight = window.innerHeight
-        const viewportHeight = window.visualViewport?.height || fullHeight
-        keyboardHeight.value = fullHeight - viewportHeight
-        
+        adjustDrawerPosition()
+
         // Forcer le recalcul du style du modal
         if (modalContentRef.value && window.visualViewport) {
+          const fullHeight = window.innerHeight
           const vpHeight = window.visualViewport.height
           if (vpHeight < fullHeight - 50) {
             // Clavier ouvert : ajuster la hauteur du modal
-            modalContentRef.value.style.maxHeight = `${vpHeight - 40}px`
-            modalContentRef.value.style.height = `${vpHeight - 40}px`
+            modalContentRef.value.style.maxHeight = `${vpHeight - 50}px`
+            modalContentRef.value.style.height = `${vpHeight - 50}px`
           } else {
             // Clavier fermé : remettre la hauteur par défaut
             modalContentRef.value.style.maxHeight = '90dvh'
             modalContentRef.value.style.height = ''
           }
         }
-        
+
         // Quand le clavier apparaît, ajuster le scroll pour rendre l'input visible
         const inputElement = document.getElementById('grocery-item-name')
         if (inputElement && focusTransferred.value) {
@@ -348,7 +440,7 @@ watch(isOpen, async (newValue) => {
               if (fieldContainer && window.visualViewport) {
                 const viewportHeight = window.visualViewport.height
                 const fieldRect = fieldContainer.getBoundingClientRect()
-                
+
                 // Si le champ est sous la zone visible
                 if (fieldRect.bottom > viewportHeight - 100) {
                   const scrollContainer = scrollContainerRef.value || inputElement.closest('.overflow-y-auto') as HTMLElement
@@ -358,7 +450,7 @@ watch(isOpen, async (newValue) => {
                     const fieldTopRelativeToContainer = fieldRect.top - containerRect.top
                     const targetTop = 80
                     const scrollNeeded = fieldTopRelativeToContainer - targetTop
-                    
+
                     scrollContainer.scrollTo({
                       top: currentScrollTop + scrollNeeded,
                       behavior: 'smooth'
@@ -373,12 +465,12 @@ watch(isOpen, async (newValue) => {
       window.visualViewport.addEventListener('resize', viewportResizeHandler)
       window.visualViewport.addEventListener('scroll', viewportResizeHandler)
     }
-    
+
     // Le focus sera déclenché depuis l'événement de clic (via triggerFocus)
   } else {
     focusTransferred.value = false
     keyboardHeight.value = 0
-    
+
     // Nettoyer l'écouteur quand le modal se ferme
     if (viewportResizeHandler && window.visualViewport) {
       window.visualViewport.removeEventListener('resize', viewportResizeHandler)
@@ -398,26 +490,42 @@ const selectSuggestion = (suggestion: GroceryItem) => {
   handleAdd()
 }
 
+const handleDrawerUpdate = (value: boolean) => {
+  if (!value) {
+    // Fermer le clavier avant de fermer le modal
+    const inputElement = document.getElementById('grocery-item-name')
+    if (inputElement) {
+      const nativeInput = inputElement.querySelector('input')
+      if (nativeInput instanceof HTMLInputElement) {
+        nativeInput.blur()
+      }
+    }
+    // Réinitialiser la hauteur du clavier
+    keyboardHeight.value = 0
+  }
+  isOpen.value = value
+}
+
 const closeModal = () => {
   // S'assurer que le clavier est fermé avant de fermer le modal
   const inputElement = document.getElementById('grocery-item-name')
   if (inputElement) {
-    const nativeInput = inputElement.querySelector('input') as HTMLInputElement
-    if (nativeInput) {
+    const nativeInput = inputElement.querySelector('input')
+    if (nativeInput instanceof HTMLInputElement) {
       nativeInput.blur()
     }
   }
   if (iosInputRef.value) {
     iosInputRef.value.blur()
   }
-  
+
   // Nettoyer les écouteurs
   if (viewportResizeHandler && window.visualViewport) {
     window.visualViewport.removeEventListener('resize', viewportResizeHandler)
     window.visualViewport.removeEventListener('scroll', viewportResizeHandler)
     viewportResizeHandler = null
   }
-  
+
   // Fermer le modal
   isOpen.value = false
 }
