@@ -84,6 +84,12 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
                   populate: {
                     created_by: true
                   }
+                },
+                tasks: {
+                  populate: {
+                    created_by: true,
+                    assigned_to: true
+                  }
                 }
               }
             }

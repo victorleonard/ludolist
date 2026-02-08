@@ -244,6 +244,35 @@ export interface ShoppingList {
   updatedAt?: string;
 }
 
+interface StrapiTask {
+  id: number;
+  documentId?: string;
+  title: string;
+  description?: string | null;
+  is_completed: boolean;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  due_date?: string | null;
+  created_by?: { id: number; username: string } | null;
+  assigned_to?: { id: number; username: string } | null;
+  family?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface TransformedTask {
+  id: number;
+  documentId?: string;
+  title: string;
+  description?: string | null;
+  is_completed: boolean;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  due_date?: string | null;
+  created_by?: { id: number; username: string } | null;
+  assigned_to?: { id: number; username: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface Family {
   id: number;
   name: string;
@@ -253,6 +282,7 @@ interface Family {
   dishes?: StrapiDish[];
   shopping_list?: ShoppingList;
   grocery_items?: GroceryItem[];
+  tasks?: StrapiTask[];
 }
 
 export const useFamilyStore = defineStore("family", {
@@ -275,11 +305,16 @@ export const useFamilyStore = defineStore("family", {
     familyGroceryItemsCount: (state) => state.family?.grocery_items?.length || 0,
     uncheckedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => !item.is_checked),
     checkedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => item.is_checked),
+    familyTasks: (state) => state.family?.tasks || [],
+    familyTasksCount: (state) => state.family?.tasks?.length || 0,
+    completedTasks: (state) => (state.family?.tasks || []).filter((task) => task.is_completed),
+    pendingTasks: (state) => (state.family?.tasks || []).filter((task) => !task.is_completed),
     hasFamily: (state) => !!state.family,
     hasFamilyGames: (state) => (state.family?.games?.length || 0) > 0,
     hasFamilyBooks: (state) => (state.family?.books?.length || 0) > 0,
     hasFamilyDishes: (state) => (state.family?.dishes?.length || 0) > 0,
     hasGroceryItems: (state) => (state.family?.grocery_items?.length || 0) > 0,
+    hasTasks: (state) => (state.family?.tasks?.length || 0) > 0,
 
     // Getter pour les jeux transformés
     transformedGames(state): TransformedGame[] {
@@ -530,6 +565,50 @@ export const useFamilyStore = defineStore("family", {
         }
       }
 
+      return result.sort((a, b) => {
+        const dateA = new Date(a.createdAt).getTime();
+        const dateB = new Date(b.createdAt).getTime();
+        return dateB - dateA;
+      });
+    },
+
+    // Getter pour les tâches transformées
+    transformedTasks(state): TransformedTask[] {
+      if (!state.family?.tasks || !Array.isArray(state.family.tasks)) {
+        return [];
+      }
+
+      const result: TransformedTask[] = [];
+
+      for (const strapiTask of state.family.tasks) {
+        try {
+          if (!strapiTask) {
+            continue;
+          }
+
+          result.push({
+            id: strapiTask.id,
+            documentId: strapiTask.documentId,
+            title: strapiTask.title,
+            description: strapiTask.description || null,
+            is_completed: strapiTask.is_completed,
+            priority: strapiTask.priority,
+            due_date: strapiTask.due_date || null,
+            created_by: strapiTask.created_by || null,
+            assigned_to: strapiTask.assigned_to || null,
+            createdAt: strapiTask.createdAt || new Date().toISOString(),
+            updatedAt: strapiTask.updatedAt || new Date().toISOString(),
+          });
+        } catch (err) {
+          console.error(
+            "Erreur lors de la transformation de la tâche:",
+            err,
+            strapiTask,
+          );
+        }
+      }
+
+      // Trier par date de création décroissante (dernières créées en premier)
       return result.sort((a, b) => {
         const dateA = new Date(a.createdAt).getTime();
         const dateB = new Date(b.createdAt).getTime();

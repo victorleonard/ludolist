@@ -49,6 +49,11 @@ const tabs = [
     label: 'Courses',
     icon: 'i-ion-cart',
     to: '/courses'
+  },
+  {
+    label: 'Tâches',
+    icon: 'i-ion-checkmark-circle',
+    to: '/taches/'
   }
 ]
 

@@ -110,6 +110,12 @@ const handleBackFromDish = () => {
   }
 }
 
+// Fonction pour gérer le retour depuis une page de tâche
+const handleBackFromTask = () => {
+  // Toujours rediriger vers la liste des tâches
+  navigateTo('/taches/')
+}
+
 const menuItems = [
   {
     label: 'Accueil',
@@ -135,6 +141,11 @@ const menuItems = [
     label: 'Courses',
     icon: 'i-ion-cart',
     to: '/courses'
+  },
+  {
+    label: 'Tâches',
+    icon: 'i-ion-checkmark-circle',
+    to: '/taches/'
   }
 ]
 
@@ -268,6 +279,16 @@ const handleMemberLogout = () => {
             aria-label="Retour"
             class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromDish"
+          />
+          <UButton
+            v-else-if="isTaskPage"
+            variant="ghost"
+            color="neutral"
+            size="lg"
+            icon="i-ion-chevron-back"
+            aria-label="Retour"
+            class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
+            @click="handleBackFromTask"
           />
           <UButton
             v-else

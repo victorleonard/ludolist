@@ -60,6 +60,12 @@
       "relation": "oneToMany",
       "target": "api::grocery-item.grocery-item",
       "mappedBy": "family"
+    },
+    "tasks": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::task.task",
+      "mappedBy": "family"
     }
   }
 }
