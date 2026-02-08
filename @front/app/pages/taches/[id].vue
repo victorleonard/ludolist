@@ -257,30 +257,18 @@
           <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
             Actions
           </h2>
-          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-wrap">
-            <UButton
-              :color="task.is_completed ? 'neutral' : 'success'"
-              variant="solid"
-              size="lg"
-              :loading="loading"
-              :disabled="loading"
-              class="flex-1 sm:flex-initial min-w-0 rounded-lg text-white"
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-wrap items-start sm:items-center">
+            <div
+              class="shrink-0 p-2 cursor-pointer"
               @click="handleToggleCompleted"
             >
-              <UIcon
-                v-if="task.is_completed"
-                name="i-ion-checkmark-done"
-                class="w-5 h-5 shrink-0"
+              <UCheckbox
+                :model-value="task.is_completed"
+                :disabled="loading"
+                class="scale-[1.75] origin-center pointer-events-none"
+                @update:model-value="handleToggleCompleted"
               />
-              <UIcon
-                v-else
-                name="i-ion-checkmark-circle-outline"
-                class="w-5 h-5 shrink-0"
-              />
-              <span class="ml-2">
-                {{ task.is_completed ? 'Défaire' : 'Fait' }}
-              </span>
-            </UButton>
+            </div>
             <UButton
               variant="solid"
               color="primary"

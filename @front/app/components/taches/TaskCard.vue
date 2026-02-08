@@ -103,27 +103,17 @@
           —
         </span>
       </div>
-      <UButton
-        :color="task.is_completed ? 'neutral' : 'success'"
-        :variant="task.is_completed ? 'soft' : 'soft'"
-        size="sm"
-        :loading="loading"
-        :disabled="loading"
-        class="shrink-0"
+      <div
+        class="shrink-0 p-1 cursor-pointer"
         @click.stop="handleToggle"
       >
-        <UIcon
-          v-if="task.is_completed"
-          name="i-ion-checkmark-done"
-          class="w-4 h-4"
+        <UCheckbox
+          :model-value="task.is_completed"
+          :disabled="loading"
+          class="scale-150 origin-center pointer-events-none"
+          @update:model-value="handleToggle"
         />
-        <UIcon
-          v-else
-          name="i-ion-checkmark-circle-outline"
-          class="w-4 h-4"
-        />
-        <span class="ml-1.5">{{ task.is_completed ? 'Défaire' : 'Fait' }}</span>
-      </UButton>
+      </div>
     </div>
   </div>
 </template>
