@@ -37,7 +37,7 @@
           </div>
 
           <div
-            v-else-if="subscriptions.length === 0"
+            v-else-if="visibleSubscriptions.length === 0"
             class="flex flex-col items-center justify-center py-12 sm:py-16 lg:py-20"
           >
             <UIcon
@@ -66,7 +66,7 @@
               <!-- Mobile : liste verticale -->
               <div class="md:hidden space-y-3">
                 <SubscriptionCard
-                  v-for="sub in subscriptions"
+                  v-for="sub in visibleSubscriptions"
                   :key="sub.documentId"
                   :subscription="sub"
                   @click="handleCardClick"
@@ -76,7 +76,7 @@
               <!-- Tablette : grille 2 colonnes -->
               <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                 <SubscriptionCard
-                  v-for="sub in subscriptions"
+                  v-for="sub in visibleSubscriptions"
                   :key="sub.documentId"
                   :subscription="sub"
                   @click="handleCardClick"
@@ -113,6 +113,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useMemberStore } from '~/stores/member'
 import { useSubscriptions, type Subscription } from '~/composables/useSubscriptions'
 import SubscriptionCard from '~/components/abonnements/SubscriptionCard.vue'
 import AddSubscriptionModal from '~/components/abonnements/AddSubscriptionModal.vue'
@@ -123,9 +125,22 @@ definePageMeta({
 })
 
 const { fetchSubscriptions } = useSubscriptions()
+const memberStore = useMemberStore()
+const { currentMember } = storeToRefs(memberStore)
+
+/** En mode famille : tout afficher. En mode membre : abonnements sans payant + ceux que ce membre paye. */
+const visibleSubscriptions = computed(() => {
+  const list = subscriptions.value
+  const member = currentMember.value
+  if (!member) return list
+  return list.filter((sub) => {
+    if (!sub.paid_by) return true
+    return sub.paid_by.id === member.id
+  })
+})
 
 const totalFormatted = computed(() => {
-  const sum = subscriptions.value.reduce((acc, sub) => {
+  const sum = visibleSubscriptions.value.reduce((acc, sub) => {
     const a = sub.amount
     if (a == null || a === '') return acc
     const n = typeof a === 'string' ? parseFloat(a) : Number(a)

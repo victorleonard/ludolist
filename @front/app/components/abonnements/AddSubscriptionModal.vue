@@ -77,19 +77,25 @@
 
             <div>
               <label
-                for="sub-renewal-date"
+                for="sub-renewal-day"
                 class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2"
               >
-                Date de renouvellement
+                Jour de renouvellement
               </label>
               <UInput
-                id="sub-renewal-date"
-                v-model="formData.renewal_date"
+                id="sub-renewal-day"
+                v-model.number="formData.renewal_day"
                 :disabled="submitting"
-                type="date"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="ex. 15"
                 size="lg"
                 class="w-full"
               />
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Jour du mois (1-31)
+              </p>
             </div>
 
             <div>
@@ -233,12 +239,12 @@ const isEditMode = computed(() => !!props.subscription)
 const formData = ref<{
   name: string
   amount: string | null
-  renewal_date: string | null
+  renewal_day: number | null
   paid_by: number | null
 }>({
   name: '',
   amount: null,
-  renewal_date: null,
+  renewal_day: null,
   paid_by: null,
 })
 
@@ -270,22 +276,25 @@ watch(
   ([newIsOpen, newSub]) => {
     if (newIsOpen) {
       if (newSub && isEditMode.value) {
+        let renewalDay: number | null = null
+        if (newSub.renewal_date) {
+          const d = new Date(newSub.renewal_date)
+          if (!Number.isNaN(d.getTime())) renewalDay = d.getDate()
+        }
         formData.value = {
           name: newSub.name || '',
           amount:
             newSub.amount != null && newSub.amount !== ''
               ? String(newSub.amount)
               : null,
-          renewal_date: newSub.renewal_date
-            ? newSub.renewal_date.split('T')[0]
-            : null,
+          renewal_day: renewalDay,
           paid_by: newSub.paid_by?.id ?? null,
         }
       } else {
         formData.value = {
           name: '',
           amount: null,
-          renewal_date: null,
+          renewal_day: null,
           paid_by: null,
         }
       }
@@ -300,6 +309,21 @@ function closeModal() {
   isOpen.value = false
 }
 
+/** Construit une date ISO (YYYY-MM-DD) à partir du jour du mois ; garde mois/année existants si fournis. */
+function buildRenewalDateFromDay(
+  day: number | null,
+  existingDateStr: string | null | undefined
+): string | null {
+  if (day == null || day < 1 || day > 31) return null
+  const refDate = existingDateStr ? new Date(existingDateStr) : new Date()
+  if (Number.isNaN(refDate.getTime())) return null
+  refDate.setDate(day)
+  const y = refDate.getFullYear()
+  const m = String(refDate.getMonth() + 1).padStart(2, '0')
+  const d = String(refDate.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 async function handleSubmit() {
   if (!formData.value.name.trim()) {
     errors.value.name = 'Le nom est requis'
@@ -311,6 +335,11 @@ async function handleSubmit() {
   generalError.value = ''
 
   try {
+    const renewalDate = buildRenewalDateFromDay(
+      formData.value.renewal_day,
+      props.subscription?.renewal_date ?? null
+    )
+
     if (isEditMode.value && props.subscription) {
       const updateData: UpdateSubscriptionData = {
         name: formData.value.name.trim(),
@@ -318,7 +347,7 @@ async function handleSubmit() {
           formData.value.amount != null && formData.value.amount !== ''
             ? Number(formData.value.amount)
             : null,
-        renewal_date: formData.value.renewal_date || null,
+        renewal_date: renewalDate,
         paid_by: formData.value.paid_by,
       }
 
@@ -340,7 +369,7 @@ async function handleSubmit() {
           formData.value.amount != null && formData.value.amount !== ''
             ? Number(formData.value.amount)
             : null,
-        renewal_date: formData.value.renewal_date || null,
+        renewal_date: renewalDate,
         paid_by: formData.value.paid_by,
       }
 

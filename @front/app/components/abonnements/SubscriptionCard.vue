@@ -14,7 +14,7 @@
           </span>
           <template v-if="subscription.renewal_date">
             <span class="text-gray-300 dark:text-gray-600">·</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
+            <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
               {{ formatRenewalDate(subscription.renewal_date) }}
             </span>
           </template>
@@ -65,9 +65,12 @@ function formatAmount(amount: Subscription['amount']): string {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
 }
 
+/** Affiche la fréquence : "tous les 10", "tous les 15", etc. */
 function formatRenewalDate(dateString: string): string {
   const date = new Date(dateString)
-  return new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }).format(date)
+  const day = date.getDate()
+  if (Number.isNaN(day) || day < 1 || day > 31) return ''
+  return `tous les ${day}`
 }
 
 function handleCardClick() {
