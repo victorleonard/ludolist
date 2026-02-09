@@ -66,6 +66,12 @@
       "relation": "oneToMany",
       "target": "api::task.task",
       "mappedBy": "family"
+    },
+    "subscriptions": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::subscription.subscription",
+      "mappedBy": "family"
     }
   }
 }

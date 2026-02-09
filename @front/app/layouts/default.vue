@@ -136,6 +136,11 @@ const menuItems = [
     label: 'Tâches',
     icon: 'i-ion-checkmark-circle',
     to: '/taches/'
+  },
+  {
+    label: 'Abonnements',
+    icon: 'i-ion-card',
+    to: '/abonnements/'
   }
 ]
 
