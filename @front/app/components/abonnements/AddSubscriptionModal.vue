@@ -100,44 +100,44 @@
 
             <div>
               <label
+                for="sub-category"
+                class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2"
+              >
+                Catégorie
+              </label>
+              <SelectWithModal
+                id="sub-category"
+                v-model="formData.category"
+                :disabled="submitting"
+                :items="categoryOptions"
+                option-attribute="label"
+                value-attribute="value"
+                placeholder="Choisir une catégorie"
+                size="lg"
+                modal-title="Catégorie"
+                class="w-full"
+              />
+            </div>
+
+            <div>
+              <label
                 for="sub-paid-by"
                 class="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2"
               >
                 Qui paye
               </label>
-              <USelect
+              <SelectWithModal
                 id="sub-paid-by"
                 v-model="formData.paid_by"
                 :disabled="submitting"
                 :items="paidByOptions"
                 option-attribute="label"
                 value-attribute="value"
+                placeholder="Qui paye ?"
                 size="lg"
+                modal-title="Qui paye"
                 class="w-full"
-              >
-                <template #option="{ option }">
-                  <div
-                    v-if="option.value === null"
-                    class="flex items-center gap-2"
-                  >
-                    <UIcon
-                      name="i-ion-person-outline"
-                      class="w-4 h-4"
-                    />
-                    <span>{{ option.label }}</span>
-                  </div>
-                  <div
-                    v-else
-                    class="flex items-center gap-2"
-                  >
-                    <MemberAvatar
-                      :member="option.member"
-                      size="xs"
-                    />
-                    <span>{{ option.label }}</span>
-                  </div>
-                </template>
-              </USelect>
+              />
             </div>
 
             <UAlert
@@ -202,12 +202,12 @@ import { storeToRefs } from 'pinia'
 import { useFamilyStore } from '~/stores/family'
 import {
   useSubscriptions,
+  SUBSCRIPTION_CATEGORIES,
   type Subscription,
+  type SubscriptionCategory,
   type CreateSubscriptionData,
   type UpdateSubscriptionData,
 } from '~/composables/useSubscriptions'
-import MemberAvatar from '~/components/MemberAvatar.vue'
-
 interface Props {
   modelValue: boolean
   subscription?: Subscription | null
@@ -240,13 +240,17 @@ const formData = ref<{
   name: string
   amount: string | null
   renewal_day: number | null
+  category: SubscriptionCategory | null
   paid_by: number | null
 }>({
   name: '',
   amount: null,
   renewal_day: null,
+  category: 'autre',
   paid_by: null,
 })
+
+const categoryOptions = SUBSCRIPTION_CATEGORIES
 
 const submitting = ref(false)
 const deleting = ref(false)
@@ -288,6 +292,7 @@ watch(
               ? String(newSub.amount)
               : null,
           renewal_day: renewalDay,
+          category: (newSub.category as SubscriptionCategory) || 'autre',
           paid_by: newSub.paid_by?.id ?? null,
         }
       } else {
@@ -295,6 +300,7 @@ watch(
           name: '',
           amount: null,
           renewal_day: null,
+          category: 'autre',
           paid_by: null,
         }
       }
@@ -348,6 +354,7 @@ async function handleSubmit() {
             ? Number(formData.value.amount)
             : null,
         renewal_date: renewalDate,
+        category: formData.value.category || 'autre',
         paid_by: formData.value.paid_by,
       }
 
@@ -370,6 +377,7 @@ async function handleSubmit() {
             ? Number(formData.value.amount)
             : null,
         renewal_date: renewalDate,
+        category: formData.value.category || 'autre',
         paid_by: formData.value.paid_by,
       }
 

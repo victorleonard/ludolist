@@ -63,24 +63,35 @@
                 </span>
               </div>
 
-              <!-- Mobile : liste verticale -->
-              <div class="md:hidden space-y-3">
-                <SubscriptionCard
-                  v-for="sub in visibleSubscriptions"
-                  :key="sub.documentId"
-                  :subscription="sub"
-                  @click="handleCardClick"
-                />
-              </div>
-
-              <!-- Tablette : grille 2 colonnes -->
-              <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-                <SubscriptionCard
-                  v-for="sub in visibleSubscriptions"
-                  :key="sub.documentId"
-                  :subscription="sub"
-                  @click="handleCardClick"
-                />
+              <!-- Classement par catégorie -->
+              <div class="space-y-6 lg:space-y-8">
+                <section
+                  v-for="group in subscriptionsByCategory"
+                  :key="group.category"
+                  class="space-y-3"
+                >
+                  <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    {{ group.label }}
+                  </h2>
+                  <!-- Mobile : liste verticale -->
+                  <div class="md:hidden space-y-3">
+                    <SubscriptionCard
+                      v-for="sub in group.subs"
+                      :key="sub.documentId"
+                      :subscription="sub"
+                      @click="handleCardClick"
+                    />
+                  </div>
+                  <!-- Tablette : grille 2 colonnes -->
+                  <div class="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <SubscriptionCard
+                      v-for="sub in group.subs"
+                      :key="sub.documentId"
+                      :subscription="sub"
+                      @click="handleCardClick"
+                    />
+                  </div>
+                </section>
               </div>
             </div>
           </template>
@@ -115,7 +126,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
-import { useSubscriptions, type Subscription } from '~/composables/useSubscriptions'
+import { useSubscriptions, SUBSCRIPTION_CATEGORIES, type Subscription } from '~/composables/useSubscriptions'
 import SubscriptionCard from '~/components/abonnements/SubscriptionCard.vue'
 import AddSubscriptionModal from '~/components/abonnements/AddSubscriptionModal.vue'
 
@@ -137,6 +148,27 @@ const visibleSubscriptions = computed(() => {
     if (!sub.paid_by) return true
     return sub.paid_by.id === member.id
   })
+})
+
+/** Abonnements groupés par catégorie (ordre des SUBSCRIPTION_CATEGORIES). */
+const subscriptionsByCategory = computed(() => {
+  const list = visibleSubscriptions.value
+  const order = SUBSCRIPTION_CATEGORIES.map((c) => c.value)
+  const groups: { category: string; label: string; subs: Subscription[] }[] = []
+  const byCat = new Map<string, Subscription[]>()
+  for (const sub of list) {
+    const cat = sub.category || 'autre'
+    if (!byCat.has(cat)) byCat.set(cat, [])
+    byCat.get(cat)!.push(sub)
+  }
+  for (const value of order) {
+    const subs = byCat.get(value)
+    if (subs?.length) {
+      const label = SUBSCRIPTION_CATEGORIES.find((c) => c.value === value)?.label ?? value
+      groups.push({ category: value, label, subs })
+    }
+  }
+  return groups
 })
 
 const totalFormatted = computed(() => {

@@ -978,6 +978,20 @@ export interface ApiSubscriptionSubscription
   };
   attributes: {
     amount: Schema.Attribute.Decimal;
+    category: Schema.Attribute.Enumeration<
+      [
+        'streaming',
+        'musique',
+        'telecom',
+        'assurance',
+        'jeux',
+        'presse',
+        'logiciels',
+        'dons',
+        'autre',
+      ]
+    > &
+      Schema.Attribute.DefaultTo<'autre'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

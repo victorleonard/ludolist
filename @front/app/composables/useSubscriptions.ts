@@ -1,11 +1,36 @@
 import { useAuthStore } from '~/stores/auth'
 
+/** Valeurs de catégorie d'abonnement (codes API). */
+export type SubscriptionCategory =
+  | 'streaming'
+  | 'musique'
+  | 'telecom'
+  | 'assurance'
+  | 'jeux'
+  | 'presse'
+  | 'logiciels'
+  | 'dons'
+  | 'autre'
+
+export const SUBSCRIPTION_CATEGORIES: { value: SubscriptionCategory; label: string }[] = [
+  { value: 'streaming', label: 'Streaming / Vidéo' },
+  { value: 'musique', label: 'Musique' },
+  { value: 'telecom', label: 'Télécom / Internet' },
+  { value: 'assurance', label: 'Assurance' },
+  { value: 'jeux', label: 'Jeux / Loisirs' },
+  { value: 'presse', label: 'Presse / Médias' },
+  { value: 'logiciels', label: 'Logiciels / Cloud' },
+  { value: 'dons', label: 'Dons' },
+  { value: 'autre', label: 'Autre' },
+]
+
 export interface Subscription {
   id: number
   documentId: string
   name: string
   amount?: number | string | null
   renewal_date?: string | null
+  category?: SubscriptionCategory | null
   paid_by?: {
     id: number
     username: string
@@ -20,6 +45,7 @@ export interface CreateSubscriptionData {
   name: string
   amount?: number | string | null
   renewal_date?: string | null
+  category?: SubscriptionCategory | null
   paid_by?: number | null
 }
 
@@ -27,6 +53,7 @@ export interface UpdateSubscriptionData {
   name?: string
   amount?: number | string | null
   renewal_date?: string | null
+  category?: SubscriptionCategory | null
   paid_by?: number | null
 }
 
@@ -138,6 +165,7 @@ export function useSubscriptions() {
             name: String(data.name).trim(),
             amount: data.amount != null && data.amount !== '' ? Number(data.amount) : null,
             renewal_date: data.renewal_date || null,
+            category: data.category || 'autre',
             ...(data.paid_by != null && data.paid_by !== '' && { paid_by: data.paid_by }),
           },
         }
@@ -182,6 +210,7 @@ export function useSubscriptions() {
               amount: data.amount != null && data.amount !== '' ? Number(data.amount) : null,
             }),
             ...(data.renewal_date !== undefined && { renewal_date: data.renewal_date || null }),
+            ...(data.category !== undefined && { category: data.category || 'autre' }),
             ...(data.paid_by !== undefined && { paid_by: data.paid_by }),
           },
         }

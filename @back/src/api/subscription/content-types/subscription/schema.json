@@ -21,6 +21,11 @@
     "renewal_date": {
       "type": "date"
     },
+    "category": {
+      "type": "enumeration",
+      "enum": ["streaming", "musique", "telecom", "assurance", "jeux", "presse", "logiciels", "dons", "autre"],
+      "default": "autre"
+    },
     "paid_by": {
       "type": "relation",
       "relation": "manyToOne",

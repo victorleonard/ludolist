@@ -115,7 +115,7 @@ module.exports = createCoreController('api::subscription.subscription', ({ strap
       }
 
       const userFamily = family[0];
-      const { name, amount, renewal_date, paid_by: paidById } = ctx.request.body;
+      const { name, amount, renewal_date, category, paid_by: paidById } = ctx.request.body;
 
       if (!name || !String(name).trim()) {
         return ctx.badRequest('Le nom est requis');
@@ -139,6 +139,7 @@ module.exports = createCoreController('api::subscription.subscription', ({ strap
         name: String(name).trim(),
         amount: amount != null && amount !== '' ? Number(amount) : null,
         renewal_date: renewal_date || null,
+        category: category || 'autre',
         family: userFamily.id,
         ...(paidByMemberId != null && { paid_by: paidByMemberId }),
       };
@@ -204,7 +205,7 @@ module.exports = createCoreController('api::subscription.subscription', ({ strap
         return ctx.forbidden('Cet abonnement n\'appartient pas à votre famille');
       }
 
-      const { name, amount, renewal_date, paid_by: paidById } = ctx.request.body;
+      const { name, amount, renewal_date, category, paid_by: paidById } = ctx.request.body;
       const updateData = {};
 
       if (name !== undefined) {
@@ -220,6 +221,10 @@ module.exports = createCoreController('api::subscription.subscription', ({ strap
 
       if (renewal_date !== undefined) {
         updateData.renewal_date = renewal_date || null;
+      }
+
+      if (category !== undefined) {
+        updateData.category = category || 'autre';
       }
 
       if (paidById !== undefined) {
