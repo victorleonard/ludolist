@@ -23,7 +23,7 @@
           :key="item.label"
           type="button"
           class="flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 flex-1 h-full min-h-[44px] py-1.5 md:py-2 px-2 transition-all duration-200 relative text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-          @click="handleCollectionsClick"
+          @click="handleDrawerClick('drawer' in item ? item.drawer : undefined)"
         >
           <UIcon
             :name="item.icon"
@@ -42,6 +42,7 @@ import { useRoute } from 'vue-router'
 
 const route = useRoute()
 const openCollectionsDrawer = inject<() => void>('openCollectionsDrawer', () => {})
+const openOrganisationDrawer = inject<() => void>('openOrganisationDrawer', () => {})
 
 const tabs = [
   {
@@ -51,7 +52,8 @@ const tabs = [
   },
   {
     label: 'Collections',
-    icon: 'i-ion-library'
+    icon: 'i-ion-library',
+    drawer: 'collections' as const
   },
   {
     label: 'Plats',
@@ -59,14 +61,9 @@ const tabs = [
     to: '/plats/'
   },
   {
-    label: 'Courses',
-    icon: 'i-ion-cart',
-    to: '/courses'
-  },
-  {
-    label: 'Tâches',
-    icon: 'i-ion-checkmark-circle',
-    to: '/taches/'
+    label: 'Organisation',
+    icon: 'i-ion-list',
+    drawer: 'organisation' as const
   },
   {
     label: 'Abonnements',
@@ -86,9 +83,10 @@ const handleClick = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-const handleCollectionsClick = () => {
+const handleDrawerClick = (drawer?: 'collections' | 'organisation') => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
-  openCollectionsDrawer?.()
+  if (drawer === 'collections') openCollectionsDrawer?.()
+  if (drawer === 'organisation') openOrganisationDrawer?.()
 }
 </script>
 

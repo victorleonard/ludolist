@@ -100,29 +100,16 @@
           —
         </span>
       </div>
-      <div class="flex items-center gap-1 shrink-0">
-        <UButton
-          variant="ghost"
-          color="red"
-          icon="i-ion-trash-outline"
-          size="xs"
+      <div
+        class="p-1 cursor-pointer shrink-0"
+        @click.stop="handleToggle"
+      >
+        <UCheckbox
+          :model-value="task.is_completed"
           :disabled="loading"
-          :loading="deleting"
-          aria-label="Supprimer"
-          class="min-w-9 min-h-9"
-          @click.stop="handleDelete"
+          class="scale-150 origin-center pointer-events-none"
+          @update:model-value="handleToggle"
         />
-        <div
-          class="p-1 cursor-pointer"
-          @click.stop="handleToggle"
-        >
-          <UCheckbox
-            :model-value="task.is_completed"
-            :disabled="loading"
-            class="scale-150 origin-center pointer-events-none"
-            @update:model-value="handleToggle"
-          />
-        </div>
       </div>
     </div>
   </div>
@@ -139,7 +126,6 @@ interface Props {
 
 interface Emits {
   (e: 'updated', task: Task): void
-  (e: 'deleted', taskId: string): void
   (e: 'click', task: Task): void
 }
 
@@ -275,17 +261,6 @@ const handleToggle = async () => {
     console.error('Erreur lors du changement d\'état:', error)
   } finally {
     loading.value = false
-  }
-}
-
-const handleDelete = async () => {
-  if (!confirm('Supprimer cette tâche ?') || !props.task.documentId) return
-  deleting.value = true
-  try {
-    const result = await deleteTask(props.task.documentId)
-    if (result.success) emit('deleted', props.task.documentId)
-  } finally {
-    deleting.value = false
   }
 }
 

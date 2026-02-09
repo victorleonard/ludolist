@@ -14,8 +14,12 @@
           </span>
           <template v-if="subscription.renewal_date">
             <span class="text-gray-300 dark:text-gray-600">·</span>
-            <span class="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-              {{ formatRenewalDate(subscription.renewal_date) }}
+            <span
+              :class="renewalBadgeClasses(subscription.renewal_date)"
+              class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium"
+              :title="`Prochaine échéance : ${daysUntilRenewalLabel(subscription.renewal_date)}`"
+            >
+              J-{{ daysUntilRenewal(subscription.renewal_date) }}
             </span>
           </template>
         </div>
@@ -65,12 +69,44 @@ function formatAmount(amount: Subscription['amount']): string {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
 }
 
-/** Affiche la fréquence : "tous les 10", "tous les 15", etc. */
-function formatRenewalDate(dateString: string): string {
+/** Nombre de jours jusqu'à la prochaine échéance (jour du mois répété chaque mois). */
+function daysUntilRenewal(dateString: string): number {
   const date = new Date(dateString)
-  const day = date.getDate()
-  if (Number.isNaN(day) || day < 1 || day > 31) return ''
-  return `tous les ${day}`
+  const dayOfMonth = date.getDate()
+  if (Number.isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) return 0
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  let next = new Date(now.getFullYear(), now.getMonth(), dayOfMonth)
+  if (next.getTime() < now.getTime()) {
+    next = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth)
+  }
+  const diffMs = next.getTime() - now.getTime()
+  return Math.ceil(diffMs / (24 * 60 * 60 * 1000))
+}
+
+/** Classes du badge J-X selon la proximité de l'échéance. */
+function renewalBadgeClasses(dateString: string): string {
+  const days = daysUntilRenewal(dateString)
+  if (days <= 2) {
+    return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+  }
+  if (days <= 7) {
+    return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+  }
+  return 'bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300'
+}
+
+/** Label pour le tooltip : date de la prochaine échéance. */
+function daysUntilRenewalLabel(dateString: string): string {
+  const date = new Date(dateString)
+  const dayOfMonth = date.getDate()
+  if (Number.isNaN(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31) return ''
+  const now = new Date()
+  let next = new Date(now.getFullYear(), now.getMonth(), dayOfMonth)
+  if (next.getTime() < now.getTime()) {
+    next = new Date(now.getFullYear(), now.getMonth() + 1, dayOfMonth)
+  }
+  return next.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function handleCardClick() {

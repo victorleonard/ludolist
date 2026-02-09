@@ -20,7 +20,7 @@
               color="neutral"
               icon="i-ion-close"
               size="sm"
-              :disabled="submitting"
+              :disabled="submitting || deleting"
               aria-label="Fermer"
               class="min-w-[40px] min-h-[40px] flex items-center justify-center -mr-2"
               @click="closeModal"
@@ -182,27 +182,43 @@
             </UAlert>
 
             <!-- Boutons d'action -->
-            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-2 sm:pt-4">
+            <div class="flex flex-col gap-2 sm:gap-3 pt-2 sm:pt-4">
+              <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                <UButton
+                  type="button"
+                  variant="outline"
+                  color="neutral"
+                  size="lg"
+                  :disabled="submitting || deleting"
+                  class="w-full sm:w-auto sm:flex-1"
+                  @click="closeModal"
+                >
+                  Annuler
+                </UButton>
+                <UButton
+                  type="submit"
+                  color="primary"
+                  size="lg"
+                  :loading="submitting"
+                  :disabled="!formData.title.trim() || submitting || deleting"
+                  class="w-full sm:w-auto sm:flex-1"
+                >
+                  {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+                </UButton>
+              </div>
               <UButton
+                v-if="isEditMode && props.task"
                 type="button"
-                variant="outline"
-                color="neutral"
+                variant="ghost"
+                color="red"
                 size="lg"
+                icon="i-ion-trash-outline"
+                :loading="deleting"
                 :disabled="submitting"
-                class="w-full sm:w-auto sm:flex-1"
-                @click="closeModal"
+                class="w-full justify-center"
+                @click="handleDelete"
               >
-                Annuler
-              </UButton>
-              <UButton
-                type="submit"
-                color="primary"
-                size="lg"
-                :loading="submitting"
-                :disabled="!formData.title.trim() || submitting"
-                class="w-full sm:w-auto sm:flex-1"
-              >
-                {{ isEditMode ? 'Enregistrer' : 'Créer' }}
+                Supprimer la tâche
               </UButton>
             </div>
           </form>
@@ -228,6 +244,7 @@ interface Props {
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
   (e: 'success', task: Task): void
+  (e: 'deleted', taskId: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -236,7 +253,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-const { createTask, updateTask } = useTasks()
+const { createTask, updateTask, deleteTask } = useTasks()
 const memberStore = useMemberStore()
 const familyStore = useFamilyStore()
 const { currentMember } = storeToRefs(memberStore)
@@ -264,6 +281,7 @@ const formData = ref<{
 })
 
 const submitting = ref(false)
+const deleting = ref(false)
 const errors = ref<{ title?: string }>({})
 const generalError = ref('')
 
@@ -407,6 +425,29 @@ const handleSubmit = async () => {
     generalError.value = 'Une erreur est survenue'
   } finally {
     submitting.value = false
+  }
+}
+
+async function handleDelete() {
+  if (!props.task?.documentId) return
+  if (!confirm('Supprimer cette tâche ?')) return
+
+  deleting.value = true
+  generalError.value = ''
+
+  try {
+    const result = await deleteTask(props.task.documentId)
+    if (result.success) {
+      emit('deleted', props.task.documentId)
+      closeModal()
+    } else {
+      generalError.value = result.error || 'Erreur lors de la suppression'
+    }
+  } catch (error) {
+    console.error('Erreur lors de la suppression:', error)
+    generalError.value = 'Une erreur est survenue'
+  } finally {
+    deleting.value = false
   }
 }
 </script>

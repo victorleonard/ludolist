@@ -78,7 +78,6 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
-                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -90,7 +89,6 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
-                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -118,7 +116,6 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
-                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -130,7 +127,6 @@
                   :key="task.documentId"
                   :task="task"
                   @updated="handleTaskUpdated"
-                  @deleted="handleTaskDeleted"
                   @click="handleTaskClick"
                 />
               </div>
@@ -159,6 +155,7 @@
       :task="selectedTask"
       @update:model-value="(v) => { if (!v) closeModal() }"
       @success="handleModalSuccess"
+      @deleted="handleTaskDeleted"
     />
   </div>
 </template>
