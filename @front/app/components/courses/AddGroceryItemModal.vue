@@ -15,7 +15,12 @@
             @submit.prevent="handleAdd"
             class="mb-4"
           >
-            <div class="relative">
+            <!-- Zone tactile large pour iOS : le touch utilisateur déclenche le focus → clavier -->
+            <div
+              class="relative grocery-input-touch-zone"
+              @touchend.prevent="(e) => focusGroceryInput(e)"
+              @click="(e) => focusGroceryInput(e)"
+            >
               <UInput
                 ref="nameInputRef"
                 id="grocery-item-name"
@@ -27,6 +32,7 @@
                 placeholder="Ajouter des éléments supplémentaires"
                 autocomplete="off"
                 size="lg"
+                inputmode="text"
                 @input="handleInput"
                 @keyup.enter="handleAdd"
               >
@@ -145,15 +151,30 @@ const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
 const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
 
-// Mettre le focus sur l'input après ouverture du drawer (plusieurs essais pour fiabilité)
+const getGroceryNativeInput = (): HTMLInputElement | null => {
+  const drawer = document.querySelector('[role="dialog"]')
+  const container = drawer ?? document.body
+  return (container.querySelector('input#grocery-item-name') as HTMLInputElement)
+    ?? (container.querySelector('#grocery-item-name input') as HTMLInputElement)
+    ?? (container.querySelector('[id="grocery-item-name"] input') as HTMLInputElement)
+}
+
+// Sur iOS le clavier s'ouvre quand le focus est déclenché par un touch utilisateur.
+// focusGroceryInput est appelé au toucher de la zone → focus dans le même cycle → clavier.
+const focusGroceryInput = (e?: Event) => {
+  if (e?.target && (e.target as HTMLElement).closest?.('button[type="submit"]')) return
+  const nativeInput = getGroceryNativeInput()
+  if (nativeInput && !nativeInput.disabled) {
+    nativeInput.focus({ preventScroll: false })
+    nativeInput.click()
+  }
+}
+
+// Mettre le focus après ouverture du drawer (délais pour rendu + animation)
 const focusInput = () => {
   const run = (delay: number) => {
     setTimeout(() => {
-      const drawer = document.querySelector('[role="dialog"] [data-headlessui-state="open"], [role="dialog"]')
-      const container = drawer ?? document.body
-      const nativeInput = container.querySelector('input#grocery-item-name') as HTMLInputElement
-        ?? container.querySelector('#grocery-item-name input') as HTMLInputElement
-        ?? container.querySelector('[id="grocery-item-name"] input') as HTMLInputElement
+      const nativeInput = getGroceryNativeInput()
       if (nativeInput) {
         nativeInput.focus({ preventScroll: false })
         nativeInput.click()
@@ -237,3 +258,10 @@ const handleAdd = async () => {
   }
 }
 </script>
+
+<style scoped>
+.grocery-input-touch-zone {
+  min-height: 44px;
+  cursor: text;
+}
+</style>
