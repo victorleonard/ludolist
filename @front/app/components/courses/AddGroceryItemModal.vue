@@ -15,48 +15,40 @@
             @submit.prevent="handleAdd"
             class="mb-4"
           >
-            <!-- Zone tactile large pour iOS : le touch utilisateur déclenche le focus → clavier -->
-            <div
-              class="relative grocery-input-touch-zone"
-              @touchend.prevent="(e) => focusGroceryInput(e)"
-              @click="(e) => focusGroceryInput(e)"
+            <!-- Input natif pour que le tap ouvre le clavier sur iOS (focus = geste direct sur l'input) -->
+            <div class="relative flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-500"
+                 :class="{ 'border-red-500 dark:border-red-500': !!errors.name }"
             >
-              <UInput
+              <input
                 ref="nameInputRef"
                 id="grocery-item-name"
                 v-model="itemName"
-                :disabled="submitting"
-                :error="!!errors.name"
-                :ui="{ trailing: 'pr-0.5' }"
-                class="w-full input-touch"
-                placeholder="Ajouter des éléments supplémentaires"
+                type="text"
                 autocomplete="off"
-                size="lg"
                 inputmode="text"
+                placeholder="Ajouter des éléments supplémentaires"
+                :disabled="submitting"
+                class="grocery-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none disabled:opacity-50"
                 @input="handleInput"
-                @keyup.enter="handleAdd"
-              >
-                <template #trailing>
-                  <UButton
-                    type="submit"
-                    color="primary"
-                    icon="i-ion-add"
-                    variant="link"
-                    size="sm"
-                    :loading="submitting"
-                    :disabled="!itemName.trim() || submitting"
-                    class="min-w-[40px]"
-                    aria-label="Ajouter"
-                  />
-                </template>
-              </UInput>
-              <p
-                v-if="errors.name"
-                class="mt-1.5 text-xs text-red-600 dark:text-red-400 absolute -bottom-5 left-0"
-              >
-                {{ errors.name }}
-              </p>
+              />
+              <UButton
+                type="submit"
+                color="primary"
+                icon="i-ion-add"
+                variant="link"
+                size="sm"
+                :loading="submitting"
+                :disabled="!itemName.trim() || submitting"
+                class="min-w-[40px] shrink-0"
+                aria-label="Ajouter"
+              />
             </div>
+            <p
+              v-if="errors.name"
+              class="mt-1.5 text-xs text-red-600 dark:text-red-400"
+            >
+              {{ errors.name }}
+            </p>
           </form>
 
           <!-- En-tête avec titre et bouton fermer -->
@@ -118,7 +110,6 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useShoppingList, type GroceryItem } from '~/composables/useShoppingList'
-import type { UInput } from '#components'
 
 interface Props {
   modelValue: boolean
@@ -149,35 +140,15 @@ const itemName = ref('')
 const submitting = ref(false)
 const errors = ref<{ name?: string }>({})
 const alreadyExistsMessage = ref('')
-const nameInputRef = ref<InstanceType<typeof UInput> | null>(null)
+const nameInputRef = ref<HTMLInputElement | null>(null)
 
-const getGroceryNativeInput = (): HTMLInputElement | null => {
-  const drawer = document.querySelector('[role="dialog"]')
-  const container = drawer ?? document.body
-  return (container.querySelector('input#grocery-item-name') as HTMLInputElement)
-    ?? (container.querySelector('#grocery-item-name input') as HTMLInputElement)
-    ?? (container.querySelector('[id="grocery-item-name"] input') as HTMLInputElement)
-}
-
-// Sur iOS le clavier s'ouvre quand le focus est déclenché par un touch utilisateur.
-// focusGroceryInput est appelé au toucher de la zone → focus dans le même cycle → clavier.
-const focusGroceryInput = (e?: Event) => {
-  if (e?.target && (e.target as HTMLElement).closest?.('button[type="submit"]')) return
-  const nativeInput = getGroceryNativeInput()
-  if (nativeInput && !nativeInput.disabled) {
-    nativeInput.focus({ preventScroll: false })
-    nativeInput.click()
-  }
-}
-
-// Mettre le focus après ouverture du drawer (délais pour rendu + animation)
+// Focus après ouverture du drawer (optionnel ; sur iOS le clavier s'ouvre surtout au tap direct sur l'input)
 const focusInput = () => {
   const run = (delay: number) => {
     setTimeout(() => {
-      const nativeInput = getGroceryNativeInput()
-      if (nativeInput) {
-        nativeInput.focus({ preventScroll: false })
-        nativeInput.click()
+      const el = nameInputRef.value
+      if (el && !el.disabled) {
+        el.focus({ preventScroll: false })
       }
     }, delay)
   }
@@ -260,8 +231,8 @@ const handleAdd = async () => {
 </script>
 
 <style scoped>
-.grocery-input-touch-zone {
-  min-height: 44px;
-  cursor: text;
+.grocery-native-input {
+  -webkit-appearance: none;
+  appearance: none;
 }
 </style>
