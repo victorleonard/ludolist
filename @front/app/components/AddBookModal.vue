@@ -9,22 +9,6 @@
         class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
         style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
-        <div class="flex items-center justify-between gap-3 px-4 py-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 min-w-0">
-            {{ editingBook ? 'Modifier le livre' : 'Ajouter un nouveau livre' }}
-          </h3>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-ion-close"
-            size="sm"
-            class="min-w-[44px] min-h-[44px] rounded-full -mr-1"
-            :disabled="submitting"
-            aria-label="Fermer"
-            @click="closeModal"
-          />
-        </div>
-
         <!-- Mode prévisualisation -->
         <div
           v-if="showPreview && previewBook"
@@ -213,37 +197,31 @@
           class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
           style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
-          <div class="flex items-center gap-2 mb-4">
-            <UIcon
-              name="i-ion-search"
-              class="w-5 h-5 shrink-0"
-            />
-            <h4 class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-              Rechercher un livre
-            </h4>
-          </div>
-
-          <div class="flex gap-2">
-            <UInput
+          <div
+            class="relative flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-500 mb-4"
+          >
+            <input
               id="book-search"
               v-model="searchQuery"
+              type="text"
+              autocomplete="off"
               placeholder="Titre, auteur, ISBN..."
               :disabled="submitting || searching"
-              class="flex-1 input-touch"
-              size="lg"
-              @keyup.enter="searchBooks"
+              class="flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
+              @keydown.enter.prevent="searchBooks"
             />
             <UButton
               type="button"
               color="primary"
-              class="min-h-[48px] shrink-0"
+              icon="i-ion-search"
+              variant="link"
+              size="sm"
+              class="min-w-[40px] shrink-0"
               :loading="searching || submitting"
               :disabled="submitting || searching || !searchQuery.trim()"
-              size="lg"
+              aria-label="Rechercher"
               @click="searchBooks"
-            >
-              Rechercher
-            </UButton>
+            />
           </div>
 
           <!-- Résultats de recherche -->

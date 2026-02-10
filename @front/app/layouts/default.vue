@@ -226,6 +226,27 @@ const handleMemberCodeInput = (e) => {
   const v = String(raw).replace(/\D/g, '').slice(0, 4)
   memberCode.value = v
   if (memberCodeError.value) memberCodeError.value = null
+  if (v.length === 4) {
+    submitMemberCode()
+  }
+}
+
+const memberCodeDigits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+const tapMemberCodeDigit = (digit) => {
+  if (memberCodeLoading.value) return
+  const v = (memberCode.value + String(digit)).slice(0, 4)
+  memberCode.value = v
+  if (memberCodeError.value) memberCodeError.value = null
+  if (v.length === 4) {
+    submitMemberCode()
+  }
+}
+
+const tapMemberCodeBackspace = () => {
+  if (memberCodeLoading.value) return
+  memberCode.value = memberCode.value.slice(0, -1)
+  if (memberCodeError.value) memberCodeError.value = null
 }
 
 const submitMemberCode = async () => {
@@ -764,18 +785,13 @@ const handleMemberLogout = () => {
               />
             </div>
             <div class="space-y-4">
-              <div>
-                <UInput
-                  :model-value="memberCode"
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="4"
-                  placeholder="0000"
-                  size="lg"
-                  class="w-full text-center text-2xl tracking-widest font-mono"
-                  :disabled="memberCodeLoading"
-                  @update:model-value="(v) => handleMemberCodeInput(v ?? '')"
-                />
+              <!-- Affichage des chiffres saisis (en gros) -->
+              <div
+                class="flex justify-center items-center min-h-[80px] text-5xl sm:text-6xl tracking-[0.4em] font-mono font-semibold text-gray-900 dark:text-gray-100"
+                aria-live="polite"
+              >
+                <span v-if="memberCode.length > 0">{{ memberCode }}</span>
+                <span v-else class="text-gray-300 dark:text-gray-600">0000</span>
               </div>
               <p
                 v-if="memberCodeError"
@@ -783,16 +799,44 @@ const handleMemberLogout = () => {
               >
                 {{ memberCodeError }}
               </p>
-              <UButton
-                color="primary"
-                size="lg"
-                block
-                :loading="memberCodeLoading"
-                :disabled="memberCode.length !== 4"
-                @click="submitMemberCode"
-              >
-                Se connecter
-              </UButton>
+              <!-- Clavier 0-9 -->
+              <div class="grid grid-cols-3 gap-2 sm:gap-3 max-w-[280px] mx-auto">
+                <button
+                  v-for="d in memberCodeDigits.slice(1)"
+                  :key="d"
+                  type="button"
+                  :disabled="memberCodeLoading"
+                  class="member-code-key min-h-[52px] sm:min-h-[56px] rounded-xl text-2xl sm:text-3xl font-mono font-semibold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-colors text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                  @click="tapMemberCodeDigit(d)"
+                >
+                  {{ d }}
+                </button>
+                <button
+                  type="button"
+                  :disabled="memberCodeLoading"
+                  class="member-code-key min-h-[52px] sm:min-h-[56px] rounded-xl text-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-colors text-gray-600 dark:text-gray-400 disabled:opacity-50"
+                  aria-label="Effacer"
+                  @click="tapMemberCodeBackspace"
+                >
+                  <UIcon name="i-ion-backspace-outline" class="w-6 h-6 mx-auto" />
+                </button>
+                <button
+                  type="button"
+                  :disabled="memberCodeLoading"
+                  class="member-code-key min-h-[52px] sm:min-h-[56px] rounded-xl text-2xl sm:text-3xl font-mono font-semibold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95 transition-colors text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                  @click="tapMemberCodeDigit(0)"
+                >
+                  0
+                </button>
+                <button
+                  type="button"
+                  :disabled="memberCodeLoading"
+                  class="member-code-key min-h-[52px] sm:min-h-[56px] rounded-xl opacity-0 pointer-events-none"
+                  aria-hidden="true"
+                >
+                  –
+                </button>
+              </div>
             </div>
           </template>
         </div>

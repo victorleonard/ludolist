@@ -27,7 +27,7 @@
                 inputmode="text"
                 placeholder="Ajouter des éléments supplémentaires"
                 :disabled="submitting"
-                class="grocery-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-0 focus:outline-none disabled:opacity-50"
+                class="grocery-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
                 @input="handleInput"
               />
               <UButton
