@@ -325,5 +325,60 @@ module.exports = createCoreController('api::book-reading.book-reading', ({ strap
       strapi.log.error('Erreur lors de la récupération des lectures:', error);
       return ctx.internalServerError('Erreur lors de la récupération des lectures');
     }
+  },
+
+  /**
+   * Delete - vérifier que la lecture appartient à la famille de l'utilisateur
+   * Utilise le Document Service API (Strapi 5) car la route REST envoie documentId
+   */
+  async delete(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté');
+    }
+
+    const documentId = ctx.params.documentId ?? ctx.params.id;
+    if (!documentId) {
+      return ctx.badRequest('Identifiant de la lecture requis');
+    }
+
+    const reading = await strapi.documents('api::book-reading.book-reading').findOne({
+      documentId,
+      populate: ['book', 'member']
+    });
+
+    if (!reading) {
+      return ctx.notFound('Lecture non trouvée');
+    }
+
+    const family = await strapi.entityService.findMany('api::family.family', {
+      filters: {
+        users_permissions_user: { id: user.id }
+      },
+      populate: { members: true, books: true },
+      limit: 1
+    });
+
+    if (!family || family.length === 0) {
+      return ctx.notFound('Famille non trouvée');
+    }
+
+    const userFamily = family[0];
+    const bookId = reading.book?.id ?? reading.book?.documentId ?? reading.book;
+    const memberId = reading.member?.id ?? reading.member?.documentId ?? reading.member;
+
+    const bookBelongsToFamily = userFamily.books?.some(
+      b => b.id === bookId || b.documentId === String(bookId)
+    );
+    const memberBelongsToFamily = userFamily.members?.some(
+      m => m.id === memberId || m.documentId === String(memberId)
+    );
+
+    if (!bookBelongsToFamily || !memberBelongsToFamily) {
+      return ctx.forbidden("Cette lecture n'appartient pas à votre famille");
+    }
+
+    await strapi.documents('api::book-reading.book-reading').delete({ documentId });
+    return ctx.send({ data: null });
   }
 }));

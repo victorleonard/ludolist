@@ -1817,6 +1817,41 @@ export const useFamilyStore = defineStore("family", {
       }
     },
 
+    // Supprimer une lecture
+    async deleteBookReading(readingId: number | string) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+      const identifier = String(readingId);
+
+      try {
+        await $fetch(`${config.public.apiUrl}/api/book-readings/${identifier}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        });
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la suppression de la lecture:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
+        };
+        const errorMessage =
+          err?.data?.error?.message ??
+          err?.message ??
+          "Erreur lors de la suppression de la lecture";
+        return { success: false, error: errorMessage };
+      }
+    },
+
     // Récupérer les lectures d'un membre
     async fetchMemberBookReadings(memberId: number) {
       const authStore = useAuthStore();

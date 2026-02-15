@@ -713,7 +713,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'success'): void
+  (e: 'success', addedBook?: { id?: number; documentId?: string }): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -969,9 +969,10 @@ const addBookFromPreview = async () => {
       return
     }
 
-    // Succès : fermer le modal et émettre l'événement
+    // Succès : fermer le modal et émettre l'événement avec le livre ajouté
+    const addedBook = result.data ? { id: result.data.id, documentId: result.data.documentId } : undefined
     resetForm()
-    emit('success')
+    emit('success', addedBook)
     isOpen.value = false
   } catch (err: unknown) {
     console.error('Erreur lors de l\'ajout du livre:', err)
@@ -1125,8 +1126,17 @@ async function handleSubmit() {
         submitError.value = result.error || 'Erreur lors de l\'ajout du livre'
         return
       }
+
+      // Succès création : émettre avec le livre ajouté
+      const addedBook = result.data ? { id: result.data.id, documentId: result.data.documentId } : undefined
+      resetForm()
+      emit('success', addedBook)
+      isOpen.value = false
+      submitting.value = false
+      return
     }
 
+    // Mise à jour (pas d'émission de livre)
     resetForm()
     emit('success')
     isOpen.value = false

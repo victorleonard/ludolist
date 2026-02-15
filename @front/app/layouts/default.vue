@@ -160,8 +160,13 @@ const handleGameAdded = () => {
   familyStore.fetchFamily()
 }
 
-const handleBookAdded = () => {
+const handleBookAdded = (addedBook) => {
   familyStore.fetchFamily()
+  // Proposer de commencer la lecture : navigation vers la page livre + ouverture du modal
+  if (addedBook && (addedBook.documentId || addedBook.id) && isMemberConnected.value) {
+    const bookId = addedBook.documentId || addedBook.id
+    navigateTo(`/livres/${bookId}?startReading=1`)
+  }
 }
 
 const openMemberDrawer = async () => {

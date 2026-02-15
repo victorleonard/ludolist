@@ -163,6 +163,61 @@
                   </UButton>
                 </div>
 
+                <!-- Boutons lecture -->
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+                  <!-- Bloc pages cliquable (lecture en cours) → ouvre UpdatePagesModal avec clavier -->
+                  <div
+                    v-if="myReadingStatus === 'in_progress' && memberStore.isMemberConnected"
+                    class="flex items-center justify-between gap-2 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl cursor-pointer border-2 border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 transition-colors flex-1"
+                    role="button"
+                    tabindex="0"
+                    @click.stop="openUpdatePagesModal"
+                    @keydown.enter.stop="openUpdatePagesModal"
+                    @keydown.space.prevent="openUpdatePagesModal"
+                  >
+                    <div class="flex items-center gap-2 flex-1 min-w-0">
+                      <UIcon
+                        name="i-ion-document-text"
+                        class="w-5 h-5 text-gray-500 dark:text-gray-400 shrink-0"
+                      />
+                      <span class="text-base font-medium text-gray-700 dark:text-gray-300">
+                        <span class="font-bold tabular-nums">{{ myReadingPagesLues }}</span>
+                        <span
+                          v-if="book.nombre_pages"
+                          class="text-gray-500 dark:text-gray-400"
+                        > / {{ book.nombre_pages }}</span>
+                        pages lues
+                      </span>
+                    </div>
+                    <UIcon
+                      name="i-ion-create"
+                      class="w-5 h-5 text-primary-500 dark:text-primary-400 shrink-0"
+                    />
+                  </div>
+                  <!-- CTA principal (quand pas en cours ou pas de bloc pages) -->
+                  <UButton
+                    v-if="myReadingStatus !== 'in_progress'"
+                    color="primary"
+                    size="lg"
+                    :icon="readingCTAIcon"
+                    class="flex-1 min-h-[48px]"
+                    @click="openReadingModal(myReading ?? undefined)"
+                  >
+                    {{ readingCTALabel }}
+                  </UButton>
+                  <UButton
+                    v-if="myReadingStatus === 'in_progress'"
+                    color="neutral"
+                    variant="soft"
+                    size="lg"
+                    icon="i-ion-checkmark-circle"
+                    class="min-h-[48px] sm:flex-initial"
+                    @click="openReadingModal(myReading ?? undefined, { intent: 'finish' })"
+                  >
+                    J'ai terminé
+                  </UButton>
+                </div>
+
                 <!-- Informations principales -->
                 <div class="space-y-3">
                   <div
@@ -324,15 +379,59 @@
               <h2 class="text-lg sm:text-xl font-bold">
                 {{ memberStore.isMemberConnected ? 'Ma lecture' : 'Lectures des membres' }}
               </h2>
-              <UButton
-                color="primary"
-                icon="i-ion-add"
-                size="md"
-                class="w-full sm:w-auto min-h-[44px] sm:min-h-0"
-                @click="openReadingModal()"
-              >
-                Ajouter ma lecture
-              </UButton>
+              <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:items-center">
+                <!-- Bloc pages cliquable (en cours) → UpdatePagesModal avec clavier -->
+                <div
+                  v-if="myReadingStatus === 'in_progress' && memberStore.isMemberConnected"
+                  class="flex items-center justify-between gap-2 p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg cursor-pointer border-2 border-gray-200 dark:border-gray-700 hover:border-primary-400 dark:hover:border-primary-600 transition-colors"
+                  role="button"
+                  tabindex="0"
+                  @click.stop="openUpdatePagesModal"
+                  @keydown.enter.stop="openUpdatePagesModal"
+                  @keydown.space.prevent="openUpdatePagesModal"
+                >
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <UIcon
+                      name="i-ion-document-text"
+                      class="w-4 h-4 text-gray-500 dark:text-gray-400 shrink-0"
+                    />
+                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                      <span class="font-semibold tabular-nums">{{ myReadingPagesLues }}</span>
+                      <span
+                        v-if="book?.nombre_pages"
+                        class="text-gray-500 dark:text-gray-400"
+                      > / {{ book.nombre_pages }}</span>
+                      pages
+                    </span>
+                  </div>
+                  <UIcon
+                    name="i-ion-create"
+                    class="w-4 h-4 text-primary-500 dark:text-primary-400 shrink-0"
+                  />
+                </div>
+                <!-- CTA principal (pas en cours) -->
+                <UButton
+                  v-if="myReadingStatus !== 'in_progress'"
+                  color="primary"
+                  :icon="readingCTAIcon"
+                  size="md"
+                  class="min-h-[44px]"
+                  @click="openReadingModal(myReading ?? undefined)"
+                >
+                  {{ readingCTALabel }}
+                </UButton>
+                <UButton
+                  v-if="myReadingStatus === 'in_progress'"
+                  color="neutral"
+                  variant="soft"
+                  size="md"
+                  icon="i-ion-checkmark-circle"
+                  class="min-h-[44px]"
+                  @click="openReadingModal(myReading ?? undefined, { intent: 'finish' })"
+                >
+                  J'ai terminé
+                </UButton>
+              </div>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400">
               {{ readingsList.length }} lecture{{ readingsList.length !== 1 ? 's' : '' }}
@@ -350,7 +449,9 @@
                   Aucune lecture enregistrée
                 </p>
                 <p class="text-sm mt-2 text-gray-400 dark:text-gray-500">
-                  Ajoutez votre première lecture pour suivre votre progression.
+                  {{ memberStore.isMemberConnected
+                    ? 'Dites-nous quand vous commencez, avancez ou terminez ce livre.'
+                    : 'Ajoutez une lecture pour suivre la progression.' }}
                 </p>
               </div>
               <div
@@ -359,7 +460,7 @@
               >
                 <UCard
                   v-for="(reading, index) in readingsList"
-                  :key="'reading-' + index"
+                  :key="'reading-' + (readingId(reading) || index)"
                   class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-100 dark:border-gray-700/50"
                 >
                   <div class="p-3 sm:p-4">
@@ -373,17 +474,29 @@
                         />
                         <span class="font-semibold text-base sm:text-lg truncate">{{ readingMemberName(reading) }}</span>
                       </div>
-                      <UButton
-                        color="primary"
-                        variant="soft"
-                        icon="i-ion-create-outline"
-                        size="sm"
-                        class="shrink-0 min-h-[44px] px-3 sm:px-2 rounded-lg sm:rounded-md font-medium"
-                        aria-label="Modifier la lecture"
-                        @click="openReadingModal(reading)"
-                      >
-                        <span class="sm:hidden ml-1">Modifier</span>
-                      </UButton>
+                      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                        <UButton
+                          color="primary"
+                          variant="soft"
+                          icon="i-ion-create-outline"
+                          size="sm"
+                          class="min-h-[44px] px-3 sm:px-2 rounded-lg sm:rounded-md font-medium"
+                          aria-label="Modifier la lecture"
+                          @click="openReadingModal(reading)"
+                        >
+                          <span class="sm:hidden ml-1">Modifier</span>
+                        </UButton>
+                        <UButton
+                          color="error"
+                          variant="ghost"
+                          icon="i-ion-trash-outline"
+                          size="sm"
+                          class="min-h-[44px] px-2 rounded-lg sm:rounded-md"
+                          aria-label="Supprimer la lecture"
+                          :loading="deletingReadingId === readingId(reading)"
+                          @click="confirmDeleteReading(reading)"
+                        />
+                      </div>
                     </div>
 
                     <!-- Infos en grille lisible sur mobile -->
@@ -552,12 +665,25 @@
       </div>
     </div>
 
+    <!-- Modal mise à jour des pages (clavier numérique, comme liste livres) -->
+    <UpdatePagesModal
+      v-if="book"
+      v-model="isUpdatePagesModalOpen"
+      :book-id="book.documentId || book.id"
+      :current-pages="currentPagesForModal"
+      :total-pages="book.nombre_pages || null"
+      @success="handlePagesUpdated"
+    />
+
     <!-- Modal pour ajouter/modifier une lecture -->
     <BookReadingModal
       v-if="book"
       :model-value="isReadingModalOpen"
       :book-id="book.documentId || book.id"
+      :book="book"
       :reading="selectedReading"
+      :compact-progress-update="compactProgressUpdate"
+      :initial-intent="initialReadingIntent"
       @update:model-value="(value) => { isReadingModalOpen = value }"
       @success="handleReadingSuccess"
     />
@@ -783,6 +909,7 @@ import { useFamilyStore, type TransformedBook, type BookReading } from '~/stores
 import { useMemberStore } from '~/stores/member'
 import { useAddBookModal } from '~/composables/useAddBookModal'
 import BookReadingModal from '~/components/BookReadingModal.vue'
+import UpdatePagesModal from '~/components/UpdatePagesModal.vue'
 import MemberAvatar from '~/components/MemberAvatar.vue'
 import MemberRatingsTab from '~/components/MemberRatingsTab.vue'
 
@@ -811,6 +938,7 @@ const readingsList = computed(() => {
       const att = r.attributes as Record<string, unknown>
       return {
         id: r.id ?? att.id,
+        documentId: r.documentId ?? att.documentId,
         member: att.member ?? r.member,
         book: att.book ?? r.book,
         date_debut: att.date_debut ?? r.date_debut,
@@ -828,6 +956,62 @@ const error = ref<string | null>(null)
 const isReadingModalOpen = ref(false)
 const selectedReading = ref<BookReading | null>(null)
 
+/** Lecture du membre connecté (pour CTA dynamique) */
+const myReading = computed(() => {
+  if (!memberStore.isMemberConnected || !memberStore.currentMember || !readingsList.value.length) return null
+  const memberId = memberStore.currentMember.id
+  return readingsList.value.find((r: Record<string, unknown>) => {
+    const m = r.member as { id?: number } | undefined
+    return m?.id != null && Number(m.id) === Number(memberId)
+  }) ?? null
+})
+
+/** Pages lues de ma lecture (pour affichage bloc progression) */
+const myReadingPagesLues = computed(() => {
+  const r = myReading.value
+  if (!r || typeof r !== 'object') return 0
+  return readingPagesLues(r as Record<string, unknown>) ?? 0
+})
+
+/** Pages actuelles pour UpdatePagesModal (null si pas de lecture) */
+const currentPagesForModal = computed(() => {
+  const r = myReading.value
+  if (!r || typeof r !== 'object') return null
+  return readingPagesLues(r as Record<string, unknown>)
+})
+
+/** Statut de ma lecture pour le CTA */
+const myReadingStatus = computed(() => {
+  const r = myReading.value
+  if (!r) return 'none'
+  const abandonne = (r as Record<string, unknown>).abandonne
+  const dateFin = (r as Record<string, unknown>).date_fin
+  const dateDebut = (r as Record<string, unknown>).date_debut
+  if (abandonne) return 'abandoned'
+  if (dateFin) return 'finished'
+  if (dateDebut) return 'in_progress'
+  return 'none'
+})
+
+/** Label et icône du bouton principal selon le statut */
+const readingCTALabel = computed(() => {
+  switch (myReadingStatus.value) {
+    case 'in_progress': return 'Mettre à jour ma progression'
+    case 'finished': return 'Modifier ou relire'
+    case 'abandoned': return 'Modifier'
+    default: return memberStore.isMemberConnected ? 'Je lis ce livre' : 'Ajouter ma lecture'
+  }
+})
+
+const readingCTAIcon = computed(() => {
+  switch (myReadingStatus.value) {
+    case 'in_progress': return 'i-ion-trending-up'
+    case 'finished': return 'i-ion-checkmark-circle'
+    case 'abandoned': return 'i-ion-close-circle'
+    default: return 'i-ion-add'
+  }
+})
+
 const isCoverModalOpen = ref(false)
 const selectedCoverUrl = ref('')
 const coverSuggestions = ref<Array<{ url: string, displayUrl: string, label?: string }>>([])
@@ -841,6 +1025,13 @@ const changingOwner = ref(false)
 const changeOwnerError = ref<string | null>(null)
 
 const deletingBook = ref(false)
+const deletingReadingId = ref<string | number | null>(null)
+
+/** ID d'une lecture (pour v-for key, loading et API). Strapi 5 : documentId en priorité. */
+function readingId(reading: Record<string, unknown>): string | number {
+  return (reading.documentId ?? reading.id ?? '') as string | number
+}
+
 /** Membre connecté : peut supprimer uniquement s'il est propriétaire. Sinon (vue famille) : peut tout supprimer. */
 const canDeleteBook = computed(() => {
   if (!book.value) return false
@@ -887,6 +1078,26 @@ async function confirmDeleteBook() {
     error.value = err instanceof Error ? err.message : 'Erreur lors de la suppression'
   } finally {
     deletingBook.value = false
+  }
+}
+
+async function confirmDeleteReading(reading: Record<string, unknown>) {
+  const rid = readingId(reading)
+  if (!rid) return
+  const membre = readingMemberName(reading)
+  if (!confirm(`Supprimer la lecture de ${membre} ?`)) return
+  deletingReadingId.value = rid
+  try {
+    const result = await familyStore.deleteBookReading(rid)
+    if (result.success) {
+      await handleReadingSuccess()
+    } else {
+      error.value = result.error || 'Erreur lors de la suppression'
+    }
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Erreur lors de la suppression'
+  } finally {
+    deletingReadingId.value = null
   }
 }
 
@@ -1031,6 +1242,16 @@ const activeTab = ref<'detail' | 'lectures' | 'notes'>(
 watch(() => route.query.tab, (tab) => {
   activeTab.value = tab === 'lectures' ? 'lectures' : tab === 'notes' ? 'notes' : 'detail'
 })
+
+// Proposer de commencer la lecture après ajout d'un livre
+watch([() => book.value, () => route.query.startReading], ([b, startReading]) => {
+  if (b && startReading === '1' && memberStore.isMemberConnected) {
+    openReadingModal()
+    const q = { ...route.query }
+    delete q.startReading
+    router.replace({ path: route.path, query: Object.keys(q).length ? q : undefined })
+  }
+}, { immediate: true })
 
 /** À l’ouverture de l’onglet Lectures : appel API dédié pour ce livre. */
 watch(activeTab, (tab) => {
@@ -1215,34 +1436,67 @@ async function loadMemberReadingsForBook() {
   }
 }
 
-const openReadingModal = (reading?: BookReading) => {
+const compactProgressUpdate = ref(false)
+const initialReadingIntent = ref<'finish' | undefined>(undefined)
+const isUpdatePagesModalOpen = ref(false)
+const openReadingModal = (reading?: BookReading, options?: { compact?: boolean; intent?: 'finish' }) => {
   selectedReading.value = reading || null
+  compactProgressUpdate.value = options?.compact ?? false
+  initialReadingIntent.value = options?.intent
   isReadingModalOpen.value = true
+}
+
+const openUpdatePagesModal = () => {
+  isUpdatePagesModalOpen.value = true
+}
+
+const handlePagesUpdated = async () => {
+  await handleReadingSuccess()
 }
 
 const handleReadingSuccess = async () => {
   if (!book.value) return
-  const bookId = book.value.id
-  const result = await fetchReadingsForBook(bookId)
-  const list = result.success && Array.isArray(result.data) ? result.data : []
-  const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
-  const seenIds = new Set<string | number>()
-  const merged: typeof list = []
-  for (const r of list) {
-    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
-    if (id != null && !seenIds.has(id)) {
-      seenIds.add(id)
-      merged.push(r)
-    }
+  // Rafraîchir la famille pour avoir book_readings à jour
+  await familyStore.fetchFamily()
+  // Réactualiser le livre depuis la famille (book_readings peut avoir changé)
+  const books = familyStore.transformedBooks
+  const foundBook = books.find((b) => {
+    if (b.documentId && b.documentId === bookIdentifier.value) return true
+    const idAsNumber = parseInt(bookIdentifier.value, 10)
+    if (!isNaN(idAsNumber) && b.id === idAsNumber) return true
+    if (String(b.id) === bookIdentifier.value) return true
+    return false
+  })
+  if (foundBook) {
+    book.value = foundBook
   }
-  for (const r of fromBook) {
-    const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
-    if (id != null && !seenIds.has(id)) {
-      seenIds.add(id)
-      merged.push(r)
+  // Charger les lectures : API membre si connecté (retourne la nouvelle lecture), sinon fetchReadingsForBook
+  if (memberStore.isMemberConnected && memberStore.currentMember) {
+    await loadMemberReadingsForBook()
+  } else {
+    const bookId = book.value.id ?? book.value.documentId
+    const result = await fetchReadingsForBook(String(bookId))
+    const list = result.success && Array.isArray(result.data) ? result.data : []
+    const fromBook = Array.isArray(book.value.book_readings) ? book.value.book_readings : []
+    const seenIds = new Set<string | number>()
+    const merged: typeof list = []
+    for (const r of list) {
+      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+      if (id != null && !seenIds.has(id)) {
+        seenIds.add(id)
+        merged.push(r)
+      }
     }
+    for (const r of fromBook) {
+      const id = (r as { id?: number }).id ?? (r as { attributes?: { id?: number } }).attributes?.id
+      if (id != null && !seenIds.has(id)) {
+        seenIds.add(id)
+        merged.push(r)
+      }
+    }
+    readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
   }
-  readings.value = merged.length > 0 ? merged : (fromBook.length > 0 ? fromBook : list)
+  await loadBookRatings()
 }
 
 const formatDate = (dateString: string) => {
