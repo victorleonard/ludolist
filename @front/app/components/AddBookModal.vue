@@ -261,6 +261,17 @@
               >
                 Ajouter à ma collection
               </UButton>
+              <UButton
+                type="button"
+                color="neutral"
+                variant="ghost"
+                block
+                class="min-h-[48px] mt-2"
+                :disabled="submitting"
+                @click="closeModal"
+              >
+                Annuler
+              </UButton>
             </div>
           </div>
         </div>
@@ -412,6 +423,17 @@
               @click="goToManualForm"
             >
               Saisir manuellement
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px] mt-4"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
         </div>
@@ -637,7 +659,7 @@
 
           <!-- Footer : Précédent / Suivant / Ajouter -->
           <div
-            class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
+            class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 space-y-2"
             style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
           >
             <div class="flex gap-3">
@@ -678,6 +700,17 @@
                 {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
               </UButton>
             </div>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
+            </UButton>
           </div>
         </form>
 

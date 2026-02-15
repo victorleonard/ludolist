@@ -100,6 +100,19 @@
               </div>
             </button>
           </div>
+          <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
+            </UButton>
+          </div>
         </div>
 
         <!-- Étape 2 : Formulaire -->
@@ -352,7 +365,7 @@
             </p>
           </div>
 
-          <div class="pt-2 sm:pt-4">
+          <div class="pt-2 sm:pt-4 space-y-2">
             <UButton
               type="submit"
               color="primary"
@@ -362,6 +375,17 @@
               :loading="submitting"
             >
               {{ submitButtonLabel }}
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
         </form>

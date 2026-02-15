@@ -98,6 +98,16 @@
                     />
                   </NuxtLink>
                 </nav>
+                <UButton
+                  type="button"
+                  color="neutral"
+                  variant="ghost"
+                  block
+                  class="min-h-[48px] mt-4"
+                  @click="isMoreDrawerOpen = false"
+                >
+                  Annuler
+                </UButton>
               </div>
             </div>
           </template>

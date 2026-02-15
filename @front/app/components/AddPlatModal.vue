@@ -257,23 +257,37 @@
           class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 flex flex-col gap-2"
           style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
-          <div
-            v-if="editingDish"
-            class="flex gap-2"
-          >
-            <UButton
-              color="red"
-              variant="outline"
-              icon="i-ion-trash"
-              size="lg"
-              block
-              :loading="deleting"
-              :disabled="submitting"
-              @click="handleDelete"
+          <div class="space-y-2">
+            <div
+              v-if="editingDish"
+              class="flex gap-2"
             >
-              Supprimer
-            </UButton>
+              <UButton
+                color="red"
+                variant="outline"
+                icon="i-ion-trash"
+                size="lg"
+                block
+                :loading="deleting"
+                :disabled="submitting"
+                @click="handleDelete"
+              >
+                Supprimer
+              </UButton>
+              <UButton
+                type="submit"
+                form="plat-form"
+                color="primary"
+                size="lg"
+                block
+                :loading="submitting"
+                :disabled="deleting"
+              >
+                Enregistrer
+              </UButton>
+            </div>
             <UButton
+              v-else
               type="submit"
               form="plat-form"
               color="primary"
@@ -282,21 +296,20 @@
               :loading="submitting"
               :disabled="deleting"
             >
-              Enregistrer
+              Ajouter
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting || deleting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
-          <UButton
-            v-else
-            type="submit"
-            form="plat-form"
-            color="primary"
-            size="lg"
-            block
-            :loading="submitting"
-            :disabled="deleting"
-          >
-            Ajouter
-          </UButton>
         </div>
       </div>
     </template>
@@ -332,6 +345,12 @@ const authStore = useAuthStore()
 const { token } = storeToRefs(authStore)
 const familyStore = useFamilyStore()
 const { closeModal: closeModalComposable } = useAddPlatModal()
+const closeModal = () => {
+  if (!submitting.value && !deleting.value) {
+    closeModalComposable()
+    isOpen.value = false
+  }
+}
 
 interface StrapiImage {
   id: number

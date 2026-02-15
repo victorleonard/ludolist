@@ -567,7 +567,7 @@ const handleMemberLogout = () => {
             <div class="h-px bg-gray-200 dark:bg-gray-800 my-2 mx-5" />
 
             <!-- Déconnexion -->
-            <div class="px-2 py-2" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));">
+            <div class="px-2 py-2">
               <button
                 type="button"
                 class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30 transition-all duration-150 w-full text-left group"
@@ -579,6 +579,20 @@ const handleMemberLogout = () => {
                 />
                 <span class="font-medium text-sm text-red-600 dark:text-red-400">Déconnexion</span>
               </button>
+            </div>
+
+            <!-- Bouton Annuler (fermer) -->
+            <div class="px-2 py-2" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));">
+              <UButton
+                type="button"
+                color="neutral"
+                variant="ghost"
+                block
+                class="min-h-[48px]"
+                @click="closeMenu"
+              >
+                Annuler
+              </UButton>
             </div>
           </div>
         </div>
@@ -716,6 +730,17 @@ const handleMemberLogout = () => {
                   –
                 </button>
               </div>
+              <UButton
+                type="button"
+                color="neutral"
+                variant="ghost"
+                block
+                class="min-h-[48px] mt-4"
+                :disabled="memberCodeLoading"
+                @click="closeMemberDrawer"
+              >
+                Annuler
+              </UButton>
             </div>
           </template>
         </div>

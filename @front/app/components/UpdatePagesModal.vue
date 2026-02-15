@@ -87,7 +87,7 @@
             </p>
           </div>
 
-          <div class="mt-auto pt-2 sm:pt-4">
+          <div class="mt-auto pt-2 sm:pt-4 space-y-2">
             <UButton
               type="submit"
               color="primary"
@@ -97,6 +97,17 @@
               :loading="submitting"
             >
               Enregistrer
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
         </form>

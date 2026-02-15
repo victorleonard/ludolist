@@ -118,7 +118,7 @@
           </div>
 
           <!-- Bouton pour ajouter manuellement -->
-          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 space-y-2">
             <UButton
               type="button"
               color="neutral"
@@ -128,6 +128,17 @@
               @click="showManualForm = true"
             >
               Ajouter manuellement
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
         </div>
@@ -370,23 +381,37 @@
           class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 flex flex-col gap-2"
           style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
-          <div
-            v-if="editingGame"
-            class="flex gap-2"
-          >
-            <UButton
-              color="red"
-              variant="outline"
-              icon="i-ion-trash"
-              size="lg"
-              block
-              :loading="deleting"
-              :disabled="submitting"
-              @click="handleDelete"
+          <div class="space-y-2">
+            <div
+              v-if="editingGame"
+              class="flex gap-2"
             >
-              Supprimer
-            </UButton>
+              <UButton
+                color="red"
+                variant="outline"
+                icon="i-ion-trash"
+                size="lg"
+                block
+                :loading="deleting"
+                :disabled="submitting"
+                @click="handleDelete"
+              >
+                Supprimer
+              </UButton>
+              <UButton
+                type="submit"
+                form="game-form"
+                color="primary"
+                size="lg"
+                block
+                :loading="submitting"
+                :disabled="deleting"
+              >
+                Enregistrer
+              </UButton>
+            </div>
             <UButton
+              v-else
               type="submit"
               form="game-form"
               color="primary"
@@ -395,21 +420,20 @@
               :loading="submitting"
               :disabled="deleting"
             >
-              Enregistrer
+              Ajouter
+            </UButton>
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px]"
+              :disabled="submitting || deleting"
+              @click="closeModal"
+            >
+              Annuler
             </UButton>
           </div>
-          <UButton
-            v-else
-            type="submit"
-            form="game-form"
-            color="primary"
-            size="lg"
-            block
-            :loading="submitting"
-            :disabled="deleting"
-          >
-            Ajouter
-          </UButton>
         </div>
       </div>
     </template>

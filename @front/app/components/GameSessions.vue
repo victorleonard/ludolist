@@ -270,6 +270,18 @@
                 {{ submitError }}
               </p>
             </div>
+
+            <UButton
+              type="button"
+              color="neutral"
+              variant="ghost"
+              block
+              class="min-h-[48px] mt-4"
+              :disabled="isSubmitting"
+              @click="closeAddSessionModal"
+            >
+              Annuler
+            </UButton>
           </form>
         </div>
       </template>

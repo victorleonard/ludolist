@@ -79,6 +79,18 @@
           >
             {{ alreadyExistsMessage }}
           </UAlert>
+
+          <UButton
+            type="button"
+            color="neutral"
+            variant="ghost"
+            block
+            class="min-h-[48px] mt-4"
+            :disabled="submitting"
+            @click="closeModal"
+          >
+            Annuler
+          </UButton>
         </div>
       </div>
     </template>
