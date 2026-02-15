@@ -9,14 +9,58 @@
         class="relative flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
         style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
-        <!-- Indicateur d'étapes (stepper) - circuit clair -->
+        <!-- Indicateur d'étapes (stepper) - un seul circuit visible -->
         <div class="shrink-0 px-4 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
             {{ stepTitle }}
           </h2>
+          <!-- Parcours formulaire (modification ou saisie manuelle) : 3 étapes -->
+          <div
+            v-if="showManualForm || editingBook"
+            class="flex items-center gap-2"
+          >
+            <div
+              v-for="s in 3"
+              :key="s"
+              class="flex items-center gap-1.5 flex-1 min-w-0"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1.5 cursor-pointer group"
+                :aria-label="`Étape ${s} : ${manualFormStepLabels[s - 1]}`"
+                @click="manualFormStep = s"
+              >
+                <span
+                  class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors shrink-0"
+                  :class="manualFormStep === s
+                    ? 'bg-primary-500 text-white'
+                    : manualFormStep > s
+                      ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-gray-300 dark:group-hover:bg-gray-600'"
+                >
+                  {{ manualFormStep > s ? '✓' : s }}
+                </span>
+                <span
+                  class="text-sm font-medium hidden sm:inline truncate"
+                  :class="manualFormStep === s
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : manualFormStep > s
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-gray-500 dark:text-gray-400'"
+                >
+                  {{ manualFormStepLabels[s - 1] }}
+                </span>
+              </button>
+              <div
+                v-if="s < 3"
+                class="flex-1 h-0.5 min-w-4 max-w-12 rounded transition-colors shrink-0"
+                :class="manualFormStep > s ? 'bg-primary-400 dark:bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'"
+              />
+            </div>
+          </div>
           <!-- Parcours recherche : Recherche → Confirmation -->
           <div
-            v-if="!showManualForm || editingBook"
+            v-else
             class="flex items-center gap-2"
           >
             <div class="flex items-center gap-1.5">
@@ -61,20 +105,6 @@
                   : 'text-gray-500 dark:text-gray-400'"
               >
                 Confirmer
-              </span>
-            </div>
-          </div>
-          <!-- Parcours manuel -->
-          <div
-            v-else
-            class="flex items-center gap-2"
-          >
-            <div class="flex items-center gap-1.5">
-              <span class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold bg-primary-500 text-white">
-                1
-              </span>
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                Saisie manuelle
               </span>
             </div>
           </div>
@@ -445,8 +475,8 @@
           class="flex flex-col flex-1 min-h-0"
           @submit.prevent="handleSubmit"
         >
-          <!-- En-tête : retour + indicateur d'étapes -->
-          <div class="shrink-0 flex items-center justify-between gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+          <!-- En-tête : bouton retour uniquement (le stepper est en haut) -->
+          <div class="shrink-0 flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <UButton
               v-if="manualFormStep > 1 || !editingBook"
               type="button"
@@ -459,26 +489,6 @@
             >
               {{ manualFormStep === 1 ? 'Retour' : 'Précédent' }}
             </UButton>
-            <div
-              v-else
-              class="w-10"
-            />
-            <div class="flex items-center gap-2">
-              <button
-                v-for="s in 3"
-                :key="s"
-                type="button"
-                class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-all duration-300"
-                :class="manualFormStep === s
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'"
-                :aria-label="`Étape ${s}`"
-                @click="manualFormStep = s"
-              >
-                {{ s }}
-              </button>
-            </div>
-            <div class="w-10" />
           </div>
 
           <!-- Slider des pages -->
@@ -756,6 +766,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const editingBook = computed(() => props.book !== null && props.book !== undefined)
+
+/** Libellés des 3 étapes du formulaire (modification ou saisie manuelle) */
+const manualFormStepLabels = ['Infos principales', 'Année et pages', 'Description et image']
 
 // Titre contextuel selon l'étape
 const stepTitle = computed(() => {
