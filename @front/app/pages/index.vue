@@ -363,11 +363,17 @@ function getDishAverageRating(dish: TransformedDish): number {
   return sum / ratings.length
 }
 
+function readingAbandonne(r: Record<string, unknown>): boolean {
+  const abandonne = r.abandonne ?? (r.attributes as Record<string, unknown> | undefined)?.abandonne
+  return Boolean(abandonne)
+}
+
 function isReadingInProgress(r: Record<string, unknown>): boolean {
   const debut = r.date_debut ?? (r.attributes as Record<string, unknown> | undefined)?.date_debut
   const fin = r.date_fin ?? (r.attributes as Record<string, unknown> | undefined)?.date_fin
   if (!debut || (typeof debut !== 'string' && typeof debut !== 'number')) return false
   if (fin !== undefined && fin !== null && String(fin).trim() !== '') return false
+  if (readingAbandonne(r)) return false
   return true
 }
 
