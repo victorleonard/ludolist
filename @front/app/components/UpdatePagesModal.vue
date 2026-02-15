@@ -26,50 +26,68 @@
         </div>
 
         <form
-          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          class="flex flex-col overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
           style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
           @submit.prevent="handleSubmit"
         >
-          <div class="form-field">
-            <label
-              for="pages_lues"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-document-text-outline"
-                class="w-4 h-4 shrink-0"
-              />
+          <!-- Affichage du nombre saisi -->
+          <div class="mb-4 sm:mb-6">
+            <label class="label-mobile flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+              <UIcon name="i-ion-document-text-outline" class="w-4 h-4 shrink-0" />
               Nombre de pages lues
+              <span v-if="totalPages" class="font-normal text-gray-500 dark:text-gray-500">
+                / {{ totalPages }}
+              </span>
             </label>
-            <UInput
-              id="pages_lues"
-              v-model.number="pagesLues"
-              type="number"
-              min="0"
-              :max="totalPages || undefined"
-              placeholder="Ex: 150"
-              :disabled="submitting"
-              class="w-full input-touch"
-              autofocus
-            />
-            <p
-              v-if="totalPages"
-              class="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+            <div
+              class="w-full min-h-[72px] sm:min-h-[80px] flex items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-4xl sm:text-5xl font-bold tabular-nums text-gray-900 dark:text-gray-100"
             >
-              Sur {{ totalPages }} pages au total
-            </p>
+              {{ pagesDisplay || '0' }}
+            </div>
+          </div>
+
+          <!-- Clavier numérique -->
+          <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <button
+              v-for="n in 9"
+              :key="n"
+              type="button"
+              class="keypad-btn"
+              :disabled="submitting || !canAddDigit(String(n))"
+              @click="appendDigit(String(n))"
+            >
+              {{ n }}
+            </button>
+            <div class="col-span-1" />
+            <button
+              type="button"
+              class="keypad-btn"
+              :disabled="submitting"
+              @click="appendDigit('0')"
+            >
+              0
+            </button>
+            <button
+              type="button"
+              class="keypad-btn flex items-center justify-center"
+              :disabled="submitting || pagesDisplay.length === 0"
+              aria-label="Effacer"
+              @click="backspace"
+            >
+              <UIcon name="i-ion-backspace-outline" class="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
           </div>
 
           <div
             v-if="submitError"
-            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+            class="mb-4 p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
           >
             <p class="text-sm text-red-600 dark:text-red-400">
               {{ submitError }}
             </p>
           </div>
 
-          <div class="pt-2 sm:pt-4">
+          <div class="mt-auto pt-2 sm:pt-4">
             <UButton
               type="submit"
               color="primary"
@@ -116,14 +134,20 @@ const familyStore = useFamilyStore()
 const memberStore = useMemberStore()
 
 const isOpen = ref(props.modelValue)
-const pagesLues = ref<number | null>(props.currentPages)
+const pagesDisplay = ref('')
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
+
+const pagesLues = computed(() => {
+  if (!pagesDisplay.value) return null
+  const n = parseInt(pagesDisplay.value, 10)
+  return Number.isNaN(n) ? null : n
+})
 
 watch(() => props.modelValue, (newValue) => {
   isOpen.value = newValue
   if (newValue) {
-    pagesLues.value = props.currentPages
+    pagesDisplay.value = props.currentPages != null ? String(props.currentPages) : ''
   }
 })
 
@@ -136,12 +160,43 @@ watch(isOpen, (newValue) => {
 
 watch(() => props.currentPages, (newValue) => {
   if (isOpen.value) {
-    pagesLues.value = newValue
+    pagesDisplay.value = newValue != null ? String(newValue) : ''
   }
 })
 
+function canAddDigit(digit: string): boolean {
+  if (digit === '0' && pagesDisplay.value === '') return true
+  const next = pagesDisplay.value + digit
+  const nextNum = parseInt(next, 10)
+  if (Number.isNaN(nextNum)) return false
+  if (props.totalPages != null && nextNum > props.totalPages) return false
+  if (next.length > 6) return false
+  return true
+}
+
+function appendDigit(digit: string) {
+  if (!canAddDigit(digit)) return
+  if (digit === '0' && pagesDisplay.value === '') {
+    pagesDisplay.value = '0'
+    return
+  }
+  if (pagesDisplay.value === '0' && digit !== '0') {
+    pagesDisplay.value = digit
+    return
+  }
+  pagesDisplay.value += digit
+}
+
+function backspace() {
+  if (pagesDisplay.value.length <= 1) {
+    pagesDisplay.value = ''
+    return
+  }
+  pagesDisplay.value = pagesDisplay.value.slice(0, -1)
+}
+
 const resetForm = () => {
-  pagesLues.value = null
+  pagesDisplay.value = ''
   submitError.value = null
 }
 
@@ -196,24 +251,56 @@ const closeModal = () => {
 </script>
 
 <style scoped>
-.form-field :deep(.label-mobile) {
+.label-mobile {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
   color: currentColor;
-  margin-bottom: 0.375rem;
 }
-.form-field :deep(.input-touch) {
-  width: 100%;
+
+.keypad-btn {
+  aspect-ratio: 1;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #111827;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-@media (max-width: 639px) {
-  .form-field :deep(input[type="number"]) {
-    min-height: 48px;
-    font-size: 16px;
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-  }
+
+.keypad-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+  transform: scale(1.02);
+}
+
+.keypad-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.keypad-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dark .keypad-btn {
+  color: #f9fafb;
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.dark .keypad-btn:hover:not(:disabled) {
+  background: #4b5563;
+  border-color: #6b7280;
 }
 </style>

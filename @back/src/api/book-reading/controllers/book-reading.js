@@ -95,24 +95,58 @@ module.exports = createCoreController('api::book-reading.book-reading', ({ strap
         limit: 1
       });
 
-      // Préserver la note existante si elle n'est pas fournie dans la requête
+      const existing = existingReading && existingReading.length > 0 ? existingReading[0] : null;
+      const getExisting = (key) => existing && (existing[key] ?? existing.attributes?.[key]) != null
+        ? (existing[key] ?? existing.attributes?.[key])
+        : null;
+
+      // Préserver les champs existants s'ils ne sont pas fournis dans la requête (mise à jour partielle)
+      let dateDebutValue = null;
+      if (date_debut !== undefined && date_debut !== null) {
+        dateDebutValue = date_debut || null;
+      } else if (existing) {
+        dateDebutValue = getExisting('date_debut') || null;
+      }
+
+      let dateFinValue = null;
+      if (date_fin !== undefined && date_fin !== null) {
+        dateFinValue = date_fin || null;
+      } else if (existing) {
+        dateFinValue = getExisting('date_fin') || null;
+      }
+
       let noteValue = null;
       if (note !== undefined && note !== null) {
-        // Une nouvelle note est fournie, l'utiliser
         noteValue = parseFloat(note);
-      } else if (existingReading && existingReading.length > 0 && existingReading[0].note != null) {
-        // Aucune note fournie mais une lecture existe avec une note, la préserver
-        noteValue = existingReading[0].note;
+      } else if (existing) {
+        const n = getExisting('note');
+        noteValue = n != null ? parseFloat(n) : null;
+      }
+
+      let pagesLuesValue = null;
+      if (pages_lues !== undefined && pages_lues !== null) {
+        pagesLuesValue = parseInt(pages_lues, 10);
+      } else if (existing) {
+        const p = getExisting('pages_lues');
+        pagesLuesValue = p != null ? parseInt(p, 10) : null;
+      }
+
+      let abandonneValue = false;
+      if (abandonne !== undefined) {
+        abandonneValue = Boolean(abandonne);
+      } else if (existing) {
+        const a = getExisting('abandonne');
+        abandonneValue = a === true || a === 'true';
       }
 
       const readingData = {
         member: memberId,
         book: bookIdForRelation,
-        date_debut: date_debut || null,
-        date_fin: date_fin || null,
+        date_debut: dateDebutValue,
+        date_fin: dateFinValue,
         note: noteValue,
-        pages_lues: pages_lues !== undefined && pages_lues !== null ? parseInt(pages_lues, 10) : null,
-        abandonne: abandonne !== undefined ? Boolean(abandonne) : false
+        pages_lues: pagesLuesValue,
+        abandonne: abandonneValue
       };
 
       let reading;
