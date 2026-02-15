@@ -825,12 +825,13 @@
             </div>
 
             <template v-else>
-              <p
-                v-if="coverSuggestions.length > 0"
-                class="text-sm text-gray-600 dark:text-gray-400"
-              >
-                Cliquez sur une image pour la sélectionner, puis Enregistrer.
-              </p>
+              <!-- Choisir parmi les propositions -->
+              <div v-if="coverSuggestions.length > 0">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Cliquez sur une image pour la sélectionner.
+                </p>
+              </div>
+
               <div
                 v-if="coverSuggestions.length > 0"
                 class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 max-h-[70vh] overflow-y-auto"
@@ -861,13 +862,13 @@
                   {{ coverModalError || 'Aucune couverture disponible pour ce livre.' }}
                 </p>
                 <UButton
-                  v-if="book?.isbn"
+                  v-if="book?.titre"
                   type="button"
                   color="primary"
-                  icon="i-ion-book"
-                  @click="useIsbnCover"
+                  icon="i-ion-search"
+                  @click="loadCoverSuggestions"
                 >
-                  Utiliser la couverture par ISBN
+                  Rechercher des couvertures
                 </UButton>
               </div>
             </template>
@@ -1013,6 +1014,7 @@ const readingCTAIcon = computed(() => {
 })
 
 const isCoverModalOpen = ref(false)
+const coverImageFile = ref<File | File[] | null>(null)
 const selectedCoverUrl = ref('')
 const coverSuggestions = ref<Array<{ url: string, displayUrl: string, label?: string }>>([])
 const loadingCovers = ref(false)
@@ -1127,87 +1129,139 @@ async function changeOwner() {
   }
 }
 
-function openLibraryCoverUrl(isbn: string | number | null | undefined): string {
-  if (isbn == null || String(isbn).trim() === '') return ''
-  return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(String(isbn).trim())}-L.jpg`
+interface GoogleBooksVolume {
+  id: string
+  volumeInfo: {
+    title?: string
+    authors?: string[]
+    publishedDate?: string
+    imageLinks?: {
+      thumbnail?: string
+      smallThumbnail?: string
+      small?: string
+      medium?: string
+      large?: string
+      extraLarge?: string
+    }
+    industryIdentifiers?: Array<{
+      type: string
+      identifier: string
+    }>
+  }
+}
+
+function getGoogleBooksCoverUrl(imageLinks: GoogleBooksVolume['volumeInfo']['imageLinks'], size: 'small' | 'large' = 'large'): string | null {
+  if (!imageLinks) return null
+  
+  // Google Books retourne des URLs en HTTP, on les convertit en HTTPS
+  const toHttps = (url: string) => url.replace('http://', 'https://')
+  
+  if (size === 'large') {
+    // Pour la haute résolution, essayer dans l'ordre : extraLarge, large, medium, thumbnail
+    if (imageLinks.extraLarge) return toHttps(imageLinks.extraLarge)
+    if (imageLinks.large) return toHttps(imageLinks.large)
+    if (imageLinks.medium) return toHttps(imageLinks.medium)
+    // Modifier le paramètre zoom=1 en zoom=3 pour obtenir une meilleure résolution
+    if (imageLinks.thumbnail) return toHttps(imageLinks.thumbnail.replace('zoom=1', 'zoom=3'))
+  } else {
+    // Pour les vignettes
+    if (imageLinks.smallThumbnail) return toHttps(imageLinks.smallThumbnail)
+    if (imageLinks.thumbnail) return toHttps(imageLinks.thumbnail)
+  }
+  
+  return null
 }
 
 function useIsbnCover() {
   const isbn = book.value?.isbn
   if (isbn) {
-    selectedCoverUrl.value = openLibraryCoverUrl(isbn)
+    // Avec Google Books, on va charger directement une suggestion
+    loadCoverSuggestions()
   }
-}
-
-async function getWorkIdForBook(): Promise<string | null> {
-  const b = book.value
-  if (!b) return null
-  const key = b.open_library_key?.trim()
-  if (key) {
-    const normalized = key.replace(/^\/works\//i, '').trim()
-    if (normalized) return normalized
-  }
-  const isbn = b.isbn?.trim()
-  if (!isbn) return null
-  try {
-    const res = await $fetch<{ works?: Array<{ key: string }> }>(
-      `https://openlibrary.org/isbn/${encodeURIComponent(isbn)}.json`
-    )
-    const workKey = res?.works?.[0]?.key
-    if (workKey) return workKey.replace(/^\/works\//i, '').trim()
-  } catch {
-    // ignore
-  }
-  return null
 }
 
 async function loadCoverSuggestions() {
-  const workId = await getWorkIdForBook()
-  if (!workId) {
-    coverModalError.value = 'Impossible de trouver l\'œuvre (ISBN ou clé Open Library requis).'
-    return
-  }
+  const b = book.value
+  if (!b) return
+  
   loadingCovers.value = true
   coverModalError.value = null
   coverSuggestions.value = []
-  const currentImage = book.value?.image?.trim()
+  
+  const currentImage = b.image?.trim()
   const list: Array<{ url: string, displayUrl: string, label?: string }> = []
+  
+  // Ajouter l'image actuelle si elle existe
   if (currentImage) {
     list.push({ url: currentImage, displayUrl: currentImage, label: 'Actuelle' })
   }
+  
   const seen = new Set<string>(currentImage ? [currentImage] : [])
+  
   try {
-    const res = await $fetch<{ entries?: Array<{ covers?: number[], isbn_13?: string[], isbn_10?: string[], publish_date?: string }> }>(
-      `https://openlibrary.org/works/${workId}/editions.json`,
-      { params: { limit: 24 } }
-    )
-    const entries = res?.entries ?? []
-    for (const entry of entries) {
-      let urlL: string | null = null
-      let displayUrl: string | null = null
-      if (entry.covers?.[0]) {
-        const id = entry.covers[0]
-        urlL = `https://covers.openlibrary.org/b/id/${id}-L.jpg`
-        displayUrl = `https://covers.openlibrary.org/b/id/${id}-M.jpg`
-      } else if (entry.isbn_13?.[0]) {
-        const isbn = entry.isbn_13[0]
-        urlL = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
-        displayUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
-      } else if (entry.isbn_10?.[0]) {
-        const isbn = entry.isbn_10[0]
-        urlL = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
-        displayUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+    // Construire la requête de recherche
+    let searchQuery = ''
+    const isbn = b.isbn?.trim()
+    const title = b.titre?.trim()
+    const author = b.auteur?.trim()
+    
+    if (isbn) {
+      // Recherche par ISBN (le plus précis)
+      searchQuery = `isbn:${isbn}`
+    } else if (title) {
+      // Recherche par titre + auteur
+      searchQuery = title
+      if (author) {
+        searchQuery += `+inauthor:${author}`
       }
+    } else {
+      coverModalError.value = 'Aucune couverture disponible pour ce livre.'
+      return
+    }
+    
+    // Appel à Google Books API
+    const res = await $fetch<{ items?: GoogleBooksVolume[], totalItems?: number }>(
+      `https://www.googleapis.com/books/v1/volumes`,
+      { 
+        params: { 
+          q: searchQuery,
+          maxResults: 20,
+          printType: 'books'
+        } 
+      }
+    )
+    
+    const items = res?.items ?? []
+    
+    for (const item of items) {
+      const imageLinks = item.volumeInfo?.imageLinks
+      if (!imageLinks) continue
+      
+      const urlL = getGoogleBooksCoverUrl(imageLinks, 'large')
+      const displayUrl = getGoogleBooksCoverUrl(imageLinks, 'small')
+      
       if (urlL && displayUrl && !seen.has(urlL)) {
         seen.add(urlL)
-        list.push({ url: urlL, displayUrl, label: entry.publish_date ? `Éd. ${entry.publish_date}` : undefined })
+        
+        // Label avec année de publication
+        let label: string | undefined
+        const publishDate = item.volumeInfo?.publishedDate
+        if (publishDate) {
+          const year = publishDate.split('-')[0]
+          label = `Éd. ${year}`
+        }
+        
+        list.push({ url: urlL, displayUrl, label })
       }
     }
+    
     coverSuggestions.value = list
-    if (list.length === 0) {
-      coverModalError.value = 'Aucune couverture trouvée pour les éditions.'
+    
+    if (list.length === 0 || (list.length === 1 && currentImage)) {
+      coverModalError.value = 'Aucune couverture trouvée via Google Books.'
     }
   } catch (err) {
+    console.error('Erreur lors du chargement des couvertures:', err)
     coverModalError.value = err instanceof Error ? err.message : 'Erreur lors du chargement des propositions.'
   } finally {
     loadingCovers.value = false
@@ -1215,13 +1269,15 @@ async function loadCoverSuggestions() {
 }
 
 async function saveSelectedCover() {
-  if (!book.value) return
+  if (!book.value || !selectedCoverUrl.value?.trim()) return
   coverModalError.value = null
   coverSaving.value = true
+
   try {
     const result = await familyStore.updateBook(book.value.documentId ?? book.value.id, {
-      image_url: selectedCoverUrl.value.trim() || null
+      image_url: selectedCoverUrl.value.trim()
     })
+
     if (result.success) {
       isCoverModalOpen.value = false
       await loadBook()

@@ -138,7 +138,7 @@
                 <div class="aspect-[2/3] rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-lg">
                   <img
                     v-if="previewBook.cover_url"
-                    :src="previewBook.cover_url.replace('-M.jpg', '-L.jpg')"
+                    :src="previewBook.cover_url"
                     :alt="previewBook.title"
                     class="w-full h-full object-cover"
                   >
@@ -184,17 +184,6 @@
                       class="w-3 h-3 mr-1"
                     />
                     {{ previewBook.first_publish_year }}
-                  </UBadge>
-                  <UBadge
-                    v-if="previewBook.isbn"
-                    color="neutral"
-                    variant="subtle"
-                  >
-                    <UIcon
-                      name="i-ion-hash"
-                      class="w-3 h-3 mr-1"
-                    />
-                    ISBN: {{ Array.isArray(previewBook.isbn) ? previewBook.isbn[0] : previewBook.isbn }}
                   </UBadge>
                   <UBadge
                     v-if="previewBook.publisher"
@@ -273,37 +262,41 @@
                 {{ submitError }}
               </p>
             </div>
-
-            <!-- Bouton d'action - Étape 2 : Confirmer -->
-            <div class="flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Les informations vous conviennent ? Ajoutez ce livre à votre collection.
-              </p>
-              <UButton
-                color="primary"
-                size="lg"
-                block
-                icon="i-ion-add"
-                class="min-h-[52px] sm:min-h-0 text-base font-semibold rounded-xl"
-                :loading="submitting"
-                :disabled="submitting"
-                @click="addBookFromPreview"
-              >
-                Ajouter à ma collection
-              </UButton>
-              <UButton
-                type="button"
-                color="neutral"
-                variant="ghost"
-                block
-                class="min-h-[48px] mt-2"
-                :disabled="submitting"
-                @click="closeModal"
-              >
-                Annuler
-              </UButton>
-            </div>
           </div>
+        </div>
+
+        <!-- Footer fixe pour la prévisualisation -->
+        <div
+          v-if="showPreview && previewBook"
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 space-y-2"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Les informations vous conviennent ? Ajoutez ce livre à votre collection.
+          </p>
+          <UButton
+            color="primary"
+            size="lg"
+            block
+            icon="i-ion-add"
+            class="min-h-[52px] sm:min-h-0 text-base font-semibold rounded-xl"
+            :loading="submitting"
+            :disabled="submitting"
+            @click="addBookFromPreview"
+          >
+            Ajouter à ma collection
+          </UButton>
+          <UButton
+            type="button"
+            color="neutral"
+            variant="ghost"
+            block
+            class="min-h-[48px]"
+            :disabled="submitting"
+            @click="closeModal"
+          >
+            Annuler
+          </UButton>
         </div>
 
         <!-- Mode recherche Open Library (par défaut pour l'ajout) - Étape 1 -->
@@ -407,14 +400,6 @@
                     >
                       {{ book.first_publish_year }}
                     </UBadge>
-                    <UBadge
-                      v-if="book.isbn"
-                      color="primary"
-                      variant="subtle"
-                      size="xs"
-                    >
-                      ISBN: {{ book.isbn }}
-                    </UBadge>
                   </div>
                 </div>
 
@@ -435,8 +420,11 @@
             </div>
           </div>
 
-          <!-- Proposition de saisie manuelle (toujours visible : résultats ou non) -->
-          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <!-- Proposition de saisie manuelle (uniquement après une recherche) -->
+          <div
+            v-if="hasSearched"
+            class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+          >
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
               {{ searchError
                 ? 'Recherche infructueuse. Vous pouvez ajouter ce livre manuellement.'
@@ -454,12 +442,19 @@
             >
               Saisir manuellement
             </UButton>
+          </div>
+
+          <!-- Bouton Annuler -->
+          <div
+            class="mt-4"
+            :class="{ 'pt-6 border-t border-gray-200 dark:border-gray-700': !hasSearched }"
+          >
             <UButton
               type="button"
               color="neutral"
               variant="ghost"
               block
-              class="min-h-[48px] mt-4"
+              class="min-h-[48px]"
               :disabled="submitting"
               @click="closeModal"
             >
@@ -629,27 +624,77 @@
                       name="i-ion-image-outline"
                       class="w-4 h-4 shrink-0"
                     />
-                    Couverture du livre
+                    Couverture
                   </label>
                   <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
-                    Indiquez une URL ou téléchargez une image :
+                    Recherchez une couverture ou indiquez une URL :
                   </p>
+
+                  <!-- Bouton recherche de couvertures -->
+                  <UButton
+                    type="button"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    icon="i-ion-search"
+                    class="mb-3"
+                    :loading="loadingManualCovers"
+                    :disabled="submitting || !state.title?.trim()"
+                    @click="loadManualCoverSuggestions"
+                  >
+                    Rechercher des couvertures
+                  </UButton>
+
+                  <!-- Propositions de couvertures -->
+                  <div
+                    v-if="loadingManualCovers"
+                    class="flex flex-col items-center justify-center py-6 text-gray-500 dark:text-gray-400"
+                  >
+                    <UIcon
+                      name="i-ion-refresh"
+                      class="w-8 h-8 animate-spin mb-2"
+                    />
+                    <span class="text-sm">Chargement des propositions...</span>
+                  </div>
+                  <div
+                    v-else-if="manualCoverSuggestions.length > 0"
+                    class="mb-3"
+                  >
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                      Cliquez sur une image pour l'utiliser.
+                    </p>
+                    <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto">
+                      <button
+                        v-for="(item, idx) in manualCoverSuggestions"
+                        :key="idx"
+                        type="button"
+                        class="relative block w-full rounded-lg overflow-hidden border-2 transition-all hover:border-primary-500 focus:border-primary-500 focus:outline-none bg-gray-100 dark:bg-gray-700"
+                        :class="state.coverUrl === item.url ? 'border-primary-500 ring-2 ring-primary-300' : 'border-gray-200 dark:border-gray-600'"
+                        @click="state.coverUrl = item.url"
+                      >
+                        <span class="block w-full pt-[150%]" />
+                        <img
+                          :src="item.displayUrl"
+                          :alt="item.label ?? 'Couverture'"
+                          class="absolute inset-0 w-full h-full object-cover"
+                        >
+                      </button>
+                    </div>
+                  </div>
+                  <p
+                    v-if="manualCoverError"
+                    class="text-xs text-amber-600 dark:text-amber-400 mb-2"
+                  >
+                    {{ manualCoverError }}
+                  </p>
+
                   <UInput
                     id="imageUrl"
                     v-model="state.coverUrl"
                     type="url"
                     :disabled="submitting"
-                    class="w-full mb-3 input-touch"
-                    placeholder="https://..."
-                  />
-                  <UFileUpload
-                    v-model="coverImageFile"
-                    color="neutral"
-                    highlight
-                    label="Déposez votre image ici"
-                    description="JPG, PNG ou WebP (max. 2 Mo)"
-                    class="w-full min-h-32"
-                    :disabled="submitting"
+                    class="w-full input-touch"
+                    placeholder="https://... (ou choisir ci-dessus)"
                   />
                 </div>
               </div>
@@ -756,7 +801,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'success', addedBook?: { id?: number; documentId?: string }): void
+  (e: 'success', addedBook?: { id?: number, documentId?: string }): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -856,13 +901,12 @@ watch(() => props.book, (newBook) => {
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
 const currentYear = new Date().getFullYear()
-const coverImageFile = ref<File | File[] | null>(null)
 
 // Mode d'affichage (recherche, prévisualisation ou formulaire manuel)
 const showManualForm = ref(false)
 const showPreview = ref(false)
 const manualFormStep = ref(1)
-const previewBook = ref<OpenLibraryBook | null>(null)
+const previewBook = ref<BookSearchResult | null>(null)
 
 // Recherche Open Library
 const searchQuery = ref('')
@@ -870,19 +914,49 @@ const searching = ref(false)
 const searchResults = ref<any[]>([])
 const searchError = ref<string | null>(null)
 const loadingDetails = ref(false)
+const hasSearched = ref(false)
 
-interface OpenLibraryBook {
-  key: string
+// Propositions de couverture pour le formulaire manuel
+const manualCoverSuggestions = ref<Array<{ url: string, displayUrl: string, label?: string }>>([])
+const loadingManualCovers = ref(false)
+const manualCoverError = ref<string | null>(null)
+
+interface GoogleBooksBook {
+  id: string
+  volumeInfo: {
+    title: string
+    authors?: string[]
+    publishedDate?: string
+    description?: string
+    pageCount?: number
+    categories?: string[]
+    imageLinks?: {
+      thumbnail?: string
+      smallThumbnail?: string
+      small?: string
+      medium?: string
+      large?: string
+      extraLarge?: string
+    }
+    industryIdentifiers?: Array<{
+      type: string
+      identifier: string
+    }>
+    publisher?: string
+  }
+}
+
+interface BookSearchResult {
+  id: string
   title: string
   author_name?: string
   first_publish_year?: number
-  isbn?: string | string[]
-  cover_i?: number
-  cover_url?: string | null
-  publisher?: string | string[]
+  isbn?: string
+  cover_url: string | null
+  publisher?: string
+  description?: string
   number_of_pages?: number
   subjects?: string[]
-  description?: string
 }
 
 const state = reactive({
@@ -899,7 +973,7 @@ const errors = reactive({
   title: ''
 })
 
-// Recherche sur Open Library
+// Recherche avec Google Books API
 const searchBooks = async () => {
   if (!searchQuery.value.trim()) {
     return
@@ -908,67 +982,81 @@ const searchBooks = async () => {
   searching.value = true
   searchError.value = null
   searchResults.value = []
+  hasSearched.value = true
 
   try {
-    const response = await $fetch<{ docs: any[], numFound: number }>(
-      `https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery.value)}&limit=20&fields=key,title,author_name,first_publish_year,isbn,cover_i,publisher`,
+    const response = await $fetch<{ items?: GoogleBooksBook[], totalItems?: number }>(
+      `https://www.googleapis.com/books/v1/volumes`,
       {
-        // Pas besoin d'authentification pour Open Library
+        params: {
+          q: searchQuery.value.trim(),
+          maxResults: 20,
+          printType: 'books',
+          langRestrict: 'fr'
+        }
       }
     )
 
-    if (response?.docs) {
-      // Transformer les résultats et ajouter les URLs des couvertures
-      searchResults.value = response.docs.map((doc: any) => ({
-        key: doc.key,
-        title: doc.title,
-        author_name: doc.author_name ? doc.author_name.join(', ') : undefined,
-        first_publish_year: doc.first_publish_year,
-        isbn: doc.isbn ? doc.isbn[0] : undefined,
-        cover_url: doc.cover_i
-          ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
-          : null,
-        publisher: doc.publisher ? doc.publisher[0] : undefined
-      }))
+    if (response?.items) {
+      // Transformer les résultats Google Books vers notre format
+      searchResults.value = response.items.map((item: GoogleBooksBook) => {
+        const volumeInfo = item.volumeInfo
 
-      if (response.docs.length === 0) {
+        // Extraire l'ISBN (priorité ISBN-13, puis ISBN-10)
+        const isbn13 = volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_13')?.identifier
+        const isbn10 = volumeInfo.industryIdentifiers?.find(id => id.type === 'ISBN_10')?.identifier
+        const isbn = isbn13 || isbn10
+
+        // Extraire l'année de publication
+        const year = volumeInfo.publishedDate
+          ? parseInt(volumeInfo.publishedDate.split('-')[0], 10)
+          : undefined
+
+        // Convertir les URLs d'images en HTTPS et améliorer la résolution
+        const thumbnail = volumeInfo.imageLinks?.thumbnail
+        const coverUrl = thumbnail
+          ? thumbnail.replace('http://', 'https://').replace('zoom=1', 'zoom=2')
+          : null
+
+        return {
+          id: item.id,
+          title: volumeInfo.title,
+          author_name: volumeInfo.authors?.join(', '),
+          first_publish_year: year,
+          isbn,
+          cover_url: coverUrl,
+          publisher: volumeInfo.publisher,
+          description: volumeInfo.description,
+          number_of_pages: volumeInfo.pageCount,
+          subjects: volumeInfo.categories
+        }
+      })
+
+      if (response.items.length === 0) {
         searchError.value = 'Aucun livre trouvé pour cette recherche.'
       }
     } else {
       searchError.value = 'Erreur lors de la recherche.'
     }
   } catch (err: unknown) {
-    console.error('Erreur lors de la recherche Open Library:', err)
-    searchError.value = err instanceof Error ? err.message : 'Erreur lors de la recherche sur Open Library'
+    console.error('Erreur lors de la recherche Google Books:', err)
+    searchError.value = err instanceof Error ? err.message : 'Erreur lors de la recherche'
   } finally {
     searching.value = false
   }
 }
 
-const selectBook = async (book: OpenLibraryBook) => {
+const selectBook = async (book: BookSearchResult) => {
   loadingDetails.value = true
   previewBook.value = null
 
   try {
-    // Récupérer les détails complets du livre depuis Open Library
-    const workKey = book.key.replace('/works/', '')
-    const detailsResponse = await $fetch<any>(
-      `https://openlibrary.org${book.key}.json`
-    )
-
-    // Enrichir les données du livre
-    const enrichedBook = {
-      ...book,
-      description: detailsResponse.description?.value || detailsResponse.description || '',
-      subjects: detailsResponse.subjects?.slice(0, 10) || [],
-      number_of_pages: detailsResponse.number_of_pages
-    }
-
-    previewBook.value = enrichedBook
+    // Avec Google Books, on a déjà toutes les informations dans le résultat de recherche
+    // Pas besoin d'appel supplémentaire pour les détails
+    previewBook.value = book
     showPreview.value = true
   } catch (err) {
     console.error('Erreur lors du chargement des détails:', err)
-    // En cas d'erreur, utiliser les données de base
     previewBook.value = book
     showPreview.value = true
   } finally {
@@ -989,18 +1077,13 @@ const addBookFromPreview = async () => {
     const bookData = {
       titre: previewBook.value.title.trim(),
       auteur: previewBook.value.author_name?.trim() || undefined,
-      isbn: Array.isArray(previewBook.value.isbn)
-        ? previewBook.value.isbn[0]?.trim()
-        : (previewBook.value.isbn?.trim() || undefined),
+      isbn: previewBook.value.isbn?.trim() || undefined,
       annee: previewBook.value.first_publish_year || undefined,
       description: previewBook.value.description?.trim() || undefined,
       image_url: previewBook.value.cover_url || undefined,
-      editeur: Array.isArray(previewBook.value.publisher)
-        ? previewBook.value.publisher[0]?.trim()
-        : (previewBook.value.publisher?.trim() || undefined),
+      editeur: previewBook.value.publisher?.trim() || undefined,
       nombre_pages: previewBook.value.number_of_pages || undefined,
-      sujets: previewBook.value.subjects || undefined,
-      open_library_key: previewBook.value.key || undefined
+      sujets: previewBook.value.subjects || undefined
     }
 
     // Si membre connecté, passer son id pour marquer le livre comme ajouté par lui
@@ -1053,7 +1136,6 @@ const loadBookData = () => {
 
 const resetForm = () => {
   manualFormStep.value = 1
-  coverImageFile.value = null
   state.title = ''
   state.author = ''
   state.isbn = ''
@@ -1065,6 +1147,10 @@ const resetForm = () => {
   searchQuery.value = ''
   searchResults.value = []
   searchError.value = null
+  hasSearched.value = false
+  manualCoverSuggestions.value = []
+  loadingManualCovers.value = false
+  manualCoverError.value = null
   errors.title = ''
   showPreview.value = false
   previewBook.value = null
@@ -1120,6 +1206,119 @@ function goToStep(target: number) {
   }
 }
 
+// Rechercher une couverture sur Google Books API
+async function searchCoverForBook(title: string, author?: string, isbn?: string): Promise<string | null> {
+  try {
+    let searchQuery = ''
+
+    if (isbn?.trim()) {
+      // Recherche par ISBN (le plus précis)
+      searchQuery = `isbn:${isbn.trim()}`
+    } else if (title?.trim()) {
+      // Recherche par titre + auteur
+      searchQuery = title.trim()
+      if (author?.trim()) {
+        searchQuery += ` ${author.trim()}`
+      }
+    } else {
+      return null
+    }
+
+    const response = await $fetch<{ items?: GoogleBooksBook[], totalItems?: number }>(
+      `https://www.googleapis.com/books/v1/volumes`,
+      {
+        params: {
+          q: searchQuery,
+          maxResults: 1,
+          printType: 'books',
+          langRestrict: 'fr'
+        }
+      }
+    )
+
+    if (response?.items && response.items.length > 0) {
+      const volumeInfo = response.items[0].volumeInfo
+      const thumbnail = volumeInfo.imageLinks?.thumbnail
+      if (thumbnail) {
+        return thumbnail.replace('http://', 'https://').replace('zoom=1', 'zoom=2')
+      }
+    }
+  } catch (err) {
+    console.error('Erreur lors de la recherche de couverture:', err)
+  }
+  
+  return null
+}
+
+/** URL de couverture Google Books (petite = vignette, grande = haute résolution) */
+function getManualCoverUrls(imageLinks: GoogleBooksBook['volumeInfo']['imageLinks']): { url: string, displayUrl: string } | null {
+  if (!imageLinks) return null
+  const toHttps = (u: string) => u.replace('http://', 'https://')
+  const large = imageLinks.extraLarge || imageLinks.large || imageLinks.medium
+    || (imageLinks.thumbnail ? toHttps(imageLinks.thumbnail.replace('zoom=1', 'zoom=3')) : null)
+  const small = imageLinks.smallThumbnail || imageLinks.thumbnail
+  if (large && small) {
+    return { url: toHttps(large.startsWith('http') ? large : `https:${large}`), displayUrl: toHttps(small.startsWith('http') ? small : `https:${small}`) }
+  }
+  if (imageLinks.thumbnail) {
+    const t = toHttps(imageLinks.thumbnail)
+    return { url: t.replace('zoom=1', 'zoom=3'), displayUrl: t }
+  }
+  return null
+}
+
+/** Charge les propositions de couverture pour le formulaire manuel (étape 3) */
+async function loadManualCoverSuggestions() {
+  const title = state.title?.trim()
+  const author = state.author?.trim()
+  const isbn = state.isbn?.trim()
+
+  let searchQuery = ''
+  if (isbn) {
+    searchQuery = `isbn:${isbn}`
+  } else if (title) {
+    searchQuery = author ? `${title}+inauthor:${author}` : title
+  } else {
+    manualCoverError.value = 'Saisissez au moins le titre (ou l\'ISBN) pour rechercher des couvertures.'
+    return
+  }
+
+  loadingManualCovers.value = true
+  manualCoverError.value = null
+  manualCoverSuggestions.value = []
+
+  try {
+    const res = await $fetch<{ items?: GoogleBooksBook[], totalItems?: number }>(
+      'https://www.googleapis.com/books/v1/volumes',
+      { params: { q: searchQuery, maxResults: 20, printType: 'books' } }
+    )
+    const items = res?.items ?? []
+    const seen = new Set<string>()
+    const list: Array<{ url: string, displayUrl: string, label?: string }> = []
+
+    for (const item of items) {
+      const urls = getManualCoverUrls(item.volumeInfo?.imageLinks)
+      if (!urls || seen.has(urls.url)) continue
+      seen.add(urls.url)
+      let label: string | undefined
+      const pub = item.volumeInfo?.publishedDate
+      if (pub) label = `Éd. ${pub.split('-')[0]}`
+      list.push({ url: urls.url, displayUrl: urls.displayUrl, label })
+    }
+
+    manualCoverSuggestions.value = list
+    if (list.length === 0) {
+      manualCoverError.value = 'Aucune couverture trouvée pour ce livre.'
+    }
+  } catch (err) {
+    console.error('Erreur chargement couvertures manuelles:', err)
+    manualCoverError.value = err instanceof Error ? err.message : 'Erreur lors du chargement des propositions.'
+  } finally {
+    loadingManualCovers.value = false
+  }
+}
+
+
 async function handleSubmit() {
   if (!validateForm()) {
     return
@@ -1131,35 +1330,17 @@ async function handleSubmit() {
   try {
     const familyStore = useFamilyStore()
     const memberStore = useMemberStore()
-    const authStore = useAuthStore()
     const config = useRuntimeConfig()
-    const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
 
-    let imageId: number | null = null
-    const fileToUpload = Array.isArray(coverImageFile.value)
-      ? coverImageFile.value[0]
-      : coverImageFile.value
-    if (fileToUpload) {
-      try {
-        const formData = new FormData()
-        formData.append('files', fileToUpload)
-        const uploadResponse = await $fetch<{ id: number }[]>(`${apiUrl}/api/upload`, {
-          method: 'POST',
-          headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},
-          body: formData
-        })
-        if (uploadResponse?.length) {
-          imageId = uploadResponse[0].id
-        }
-      } catch (uploadErr) {
-        console.error('Erreur upload image:', uploadErr)
-        submitError.value = 'Erreur lors de l\'upload de l\'image'
-        submitting.value = false
-        return
+    let imageToUse = state.coverUrl?.trim() || null
+
+    // Si pas de couverture fournie, rechercher automatiquement sur Google Books
+    if (!imageToUse && !editingBook.value) {
+      const foundCover = await searchCoverForBook(state.title, state.author, state.isbn)
+      if (foundCover) {
+        imageToUse = foundCover
       }
     }
-
-    const imageToUse = imageId ?? (state.coverUrl?.trim() || null)
 
     if (editingBook.value && props.book) {
       // Mise à jour - utiliser documentId en priorité (Strapi 5)
@@ -1172,7 +1353,6 @@ async function handleSubmit() {
         annee: state.year || null,
         description: state.description.trim() || null,
         image_url: imageToUse,
-        image: imageId,
         editeur: props.book.editeur || null,
         nombre_pages: state.nombrePages || null
       })
@@ -1189,8 +1369,7 @@ async function handleSubmit() {
         isbn: state.isbn.trim() || undefined,
         annee: state.year || undefined,
         description: state.description.trim() || undefined,
-        image_url: imageId ? undefined : (state.coverUrl?.trim() || undefined),
-        image: imageId ?? undefined,
+        image_url: state.coverUrl?.trim() || undefined,
         nombre_pages: state.nombrePages || undefined
       }
 
