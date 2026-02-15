@@ -15,7 +15,11 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::member.member",
-      "required": true
+      "required": false
+    },
+    "guest_name": {
+      "type": "string",
+      "required": false
     },
     "game_session": {
       "type": "relation",

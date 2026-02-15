@@ -875,6 +875,7 @@ export interface ApiPlayerScorePlayerScore extends Struct.CollectionTypeSchema {
       'api::game-session.game-session'
     > &
       Schema.Attribute.Required;
+    guest_name: Schema.Attribute.String;
     is_winner: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
@@ -882,8 +883,7 @@ export interface ApiPlayerScorePlayerScore extends Struct.CollectionTypeSchema {
       'api::player-score.player-score'
     > &
       Schema.Attribute.Private;
-    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'> &
-      Schema.Attribute.Required;
+    member: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     position: Schema.Attribute.Integer;
     publishedAt: Schema.Attribute.DateTime;
     score: Schema.Attribute.Decimal & Schema.Attribute.Required;

@@ -125,18 +125,30 @@ module.exports = createCoreController('api::game-session.game-session', ({ strap
         }
       );
 
+      // Valider que chaque score a soit memberId (membre) soit guest_name (invité)
+      const validScores = player_scores.every(ps => {
+        const hasMember = ps.memberId != null;
+        const hasGuest = ps.guest_name != null && String(ps.guest_name).trim() !== '';
+        return (hasMember && !hasGuest) || (!hasMember && hasGuest);
+      });
+      if (!validScores) {
+        return ctx.badRequest('Chaque score doit avoir soit un membre (memberId), soit un invité (guest_name)');
+      }
+
       const sortedScores = [...player_scores].sort((a, b) => b.score - a.score);
       const maxScore = Math.max(...player_scores.map(s => s.score));
 
+      const scoreKey = (ps) => ps.memberId != null ? `m-${ps.memberId}` : `g-${ps.guest_name}`;
       const scorePromises = player_scores.map(async (ps) => {
-        const position = sortedScores.findIndex(s => s.memberId === ps.memberId) + 1;
+        const position = sortedScores.findIndex(s => scoreKey(s) === scoreKey(ps)) + 1;
         const isWinner = sortedScores.length > 0 && ps.score === maxScore && ps.score === sortedScores[0]?.score;
 
         return await strapi.entityService.create(
           'api::player-score.player-score',
           {
             data: {
-              member: ps.memberId,
+              member: ps.memberId ?? null,
+              guest_name: ps.guest_name ? String(ps.guest_name).trim() : null,
               game_session: session.id,
               score: ps.score,
               is_winner: isWinner,

@@ -45,10 +45,11 @@ export interface PlayerScore {
   score: number;
   is_winner: boolean;
   position: number | null;
-  member: {
+  member?: {
     id: number;
     username: string;
-  };
+  } | null;
+  guest_name?: string | null;
   game_session: {
     id: number;
   };
@@ -1241,10 +1242,11 @@ export const useFamilyStore = defineStore("family", {
               gameId,
               played_at: playedAt,
               notes: notes || null,
-              player_scores: playerScores.map((ps) => ({
-                memberId: ps.memberId,
-                score: ps.score,
-              })),
+              player_scores: playerScores.map((ps) =>
+                "memberId" in ps
+                  ? { memberId: ps.memberId, score: ps.score }
+                  : { guest_name: ps.guest_name, score: ps.score }
+              ),
             },
           },
         );

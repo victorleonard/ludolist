@@ -128,12 +128,22 @@
               <!-- Avatar et nom -->
               <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                 <MemberAvatar
+                  v-if="score.member"
                   :member="score.member"
                   size="md"
                   class="flex-shrink-0"
                 />
+                <div
+                  v-else
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex-shrink-0"
+                >
+                  <UIcon
+                    name="i-ion-person"
+                    class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                  />
+                </div>
                 <span class="font-semibold text-sm sm:text-base text-gray-900 dark:text-gray-100 truncate">
-                  {{ score.member.username }}
+                  {{ score.member ? score.member.username : score.guest_name || 'Invité' }}
                 </span>
               </div>
             </div>
@@ -254,6 +264,74 @@
                   />
                 </div>
               </div>
+
+              <!-- Invités (personnes extérieures à la famille) -->
+              <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between mb-3">
+                  <label class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <UIcon
+                      name="i-ion-person-add"
+                      class="w-4 h-4"
+                    />
+                    Invités
+                  </label>
+                  <UButton
+                    type="button"
+                    color="primary"
+                    variant="outline"
+                    size="xs"
+                    icon="i-ion-add"
+                    :disabled="isSubmitting"
+                    @click="addGuest"
+                  >
+                    Ajouter un invité
+                  </UButton>
+                </div>
+                <div
+                  v-if="newSession.guests.length > 0"
+                  class="space-y-3"
+                >
+                  <div
+                    v-for="(guest, index) in newSession.guests"
+                    :key="index"
+                    class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  >
+                    <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 shrink-0">
+                      <UIcon
+                        name="i-ion-person"
+                        class="w-4 h-4 text-gray-500 dark:text-gray-400"
+                      />
+                    </div>
+                    <UInput
+                      v-model="guest.name"
+                      type="text"
+                      placeholder="Nom de l'invité"
+                      class="flex-1"
+                      :disabled="isSubmitting"
+                    />
+                    <UInput
+                      v-model.number="guest.score"
+                      type="number"
+                      placeholder="Score"
+                      class="w-24"
+                      :min="0"
+                      step="0.01"
+                      :disabled="isSubmitting"
+                    />
+                    <UButton
+                      type="button"
+                      color="red"
+                      variant="ghost"
+                      icon="i-ion-trash"
+                      size="sm"
+                      :disabled="isSubmitting"
+                      aria-label="Supprimer l'invité"
+                      @click="removeGuest(index)"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <p
                 v-if="errors.scores"
                 class="mt-1 text-sm text-red-600 dark:text-red-400"
@@ -322,10 +400,21 @@ watch(isAddSessionModalOpen, (newValue) => {
   }
 })
 
-const newSession = ref({
+interface GuestEntry {
+  name: string
+  score: number | ''
+}
+
+const newSession = ref<{
+  played_at: string
+  notes: string
+  scores: Record<number, number>
+  guests: GuestEntry[]
+}>({
   played_at: new Date().toISOString().slice(0, 16),
   notes: '',
-  scores: {} as Record<number, number>
+  scores: {},
+  guests: []
 })
 
 const errors = reactive({
@@ -340,6 +429,10 @@ watch(() => newSession.value.played_at, () => {
 })
 
 watch(() => newSession.value.scores, () => {
+  if (errors.scores) errors.scores = ''
+}, { deep: true })
+
+watch(() => newSession.value.guests, () => {
   if (errors.scores) errors.scores = ''
 }, { deep: true })
 
@@ -388,11 +481,20 @@ const formatDate = (dateString: string) => {
   }).format(date)
 }
 
+function addGuest() {
+  newSession.value.guests.push({ name: '', score: '' })
+}
+
+function removeGuest(index: number) {
+  newSession.value.guests.splice(index, 1)
+}
+
 const resetForm = () => {
   newSession.value = {
     played_at: new Date().toISOString().slice(0, 16),
     notes: '',
-    scores: {} as Record<number, number>
+    scores: {} as Record<number, number>,
+    guests: []
   }
   submitError.value = null
   errors.played_at = ''
@@ -414,11 +516,23 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  const scores = Object.entries(newSession.value.scores)
+  const memberScores = Object.entries(newSession.value.scores)
     .filter(([_, score]) => score !== undefined && score !== null && score !== '')
+  const guestScores = newSession.value.guests.filter(
+    g => g.name.trim() !== '' && g.score !== '' && g.score !== undefined && g.score !== null
+  )
 
-  if (scores.length === 0) {
-    errors.scores = 'Au moins un score est requis'
+  if (memberScores.length === 0 && guestScores.length === 0) {
+    errors.scores = 'Au moins un score est requis (membre ou invité)'
+    isValid = false
+  }
+
+  const invalidGuests = newSession.value.guests.filter(
+    g => (g.name.trim() !== '' && (g.score === '' || g.score === undefined || g.score === null))
+      || (g.name.trim() === '' && (g.score !== '' && g.score !== undefined && g.score !== null))
+  )
+  if (invalidGuests.length > 0) {
+    errors.scores = 'Chaque invité doit avoir un nom et un score'
     isValid = false
   }
 
@@ -437,12 +551,19 @@ const handleAddSession = async () => {
     return
   }
 
-  const scores = Object.entries(newSession.value.scores)
-    .filter(([_, score]) => score !== undefined && score !== null && score !== '')
+  const memberScores = Object.entries(newSession.value.scores)
+    .filter(([, score]) => score !== undefined && score !== null && score !== '')
     .map(([memberId, score]) => ({
       memberId: parseInt(memberId, 10),
       score: Number(score)
     }))
+  const guestScores = newSession.value.guests
+    .filter(g => g.name.trim() !== '' && g.score !== '' && g.score !== undefined && g.score !== null)
+    .map(g => ({
+      guest_name: g.name.trim(),
+      score: Number(g.score)
+    }))
+  const playerScores = [...memberScores, ...guestScores]
 
   isSubmitting.value = true
   submitError.value = null
@@ -452,7 +573,7 @@ const handleAddSession = async () => {
     const result = await familyStore.createGameSession(
       props.gameId,
       playedAt,
-      scores,
+      playerScores,
       newSession.value.notes || undefined
     )
 
