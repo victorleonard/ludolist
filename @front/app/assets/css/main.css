@@ -109,6 +109,8 @@ header [data-slot="right"] button[aria-label*="Menu"] {
 body {
   background-color: #ffffff;
   /* Ne pas appliquer padding-top global sur body (génère transparence derrière notch) */
+  /* Empêcher le zoom tactile (double-tap) sur PWA */
+  touch-action: manipulation;
 }
 
 .dark body {
