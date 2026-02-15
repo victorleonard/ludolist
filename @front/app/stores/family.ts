@@ -1519,6 +1519,7 @@ export const useFamilyStore = defineStore("family", {
         annee?: number;
         editeur?: string;
         image_url?: string;
+        image?: number;
         nombre_pages?: number;
         sujets?: any;
         open_library_key?: string;
@@ -1582,6 +1583,7 @@ export const useFamilyStore = defineStore("family", {
         annee?: number | null;
         editeur?: string | null;
         image_url?: string | null;
+        image?: number | null;
         nombre_pages?: number | null;
       }
     ) {
@@ -1610,6 +1612,7 @@ export const useFamilyStore = defineStore("family", {
               annee: data.annee ?? null,
               editeur: data.editeur ?? null,
               image_url: data.image_url ?? null,
+              ...(data.image != null && { image: data.image }),
               nombre_pages: data.nombre_pages ?? null,
             },
           },

@@ -6,9 +6,80 @@
   >
     <template #content>
       <div
-        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        class="relative flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
         style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
+        <!-- Indicateur d'étapes (stepper) - circuit clair -->
+        <div class="shrink-0 px-4 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            {{ stepTitle }}
+          </h2>
+          <!-- Parcours recherche : Recherche → Confirmation -->
+          <div
+            v-if="!showManualForm || editingBook"
+            class="flex items-center gap-2"
+          >
+            <div class="flex items-center gap-1.5">
+              <span
+                class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors"
+                :class="stepIndicator.search.active
+                  ? 'bg-primary-500 text-white'
+                  : stepIndicator.search.completed
+                    ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'"
+              >
+                {{ stepIndicator.search.completed ? '✓' : '1' }}
+              </span>
+              <span
+                class="text-sm font-medium"
+                :class="stepIndicator.search.active
+                  ? 'text-gray-900 dark:text-gray-100'
+                  : 'text-gray-500 dark:text-gray-400'"
+              >
+                Rechercher
+              </span>
+            </div>
+            <div
+              class="flex-1 h-0.5 min-w-4 max-w-12 rounded transition-colors"
+              :class="stepIndicator.preview.active
+                ? 'bg-primary-400 dark:bg-primary-600'
+                : 'bg-gray-200 dark:bg-gray-700'"
+            />
+            <div class="flex items-center gap-1.5">
+              <span
+                class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors"
+                :class="stepIndicator.preview.active
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'"
+              >
+                2
+              </span>
+              <span
+                class="text-sm font-medium"
+                :class="stepIndicator.preview.active
+                  ? 'text-gray-900 dark:text-gray-100'
+                  : 'text-gray-500 dark:text-gray-400'"
+              >
+                Confirmer
+              </span>
+            </div>
+          </div>
+          <!-- Parcours manuel -->
+          <div
+            v-else
+            class="flex items-center gap-2"
+          >
+            <div class="flex items-center gap-1.5">
+              <span class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold bg-primary-500 text-white">
+                1
+              </span>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                Saisie manuelle
+              </span>
+            </div>
+          </div>
+        </div>
+
         <!-- Mode prévisualisation -->
         <div
           v-if="showPreview && previewBook"
@@ -25,7 +96,7 @@
               class="min-h-[44px] sm:min-h-0"
               @click="backToSearch"
             >
-              Retour aux résultats
+              ← Retour à l’étape 1
             </UButton>
           </div>
 
@@ -173,8 +244,11 @@
               </p>
             </div>
 
-            <!-- Bouton d'action -->
-            <div class="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <!-- Bouton d'action - Étape 2 : Confirmer -->
+            <div class="flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Les informations vous conviennent ? Ajoutez ce livre à votre collection.
+              </p>
               <UButton
                 color="primary"
                 size="lg"
@@ -191,12 +265,15 @@
           </div>
         </div>
 
-        <!-- Mode recherche Open Library (par défaut pour l'ajout) -->
+        <!-- Mode recherche Open Library (par défaut pour l'ajout) - Étape 1 -->
         <div
           v-else-if="!editingBook && !showManualForm"
           class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
           style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
         >
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Recherchez votre livre puis sélectionnez-le pour vérifier les informations.
+          </p>
           <div
             class="relative flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-500 mb-4"
           >
@@ -209,7 +286,7 @@
               :disabled="submitting || searching"
               class="flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
               @keydown.enter.prevent="searchBooks"
-            />
+            >
             <UButton
               type="button"
               color="primary"
@@ -317,225 +394,307 @@
             </div>
           </div>
 
-          <!-- Bouton pour ajouter manuellement -->
+          <!-- Proposition de saisie manuelle (toujours visible : résultats ou non) -->
           <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              {{ searchError
+                ? 'Recherche infructueuse. Vous pouvez ajouter ce livre manuellement.'
+                : searchResults.length > 0
+                  ? 'Votre livre n\'est pas dans la liste ? Saisissez-le manuellement.'
+                  : 'Vous pouvez ajouter un livre manuellement.' }}
+            </p>
             <UButton
               type="button"
-              color="neutral"
+              color="primary"
               variant="outline"
               block
-              icon="i-ion-add"
-              @click="showManualForm = true"
+              icon="i-ion-create-outline"
+              @click="goToManualForm"
             >
-              Ajouter manuellement
+              Saisir manuellement
             </UButton>
           </div>
         </div>
 
-        <!-- Formulaire manuel -->
+        <!-- Formulaire manuel multi-pages avec slides -->
         <form
           v-else
           id="book-form"
-          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
+          class="flex flex-col flex-1 min-h-0"
           @submit.prevent="handleSubmit"
         >
-          <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
-          <div
-            v-if="!editingBook"
-            class="mb-4"
-          >
+          <!-- En-tête : retour + indicateur d'étapes -->
+          <div class="shrink-0 flex items-center justify-between gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <UButton
+              v-if="manualFormStep > 1 || !editingBook"
               type="button"
               color="neutral"
               variant="ghost"
               icon="i-ion-arrow-back"
               size="sm"
               class="min-h-[44px] sm:min-h-0"
-              @click="showManualForm = false"
+              @click="manualFormStep === 1 ? (showManualForm = false) : manualFormStep--"
             >
-              Retour à la recherche
+              {{ manualFormStep === 1 ? 'Retour' : 'Précédent' }}
             </UButton>
+            <div
+              v-else
+              class="w-10"
+            />
+            <div class="flex items-center gap-2">
+              <button
+                v-for="s in 3"
+                :key="s"
+                type="button"
+                class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-all duration-300"
+                :class="manualFormStep === s
+                  ? 'bg-primary-500 text-white'
+                  : 'bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400'"
+                :aria-label="`Étape ${s}`"
+                @click="manualFormStep = s"
+              >
+                {{ s }}
+              </button>
+            </div>
+            <div class="w-10" />
           </div>
 
-          <div class="form-field">
-            <label
-              for="title"
-              class="label-mobile"
+          <!-- Slider des pages -->
+          <div class="flex-1 min-h-0 overflow-hidden">
+            <div
+              class="flex h-full transition-transform duration-300 ease-out"
+              :style="{ width: '300%', transform: `translateX(-${(manualFormStep - 1) * (100 / 3)}%)` }"
             >
-              <UIcon
-                name="i-ion-book-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Titre du livre <span class="text-red-500">*</span>
-            </label>
-            <UInput
-              id="title"
-              v-model="state.title"
-              :disabled="submitting"
-              :error="!!errors.title"
-              class="w-full input-touch"
-            />
-            <p
-              v-if="errors.title"
-              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.title }}
-            </p>
-          </div>
+              <!-- Page 1 : Titre, Auteur -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Les informations essentielles du livre.
+                </p>
+                <div class="form-field">
+                  <label
+                    for="title"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-book-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Titre du livre <span class="text-red-500">*</span>
+                  </label>
+                  <UInput
+                    id="title"
+                    v-model="state.title"
+                    :disabled="submitting"
+                    :error="!!errors.title"
+                    class="w-full input-touch"
+                  />
+                  <p
+                    v-if="errors.title"
+                    class="mt-1.5 text-sm text-red-600 dark:text-red-400"
+                  >
+                    {{ errors.title }}
+                  </p>
+                </div>
 
-          <div class="form-field">
-            <label
-              for="author"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-person-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Auteur
-            </label>
-            <UInput
-              id="author"
-              v-model="state.author"
-              :disabled="submitting"
-              class="w-full input-touch"
-            />
-          </div>
+                <div class="form-field">
+                  <label
+                    for="author"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-person-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Auteur
+                  </label>
+                  <UInput
+                    id="author"
+                    v-model="state.author"
+                    :disabled="submitting"
+                    class="w-full input-touch"
+                  />
+                </div>
+              </div>
 
-          <div class="form-field">
-            <label
-              for="isbn"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-hash-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              ISBN
-            </label>
-            <UInput
-              id="isbn"
-              v-model="state.isbn"
-              :disabled="submitting"
-              class="w-full input-touch"
-              placeholder="978-..."
-            />
-          </div>
+              <!-- Page 2 : Année, Nombre de pages -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Les métadonnées du livre (optionnel).
+                </p>
+                <div class="form-field">
+                  <label
+                    for="year"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-calendar-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Année de publication
+                  </label>
+                  <UInput
+                    id="year"
+                    v-model.number="state.year"
+                    type="number"
+                    min="1000"
+                    :max="currentYear"
+                    :disabled="submitting"
+                    class="w-full input-touch"
+                  />
+                </div>
 
-          <div class="form-field">
-            <label
-              for="year"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-calendar-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Année de publication
-            </label>
-            <UInput
-              id="year"
-              v-model.number="state.year"
-              type="number"
-              min="1000"
-              :max="currentYear"
-              :disabled="submitting"
-              class="w-full input-touch"
-            />
-          </div>
+                <div class="form-field">
+                  <label
+                    for="nombrePages"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-document-text-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Nombre de pages
+                  </label>
+                  <UInput
+                    id="nombrePages"
+                    v-model.number="state.nombrePages"
+                    type="number"
+                    min="1"
+                    :disabled="submitting"
+                    class="w-full input-touch"
+                    placeholder="Ex: 250"
+                  />
+                </div>
+              </div>
 
-          <div class="form-field">
-            <label
-              for="description"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-document-text-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Description
-            </label>
-            <UTextarea
-              id="description"
-              v-model="state.description"
-              :disabled="submitting"
-              class="w-full"
-              :rows="4"
-            />
-          </div>
+              <!-- Page 3 : Description, Image -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Description et couverture (optionnel).
+                </p>
+                <div class="form-field">
+                  <label
+                    for="description"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-document-text-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Description
+                  </label>
+                  <UTextarea
+                    id="description"
+                    v-model="state.description"
+                    :disabled="submitting"
+                    class="w-full"
+                    :rows="4"
+                  />
+                </div>
 
-          <div class="form-field">
-            <label
-              for="nombrePages"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-document-text-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Nombre de pages
-            </label>
-            <UInput
-              id="nombrePages"
-              v-model.number="state.nombrePages"
-              type="number"
-              min="1"
-              :disabled="submitting"
-              class="w-full input-touch"
-              placeholder="Ex: 250"
-            />
-          </div>
-
-          <div class="form-field">
-            <label
-              for="imageUrl"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-image-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              URL de l'image (couverture)
-            </label>
-            <UInput
-              id="imageUrl"
-              v-model="state.coverUrl"
-              type="url"
-              :disabled="submitting"
-              class="w-full input-touch"
-              placeholder="https://..."
-            />
-            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-              Collez un lien vers une image de couverture si vous en avez un
-            </p>
+                <div class="form-field">
+                  <label class="label-mobile">
+                    <UIcon
+                      name="i-ion-image-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Couverture du livre
+                  </label>
+                  <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+                    Indiquez une URL ou téléchargez une image :
+                  </p>
+                  <UInput
+                    id="imageUrl"
+                    v-model="state.coverUrl"
+                    type="url"
+                    :disabled="submitting"
+                    class="w-full mb-3 input-touch"
+                    placeholder="https://..."
+                  />
+                  <UFileUpload
+                    v-model="coverImageFile"
+                    color="neutral"
+                    highlight
+                    label="Déposez votre image ici"
+                    description="JPG, PNG ou WebP (max. 2 Mo)"
+                    class="w-full min-h-32"
+                    :disabled="submitting"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div
             v-if="submitError"
-            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+            class="px-4 pb-2 shrink-0"
           >
-            <p class="text-sm text-red-600 dark:text-red-400">
-              {{ submitError }}
-            </p>
+            <div class="p-3.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p class="text-sm text-red-600 dark:text-red-400">
+                {{ submitError }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer : Précédent / Suivant / Ajouter -->
+          <div
+            class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
+            style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          >
+            <div class="flex gap-3">
+              <UButton
+                v-if="manualFormStep > 1"
+                type="button"
+                color="neutral"
+                variant="outline"
+                size="lg"
+                class="min-h-[48px] sm:min-h-0"
+                :disabled="submitting"
+                @click="manualFormStep--"
+              >
+                Précédent
+              </UButton>
+              <UButton
+                v-if="manualFormStep < 3"
+                type="button"
+                color="primary"
+                size="lg"
+                block
+                class="min-h-[48px] sm:min-h-0"
+                :disabled="submitting"
+                @click="manualFormStep++"
+              >
+                Suivant
+              </UButton>
+              <UButton
+                v-else
+                type="submit"
+                form="book-form"
+                color="primary"
+                size="lg"
+                block
+                class="min-h-[48px] sm:min-h-0"
+                :loading="submitting"
+              >
+                {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
+              </UButton>
+            </div>
           </div>
         </form>
 
-        <!-- Footer avec bouton d'action -->
+        <!-- Overlay de chargement (sélection d'un livre) -->
         <div
-          v-if="editingBook || showManualForm"
-          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+          v-if="loadingDetails"
+          class="absolute inset-0 z-10 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm"
         >
-          <UButton
-            type="submit"
-            form="book-form"
-            color="primary"
-            size="lg"
-            block
-            :loading="submitting"
-          >
-            {{ editingBook ? 'Enregistrer' : 'Ajouter' }}
-          </UButton>
+          <div class="flex flex-col items-center gap-3">
+            <UIcon
+              name="i-ion-sync"
+              class="w-10 h-10 text-primary-500 animate-spin"
+            />
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Chargement des détails...
+            </p>
+          </div>
         </div>
       </div>
     </template>
@@ -564,6 +723,35 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const editingBook = computed(() => props.book !== null && props.book !== undefined)
+
+// Titre contextuel selon l'étape
+const stepTitle = computed(() => {
+  if (editingBook.value) return 'Modifier le livre'
+  if (showPreview.value && previewBook.value) return 'Vérifiez les informations'
+  if (showManualForm.value) return 'Saisissez les informations du livre'
+  return 'Recherchez un livre'
+})
+
+// Indicateur d'étapes pour clarifier le circuit
+const stepIndicator = computed(() => {
+  const manual = showManualForm.value && !editingBook.value
+  const preview = showPreview.value && previewBook.value
+  const search = !manual && !preview
+
+  return {
+    search: {
+      active: search,
+      completed: preview || manual
+    },
+    preview: {
+      active: preview,
+      completed: false // La confirmation est la dernière étape avant l'ajout
+    },
+    manual: {
+      active: manual
+    }
+  }
+})
 
 const isOpen = ref(props.modelValue)
 
@@ -596,6 +784,7 @@ watch(isOpen, async (newValue) => {
     resetForm()
     showManualForm.value = false
     showPreview.value = false
+    manualFormStep.value = 1
   } else if (newValue && editingBook.value) {
     loadBookData()
     showManualForm.value = true
@@ -621,10 +810,12 @@ watch(() => props.book, (newBook) => {
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
 const currentYear = new Date().getFullYear()
+const coverImageFile = ref<File | File[] | null>(null)
 
 // Mode d'affichage (recherche, prévisualisation ou formulaire manuel)
 const showManualForm = ref(false)
 const showPreview = ref(false)
+const manualFormStep = ref(1)
 const previewBook = ref<OpenLibraryBook | null>(null)
 
 // Recherche Open Library
@@ -752,8 +943,8 @@ const addBookFromPreview = async () => {
     const bookData = {
       titre: previewBook.value.title.trim(),
       auteur: previewBook.value.author_name?.trim() || undefined,
-      isbn: Array.isArray(previewBook.value.isbn) 
-        ? previewBook.value.isbn[0]?.trim() 
+      isbn: Array.isArray(previewBook.value.isbn)
+        ? previewBook.value.isbn[0]?.trim()
         : (previewBook.value.isbn?.trim() || undefined),
       annee: previewBook.value.first_publish_year || undefined,
       description: previewBook.value.description?.trim() || undefined,
@@ -796,6 +987,12 @@ const backToSearch = () => {
   previewBook.value = null
 }
 
+const goToManualForm = () => {
+  state.title = searchQuery.value.trim()
+  manualFormStep.value = 1
+  showManualForm.value = true
+}
+
 const loadBookData = () => {
   if (props.book) {
     state.title = props.book.titre
@@ -808,6 +1005,8 @@ const loadBookData = () => {
 }
 
 const resetForm = () => {
+  manualFormStep.value = 1
+  coverImageFile.value = null
   state.title = ''
   state.author = ''
   state.isbn = ''
@@ -852,6 +1051,35 @@ async function handleSubmit() {
   try {
     const familyStore = useFamilyStore()
     const memberStore = useMemberStore()
+    const authStore = useAuthStore()
+    const config = useRuntimeConfig()
+    const apiUrl = (config.public.apiUrl as string) || 'http://localhost:1337'
+
+    let imageId: number | null = null
+    const fileToUpload = Array.isArray(coverImageFile.value)
+      ? coverImageFile.value[0]
+      : coverImageFile.value
+    if (fileToUpload) {
+      try {
+        const formData = new FormData()
+        formData.append('files', fileToUpload)
+        const uploadResponse = await $fetch<{ id: number }[]>(`${apiUrl}/api/upload`, {
+          method: 'POST',
+          headers: authStore.token ? { Authorization: `Bearer ${authStore.token}` } : {},
+          body: formData
+        })
+        if (uploadResponse?.length) {
+          imageId = uploadResponse[0].id
+        }
+      } catch (uploadErr) {
+        console.error('Erreur upload image:', uploadErr)
+        submitError.value = 'Erreur lors de l\'upload de l\'image'
+        submitting.value = false
+        return
+      }
+    }
+
+    const imageToUse = imageId ?? (state.coverUrl?.trim() || null)
 
     if (editingBook.value && props.book) {
       // Mise à jour - utiliser documentId en priorité (Strapi 5)
@@ -863,7 +1091,8 @@ async function handleSubmit() {
         isbn: state.isbn.trim() || null,
         annee: state.year || null,
         description: state.description.trim() || null,
-        image_url: state.coverUrl || null,
+        image_url: imageToUse,
+        image: imageId,
         editeur: props.book.editeur || null,
         nombre_pages: state.nombrePages || null
       })
@@ -880,7 +1109,8 @@ async function handleSubmit() {
         isbn: state.isbn.trim() || undefined,
         annee: state.year || undefined,
         description: state.description.trim() || undefined,
-        image_url: state.coverUrl || undefined,
+        image_url: imageId ? undefined : (state.coverUrl?.trim() || undefined),
+        image: imageId ?? undefined,
         nombre_pages: state.nombrePages || undefined
       }
 
