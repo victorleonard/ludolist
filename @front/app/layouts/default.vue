@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, provide } from 'vue'
+import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import { useFamilyStore } from '~/stores/family'
@@ -19,8 +19,6 @@ const { currentMember, isMemberConnected } = storeToRefs(memberStore)
 const { logout } = authStore
 
 const isMenuOpen = ref(false)
-const isCollectionsDrawerOpen = ref(false)
-const isOrganisationDrawerOpen = ref(false)
 const isMemberDrawerOpen = ref(false)
 const memberForCode = ref(null)
 const memberCode = ref('')
@@ -119,9 +117,14 @@ const menuItems = [
     to: '/'
   },
   {
-    label: 'Collections',
-    icon: 'i-ion-library',
-    action: 'openCollectionsDrawer'
+    label: 'Jeux',
+    icon: 'i-ion-dice',
+    to: '/jeux'
+  },
+  {
+    label: 'Livres',
+    icon: 'i-ion-book',
+    to: '/livres/'
   },
   {
     label: 'Plats',
@@ -129,9 +132,14 @@ const menuItems = [
     to: '/plats/'
   },
   {
-    label: 'Organisation',
-    icon: 'i-ion-list',
-    action: 'openOrganisationDrawer'
+    label: 'Tâches',
+    icon: 'i-ion-checkmark-circle',
+    to: '/taches/'
+  },
+  {
+    label: 'Courses',
+    icon: 'i-ion-cart',
+    to: '/courses'
   },
   {
     label: 'Abonnements',
@@ -147,32 +155,6 @@ const toggleMenu = () => {
 const closeMenu = () => {
   isMenuOpen.value = false
 }
-
-const collectionLinks = [
-  { label: 'Jeux', icon: 'i-ion-dice', to: '/jeux' },
-  { label: 'Livres', icon: 'i-ion-book', to: '/livres/' }
-]
-
-const organisationLinks = [
-  { label: 'Tâches', icon: 'i-ion-checkmark-circle', to: '/taches/' },
-  { label: 'Courses', icon: 'i-ion-cart', to: '/courses' }
-]
-
-const openCollectionsDrawer = () => {
-  isCollectionsDrawerOpen.value = true
-}
-
-const openOrganisationDrawer = () => {
-  isOrganisationDrawerOpen.value = true
-}
-
-const openDrawerByAction = (action) => {
-  if (action === 'openCollectionsDrawer') openCollectionsDrawer()
-  if (action === 'openOrganisationDrawer') openOrganisationDrawer()
-}
-
-provide('openCollectionsDrawer', openCollectionsDrawer)
-provide('openOrganisationDrawer', openOrganisationDrawer)
 
 const handleGameAdded = () => {
   familyStore.fetchFamily()
@@ -480,45 +462,26 @@ const handleMemberLogout = () => {
 
             <!-- Navigation principale -->
             <div class="px-2 py-3">
-              <template v-for="item in menuItems">
-                <NuxtLink
-                  v-if="item.to"
-                  :key="item.to"
-                  :to="item.to"
-                  class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"
-                  :class="route.path === item.to ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'"
-                  @click="closeMenu"
-                >
-                  <UIcon
-                    :name="item.icon"
-                    class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
-                    :class="route.path === item.to ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'"
-                  />
-                  <span class="font-medium text-sm">{{ item.label }}</span>
-                  <UIcon
-                    v-if="route.path === item.to"
-                    name="i-ion-chevron-forward"
-                    class="w-4 h-4 ml-auto text-primary-600 dark:text-primary-400"
-                  />
-                </NuxtLink>
-                <button
-                  v-else
-                  :key="item.action"
-                  type="button"
-                  class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 w-full text-left group text-gray-700 dark:text-gray-300"
-                  @click="closeMenu(); openDrawerByAction(item.action)"
-                >
-                  <UIcon
-                    :name="item.icon"
-                    class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110 text-gray-500 dark:text-gray-400"
-                  />
-                  <span class="font-medium text-sm">{{ item.label }}</span>
-                  <UIcon
-                    name="i-ion-chevron-forward"
-                    class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
-                  />
-                </button>
-              </template>
+              <NuxtLink
+                v-for="item in menuItems"
+                :key="item.to"
+                :to="item.to"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"
+                :class="(item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)) ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-700 dark:text-gray-300'"
+                @click="closeMenu"
+              >
+                <UIcon
+                  :name="item.icon"
+                  class="w-5 h-5 shrink-0 transition-transform group-hover:scale-110"
+                  :class="(item.to === '/' ? route.path === '/' : route.path.startsWith(item.to)) ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-400'"
+                />
+                <span class="font-medium text-sm">{{ item.label }}</span>
+                <UIcon
+                  v-if="(item.to === '/' ? route.path === '/' : route.path.startsWith(item.to))"
+                  name="i-ion-chevron-forward"
+                  class="w-4 h-4 ml-auto text-primary-600 dark:text-primary-400"
+                />
+              </NuxtLink>
             </div>
 
             <!-- Séparateur -->
@@ -567,6 +530,21 @@ const handleMemberLogout = () => {
 
             <!-- Paramètres -->
             <div class="px-2 py-2">
+              <NuxtLink
+                to="/parametres/menu"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"
+                @click="closeMenu"
+              >
+                <UIcon
+                  name="i-ion-reorder-three"
+                  class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
+                />
+                <span class="font-medium text-sm text-gray-700 dark:text-gray-300">Menu du bas</span>
+                <UIcon
+                  name="i-ion-chevron-forward"
+                  class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
+                />
+              </NuxtLink>
               <!-- Dark mode -->
               <div class="flex items-center justify-between px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150">
                 <div class="flex items-center gap-3">
@@ -597,110 +575,6 @@ const handleMemberLogout = () => {
                 <span class="font-medium text-sm text-red-600 dark:text-red-400">Déconnexion</span>
               </button>
             </div>
-          </div>
-        </div>
-      </template>
-    </UDrawer>
-
-    <!-- Drawer Collections (Jeux, Livres) -->
-    <UDrawer
-      :open="isCollectionsDrawerOpen"
-      direction="bottom"
-      @update:open="(value) => { isCollectionsDrawerOpen = value }"
-    >
-      <template #content>
-        <div
-          class="flex flex-col max-h-[90dvh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
-        >
-          <div class="px-4 py-4 sm:px-6 sm:py-5">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Collections
-              </h2>
-              <UButton
-                variant="ghost"
-                color="neutral"
-                icon="i-ion-close"
-                size="sm"
-                aria-label="Fermer"
-                class="min-w-[40px] min-h-[40px]"
-                @click="isCollectionsDrawerOpen = false"
-              />
-            </div>
-            <nav class="flex flex-col gap-2">
-              <NuxtLink
-                v-for="item in collectionLinks"
-                :key="item.to"
-                :to="item.to"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-left group"
-                @click="isCollectionsDrawerOpen = false"
-              >
-                <UIcon
-                  :name="item.icon"
-                  class="w-6 h-6 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
-                />
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ item.label }}
-                </span>
-                <UIcon
-                  name="i-ion-chevron-forward"
-                  class="w-5 h-5 ml-auto text-gray-400 dark:text-gray-500"
-                />
-              </NuxtLink>
-            </nav>
-          </div>
-        </div>
-      </template>
-    </UDrawer>
-
-    <!-- Drawer Organisation (Tâches, Courses) -->
-    <UDrawer
-      :open="isOrganisationDrawerOpen"
-      direction="bottom"
-      @update:open="(value) => { isOrganisationDrawerOpen = value }"
-    >
-      <template #content>
-        <div
-          class="flex flex-col max-h-[90dvh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
-        >
-          <div class="px-4 py-4 sm:px-6 sm:py-5">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Organisation
-              </h2>
-              <UButton
-                variant="ghost"
-                color="neutral"
-                icon="i-ion-close"
-                size="sm"
-                aria-label="Fermer"
-                class="min-w-[40px] min-h-[40px]"
-                @click="isOrganisationDrawerOpen = false"
-              />
-            </div>
-            <nav class="flex flex-col gap-2">
-              <NuxtLink
-                v-for="item in organisationLinks"
-                :key="item.to"
-                :to="item.to"
-                class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-left group"
-                @click="isOrganisationDrawerOpen = false"
-              >
-                <UIcon
-                  :name="item.icon"
-                  class="w-6 h-6 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
-                />
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ item.label }}
-                </span>
-                <UIcon
-                  name="i-ion-chevron-forward"
-                  class="w-5 h-5 ml-auto text-gray-400 dark:text-gray-500"
-                />
-              </NuxtLink>
-            </nav>
           </div>
         </div>
       </template>
