@@ -873,7 +873,9 @@ async function confirmDeleteBook() {
   }
   deletingBook.value = true
   try {
-    const result = await familyStore.removeBookFromFamily(book.value.id)
+    const result = await familyStore.removeBookFromFamily(
+      book.value.documentId ?? book.value.id
+    )
     if (result.success) {
       await navigateTo('/livres/')
     } else {

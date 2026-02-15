@@ -6,7 +6,97 @@
 
 const { createCoreController } = require("@strapi/strapi").factories;
 
+/** Vérifie que le livre appartient à une famille de l'utilisateur connecté */
+async function assertBookBelongsToUserFamily(strapi, ctx, bookIdOrDocumentId) {
+  const user = ctx.state.user;
+  if (!user) {
+    ctx.unauthorized("Vous devez être connecté");
+    return false;
+  }
+
+  const userFamily = await strapi.entityService.findMany("api::family.family", {
+    filters: { users_permissions_user: { id: user.id } },
+    populate: { books: true },
+    limit: 1,
+  });
+
+  if (!userFamily?.[0]) {
+    ctx.notFound("Famille non trouvée");
+    return false;
+  }
+
+  const identifier = String(bookIdOrDocumentId);
+  const bookBelongsToFamily = userFamily[0].books?.some(
+    (b) =>
+      String(b.id) === identifier || b.documentId === identifier
+  );
+
+  if (!bookBelongsToFamily) {
+    ctx.forbidden("Ce livre n'appartient pas à votre famille");
+    return false;
+  }
+  return true;
+}
+
 module.exports = createCoreController("api::book.book", ({ strapi }) => ({
+  /**
+   * Update - vérifier que le livre appartient à la famille de l'utilisateur
+   */
+  async update(ctx) {
+    const documentId = ctx.params.documentId ?? ctx.params.id;
+    if (!documentId) {
+      return ctx.badRequest("Identifiant du livre requis");
+    }
+
+    const ok = await assertBookBelongsToUserFamily(strapi, ctx, documentId);
+    if (!ok) return;
+
+    return super.update(ctx);
+  },
+
+  /**
+   * Delete - vérifier que le livre appartient à la famille de l'utilisateur
+   */
+  async delete(ctx) {
+    const documentId = ctx.params.documentId ?? ctx.params.id;
+    if (!documentId) {
+      return ctx.badRequest("Identifiant du livre requis");
+    }
+
+    const ok = await assertBookBelongsToUserFamily(strapi, ctx, documentId);
+    if (!ok) return;
+
+    return super.delete(ctx);
+  },
+
+  /**
+   * Find / FindOne - désactiver l'accès direct aux livres (tout passe par la famille)
+   */
+  async find(ctx) {
+    ctx.forbidden(
+      "Utilisez l'endpoint /api/families/me pour accéder aux livres de votre famille"
+    );
+  },
+
+  async findOne(ctx) {
+    const documentId = ctx.params.documentId ?? ctx.params.id;
+    if (!documentId) {
+      return ctx.badRequest("Identifiant du livre requis");
+    }
+
+    const ok = await assertBookBelongsToUserFamily(strapi, ctx, documentId);
+    if (!ok) return;
+
+    return super.findOne(ctx);
+  },
+
+  /**
+   * Create - désactivé (utiliser add-to-family)
+   */
+  async create(ctx) {
+    ctx.forbidden("Utilisez l'endpoint /api/books/add-to-family pour ajouter un livre");
+  },
+
   /**
    * Ajouter un livre à la famille de l'utilisateur connecté
    */

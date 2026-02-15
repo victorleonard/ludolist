@@ -1679,45 +1679,38 @@ export const useFamilyStore = defineStore("family", {
       }
     },
 
-    // Retirer un livre de la famille (retire le livre de la collection famille)
-    async removeBookFromFamily(bookId: number) {
+    // Supprimer un livre définitivement (DELETE)
+    async removeBookFromFamily(bookIdOrDocumentId: number | string) {
       const authStore = useAuthStore();
 
-      if (!authStore.token || !this.family) {
-        return { success: false, error: "Aucune famille trouvée" };
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
       }
 
       const config = useRuntimeConfig();
+      const identifier = String(bookIdOrDocumentId);
 
       try {
-        const currentBookIds = this.family.books?.map((b) => b.id) || [];
-        const updatedBookIds = currentBookIds.filter((id) => id !== bookId);
-
-        await $fetch<Family>(
-          `${config.public.apiUrl}/api/families/${this.family.id}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: `Bearer ${authStore.token}`,
-            },
-            body: {
-              data: {
-                books: updatedBookIds,
-              },
-            },
+        await $fetch(`${config.public.apiUrl}/api/books/${identifier}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
           },
-        );
+        });
 
         await this.fetchFamily();
         return { success: true };
       } catch (error: unknown) {
-        console.error("Erreur lors du retrait du livre de la famille:", error);
-        return {
-          success: false,
-          error:
-            (error as { data?: { error?: { message?: string } } }).data?.error
-              ?.message || "Erreur lors du retrait",
+        console.error("Erreur lors de la suppression du livre:", error);
+        const err = error as {
+          data?: { error?: { message?: string } };
+          message?: string;
         };
+        const errorMessage =
+          err?.data?.error?.message ||
+          err?.message ||
+          "Erreur lors de la suppression du livre";
+        return { success: false, error: errorMessage };
       }
     },
 
