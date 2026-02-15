@@ -6,9 +6,69 @@
   >
     <template #content>
       <div
-        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+        class="relative flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
         style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
       >
+        <!-- Indicateur d'étapes (stepper) - visible en mode formulaire manuel -->
+        <div
+          v-if="showManualForm || editingGame"
+          class="shrink-0 px-4 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"
+        >
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+            {{ stepTitle }}
+          </h2>
+          <div class="flex items-center gap-2">
+            <div
+              v-for="s in 3"
+              :key="s"
+              class="flex items-center gap-1.5 flex-1 min-w-0"
+            >
+              <button
+                type="button"
+                class="flex items-center gap-1.5 cursor-pointer group"
+                :aria-label="`Étape ${s} : ${manualFormStepLabels[s - 1]}`"
+                @click="goToStep(s)"
+              >
+                <span
+                  class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors shrink-0"
+                  :class="manualFormStep === s
+                    ? 'bg-primary-500 text-white'
+                    : manualFormStep > s
+                      ? 'bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400'
+                      : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 group-hover:bg-gray-300 dark:group-hover:bg-gray-600'"
+                >
+                  {{ manualFormStep > s ? '✓' : s }}
+                </span>
+                <span
+                  class="text-sm font-medium hidden sm:inline truncate"
+                  :class="manualFormStep === s
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : manualFormStep > s
+                      ? 'text-primary-600 dark:text-primary-400'
+                      : 'text-gray-500 dark:text-gray-400'"
+                >
+                  {{ manualFormStepLabels[s - 1] }}
+                </span>
+              </button>
+              <div
+                v-if="s < 3"
+                class="flex-1 h-0.5 min-w-4 max-w-12 rounded transition-colors shrink-0"
+                :class="manualFormStep > s ? 'bg-primary-400 dark:bg-primary-600' : 'bg-gray-200 dark:bg-gray-700'"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- En-tête simple pour le mode recherche -->
+        <div
+          v-else
+          class="shrink-0 px-4 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50"
+        >
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Rechercher un jeu
+          </h2>
+        </div>
+
         <!-- Mode recherche BGG (par défaut pour l'ajout) -->
         <div
           v-if="!editingGame && !showManualForm"
@@ -125,7 +185,7 @@
               variant="outline"
               block
               icon="i-ion-add"
-              @click="showManualForm = true"
+              @click="showManualForm = true; manualFormStep = 1"
             >
               Ajouter manuellement
             </UButton>
@@ -143,18 +203,17 @@
           </div>
         </div>
 
-        <!-- Formulaire manuel -->
+        <!-- Formulaire manuel multi-pages avec stepper -->
         <form
           v-else
           id="game-form"
-          class="space-y-5 sm:space-y-4 overflow-y-auto flex-1 overscroll-contain px-4 py-4 sm:p-4"
-          style="padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1rem));"
+          class="flex flex-col flex-1 min-h-0"
           @submit.prevent="handleSubmit"
         >
           <!-- Bouton retour à la recherche (uniquement pour l'ajout) -->
           <div
             v-if="!editingGame"
-            class="mb-4"
+            class="shrink-0 flex items-center px-4 py-3 border-b border-gray-200 dark:border-gray-700"
           >
             <UButton
               type="button"
@@ -163,235 +222,284 @@
               icon="i-ion-arrow-back"
               size="sm"
               class="min-h-[44px] sm:min-h-0"
-              @click="showManualForm = false"
+              @click="showManualForm = false; manualFormStep = 1"
             >
               Retour à la recherche
             </UButton>
           </div>
 
-          <div class="form-field">
-            <label
-              for="name"
-              class="label-mobile"
+          <!-- Slider des pages -->
+          <div class="flex-1 min-h-0 overflow-hidden">
+            <div
+              class="flex h-full transition-transform duration-300 ease-out"
+              :style="{ width: '300%', transform: `translateX(-${(manualFormStep - 1) * (100 / 3)}%)` }"
             >
-              <UIcon
-                name="i-ion-game-controller-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Titre du jeu <span class="text-red-500">*</span>
-            </label>
-            <UInput
-              id="name"
-              v-model="state.name"
-              :disabled="submitting"
-              :error="!!errors.name"
-              class="w-full input-touch"
-            />
-            <p
-              v-if="errors.name"
-              class="mt-1.5 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.name }}
-            </p>
-          </div>
-
-          <div class="form-field">
-            <label class="label-mobile mb-2">
-              <UIcon
-                name="i-ion-calendar-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Âge
-            </label>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  for="age_min"
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Âge minimum <span class="text-red-500">*</span>
-                </label>
-                <SelectWithModal
-                  id="age_min"
-                  v-model="state.age_min"
-                  :items="ageOptions"
-                  option-attribute="label"
-                  value-attribute="value"
-                  placeholder="Âge minimum"
-                  modal-title="Âge minimum"
-                  :disabled="submitting"
-                  :error="!!errors.age_min"
-                  class="w-full input-touch"
-                />
-                <p
-                  v-if="errors.age_min"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.age_min }}
+              <!-- Étape 1 : Titre du jeu -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Les informations principales du jeu.
                 </p>
+                <div class="form-field">
+                  <label
+                    for="name"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-game-controller-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Titre du jeu <span class="text-red-500">*</span>
+                  </label>
+                  <UInput
+                    id="name"
+                    v-model="state.name"
+                    :disabled="submitting"
+                    :error="!!errors.name"
+                    class="w-full input-touch"
+                  />
+                  <p
+                    v-if="errors.name"
+                    class="mt-1.5 text-sm text-red-600 dark:text-red-400"
+                  >
+                    {{ errors.name }}
+                  </p>
+                </div>
               </div>
-              <div>
-                <label
-                  for="age_max"
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Âge maximum
-                </label>
-                <SelectWithModal
-                  id="age_max"
-                  v-model="state.age_max"
-                  :items="filteredAgeMaxOptions"
-                  option-attribute="label"
-                  value-attribute="value"
-                  placeholder="Âge maximum"
-                  modal-title="Âge maximum"
-                  :disabled="submitting"
-                  :error="!!errors.age_max"
-                  class="w-full input-touch"
-                />
-                <p
-                  v-if="errors.age_max"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.age_max }}
+
+              <!-- Étape 2 : Âge, Durée, Joueurs -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Caractéristiques du jeu.
                 </p>
+                <div class="form-field">
+                  <label class="label-mobile mb-2">
+                    <UIcon
+                      name="i-ion-calendar-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Âge
+                  </label>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        for="age_min"
+                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Âge minimum <span class="text-red-500">*</span>
+                      </label>
+                      <SelectWithModal
+                        id="age_min"
+                        v-model="state.age_min"
+                        :items="ageOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Âge minimum"
+                        modal-title="Âge minimum"
+                        :disabled="submitting"
+                        :error="!!errors.age_min"
+                        class="w-full input-touch"
+                      />
+                      <p
+                        v-if="errors.age_min"
+                        class="mt-1 text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ errors.age_min }}
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        for="age_max"
+                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Âge maximum
+                      </label>
+                      <SelectWithModal
+                        id="age_max"
+                        v-model="state.age_max"
+                        :items="filteredAgeMaxOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Âge maximum"
+                        modal-title="Âge maximum"
+                        :disabled="submitting"
+                        :error="!!errors.age_max"
+                        class="w-full input-touch"
+                      />
+                      <p
+                        v-if="errors.age_max"
+                        class="mt-1 text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ errors.age_max }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label
+                    for="playing_time"
+                    class="label-mobile"
+                  >
+                    <UIcon
+                      name="i-ion-time-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Durée de jeu (min) <span class="text-red-500">*</span>
+                  </label>
+                  <UInput
+                    id="playing_time"
+                    v-model.number="state.playing_time"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="Ex: 30, 45, 60..."
+                    :disabled="submitting"
+                    :error="!!errors.playing_time"
+                    class="w-full input-touch"
+                  />
+                  <p
+                    v-if="errors.playing_time"
+                    class="mt-1 text-sm text-red-600 dark:text-red-400"
+                  >
+                    {{ errors.playing_time }}
+                  </p>
+                </div>
+
+                <div class="form-field">
+                  <label class="label-mobile mb-2">
+                    <UIcon
+                      name="i-ion-persons-outline"
+                      class="w-4 h-4 shrink-0"
+                    />
+                    Nombre de joueurs
+                  </label>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        for="player_min"
+                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Minimum <span class="text-red-500">*</span>
+                      </label>
+                      <SelectWithModal
+                        id="player_min"
+                        v-model="state.player_min"
+                        :items="playerMinOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Minimum"
+                        modal-title="Nombre minimum de joueurs"
+                        :disabled="submitting"
+                        :error="!!errors.player_min"
+                        class="w-full input-touch"
+                      />
+                      <p
+                        v-if="errors.player_min"
+                        class="mt-1 text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ errors.player_min }}
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        for="player_max"
+                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
+                      >
+                        Nombre maximum
+                      </label>
+                      <SelectWithModal
+                        id="player_max"
+                        v-model="state.player_max"
+                        :items="filteredPlayerMaxOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Maximum"
+                        modal-title="Nombre maximum de joueurs"
+                        :disabled="submitting"
+                        :error="!!errors.player_max"
+                        class="w-full input-touch"
+                      />
+                      <p
+                        v-if="errors.player_max"
+                        class="mt-1 text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ errors.player_max }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Étape 3 : Image -->
+              <div class="flex-[0_0_33.333%] overflow-y-auto overscroll-contain px-4 py-4 space-y-4">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  Couverture du jeu (optionnel).
+                </p>
+                <div>
+                  <UFileUpload
+                    v-model="imageFile"
+                    color="neutral"
+                    highlight
+                    label="Déposez votre image ici"
+                    description="SVG, PNG, JPG ou GIF (max. 2MB)"
+                    class="w-full min-h-48"
+                    :disabled="submitting"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="form-field">
-            <label
-              for="playing_time"
-              class="label-mobile"
-            >
-              <UIcon
-                name="i-ion-time-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Durée de jeu (min) <span class="text-red-500">*</span>
-            </label>
-            <UInput
-              id="playing_time"
-              v-model.number="state.playing_time"
-              type="number"
-              min="1"
-              step="1"
-              placeholder="Ex: 30, 45, 60..."
-              :disabled="submitting"
-              :error="!!errors.playing_time"
-              class="w-full input-touch"
-            />
-            <p
-              v-if="errors.playing_time"
-              class="mt-1 text-sm text-red-600 dark:text-red-400"
-            >
-              {{ errors.playing_time }}
-            </p>
-          </div>
-
-          <div class="form-field">
-            <label class="label-mobile mb-2">
-              <UIcon
-                name="i-ion-persons-outline"
-                class="w-4 h-4 shrink-0"
-              />
-              Nombre de joueurs
-            </label>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  for="player_min"
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Minimum <span class="text-red-500">*</span>
-                </label>
-                <SelectWithModal
-                  id="player_min"
-                  v-model="state.player_min"
-                  :items="playerMinOptions"
-                  option-attribute="label"
-                  value-attribute="value"
-                  placeholder="Minimum"
-                  modal-title="Nombre minimum de joueurs"
-                  :disabled="submitting"
-                  :error="!!errors.player_min"
-                  class="w-full input-touch"
-                />
-                <p
-                  v-if="errors.player_min"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.player_min }}
-                </p>
-              </div>
-              <div>
-                <label
-                  for="player_max"
-                  class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1"
-                >
-                  Nombre maximum
-                </label>
-                <SelectWithModal
-                  id="player_max"
-                  v-model="state.player_max"
-                  :items="filteredPlayerMaxOptions"
-                  option-attribute="label"
-                  value-attribute="value"
-                  placeholder="Maximum"
-                  modal-title="Nombre maximum de joueurs"
-                  :disabled="submitting"
-                  :error="!!errors.player_max"
-                  class="w-full input-touch"
-                />
-                <p
-                  v-if="errors.player_max"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.player_max }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <UFileUpload
-              v-model="imageFile"
-              color="neutral"
-              highlight
-              label="Déposez votre image ici"
-              description="SVG, PNG, JPG ou GIF (max. 2MB)"
-              class="w-full min-h-48"
-              :disabled="submitting"
-            />
           </div>
 
           <div
             v-if="submitError"
-            class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+            class="px-4 pb-2 shrink-0"
           >
-            <p class="text-sm text-red-600 dark:text-red-400">
-              {{ submitError }}
-            </p>
+            <div class="p-3.5 sm:p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p class="text-sm text-red-600 dark:text-red-400">
+                {{ submitError }}
+              </p>
+            </div>
           </div>
         </form>
 
-        <!-- Footer avec boutons d'action -->
+        <!-- Footer avec Précédent / Suivant / Enregistrer -->
         <div
           v-if="editingGame || showManualForm"
-          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 flex flex-col gap-2"
+          class="border-t border-gray-200 dark:border-gray-700 px-4 py-3 sm:p-4 shrink-0 bg-white dark:bg-gray-900 space-y-2"
           style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
         >
-          <div class="space-y-2">
-            <div
-              v-if="editingGame"
-              class="flex gap-2"
+          <div class="flex gap-3">
+            <UButton
+              v-if="manualFormStep > 1"
+              type="button"
+              color="neutral"
+              variant="outline"
+              size="lg"
+              class="min-h-[48px] sm:min-h-0"
+              :disabled="submitting || deleting"
+              @click="manualFormStep--"
             >
+              Précédent
+            </UButton>
+            <UButton
+              v-if="manualFormStep < 3"
+              type="button"
+              color="primary"
+              size="lg"
+              block
+              class="min-h-[48px] sm:min-h-0"
+              :disabled="submitting"
+              @click="goToNextStep"
+            >
+              Suivant
+            </UButton>
+            <template v-else>
               <UButton
+                v-if="editingGame"
                 color="red"
                 variant="outline"
                 icon="i-ion-trash"
                 size="lg"
-                block
                 :loading="deleting"
                 :disabled="submitting"
                 @click="handleDelete"
@@ -404,36 +512,25 @@
                 color="primary"
                 size="lg"
                 block
+                class="min-h-[48px] sm:min-h-0"
                 :loading="submitting"
                 :disabled="deleting"
               >
-                Enregistrer
+                {{ editingGame ? 'Enregistrer' : 'Ajouter' }}
               </UButton>
-            </div>
-            <UButton
-              v-else
-              type="submit"
-              form="game-form"
-              color="primary"
-              size="lg"
-              block
-              :loading="submitting"
-              :disabled="deleting"
-            >
-              Ajouter
-            </UButton>
-            <UButton
-              type="button"
-              color="neutral"
-              variant="ghost"
-              block
-              class="min-h-[48px]"
-              :disabled="submitting || deleting"
-              @click="closeModal"
-            >
-              Annuler
-            </UButton>
+            </template>
           </div>
+          <UButton
+            type="button"
+            color="neutral"
+            variant="ghost"
+            block
+            class="min-h-[48px]"
+            :disabled="submitting || deleting"
+            @click="closeModal"
+          >
+            Annuler
+          </UButton>
         </div>
       </div>
     </template>
@@ -670,6 +767,15 @@ const deleteGame = async (gameId: number, documentId?: string): Promise<void> =>
 
 const editingGame = computed(() => props.game !== null && props.game !== undefined)
 
+/** Libellés des 3 étapes du formulaire manuel */
+const manualFormStepLabels = ['Infos principales', 'Caractéristiques', 'Image']
+
+const stepTitle = computed(() =>
+  editingGame.value ? 'Modifier le jeu' : 'Saisissez les informations du jeu',
+)
+
+const manualFormStep = ref(1)
+
 const isOpen = ref(props.modelValue)
 
 watch(() => props.modelValue, (newValue) => {
@@ -700,9 +806,11 @@ watch(isOpen, async (newValue) => {
   if (!newValue) {
     resetForm()
     showManualForm.value = false
+    manualFormStep.value = 1
   } else if (newValue && editingGame.value) {
     loadGameData()
-    showManualForm.value = true // En mode édition, afficher directement le formulaire
+    showManualForm.value = true
+    manualFormStep.value = 1
     // Mettre le focus sur le champ nom après l'ouverture du modal
     await nextTick()
     focusInput('name')
@@ -1031,6 +1139,67 @@ const filteredAgeMaxOptions = computed(() => {
     option.value === null || option.value >= ageMin
   )
 })
+
+/** Valide uniquement les champs de l'étape donnée */
+const validateStep = (step: number): boolean => {
+  if (step === 1) {
+    errors.name = ''
+    if (!state.name.trim()) {
+      errors.name = 'Le titre est requis'
+      return false
+    }
+  } else if (step === 2) {
+    errors.age_min = ''
+    errors.age_max = ''
+    errors.playing_time = ''
+    errors.player_min = ''
+    errors.player_max = ''
+    let isValid = true
+    if (!state.age_min || state.age_min < 0) {
+      errors.age_min = "L'âge minimum doit être un nombre positif"
+      isValid = false
+    }
+    if (state.age_max !== null && state.age_min !== null && state.age_max < state.age_min) {
+      errors.age_max = "L'âge maximum doit être supérieur ou égal au minimum"
+      isValid = false
+    }
+    if (state.playing_time === null || state.playing_time === undefined || state.playing_time < 1) {
+      errors.playing_time = 'La durée de jeu doit être un nombre positif (en minutes)'
+      isValid = false
+    }
+    if (!state.player_min || state.player_min < 1) {
+      errors.player_min = 'Le nombre minimum de joueurs doit être au moins 1'
+      isValid = false
+    }
+    if (state.player_max !== null && state.player_max < state.player_min) {
+      errors.player_max = "Le nombre maximum doit être supérieur ou égal au minimum"
+      isValid = false
+    }
+    return isValid
+  }
+  return true
+}
+
+/** Vérifie si on peut passer à l'étape cible */
+function canGoToStep(target: number): boolean {
+  if (target <= manualFormStep.value) return true
+  for (let s = manualFormStep.value; s < target; s++) {
+    if (!validateStep(s)) return false
+  }
+  return true
+}
+
+function goToNextStep() {
+  if (validateStep(manualFormStep.value)) {
+    manualFormStep.value++
+  }
+}
+
+function goToStep(target: number) {
+  if (canGoToStep(target)) {
+    manualFormStep.value = target
+  }
+}
 
 const validateForm = (): boolean => {
   let isValid = true

@@ -28,7 +28,7 @@
                 type="button"
                 class="flex items-center gap-1.5 cursor-pointer group"
                 :aria-label="`Étape ${s} : ${manualFormStepLabels[s - 1]}`"
-                @click="manualFormStep = s"
+                @click="goToStep(s)"
               >
                 <span
                   class="flex items-center justify-center w-7 h-7 rounded-full text-xs font-semibold transition-colors shrink-0"
@@ -693,7 +693,7 @@
                 block
                 class="min-h-[48px] sm:min-h-0"
                 :disabled="submitting"
-                @click="manualFormStep++"
+                @click="goToNextStep"
               >
                 Suivant
               </UButton>
@@ -1085,6 +1085,39 @@ const validateForm = (): boolean => {
   }
 
   return true
+}
+
+/** Valide uniquement les champs de l'étape donnée */
+function validateStep(step: number): boolean {
+  if (step === 1) {
+    if (!state.title.trim()) {
+      errors.title = 'Le titre est requis'
+      return false
+    }
+    errors.title = ''
+  }
+  return true
+}
+
+/** Vérifie si on peut passer à l'étape cible */
+function canGoToStep(target: number): boolean {
+  if (target <= manualFormStep.value) return true
+  for (let s = manualFormStep.value; s < target; s++) {
+    if (!validateStep(s)) return false
+  }
+  return true
+}
+
+function goToNextStep() {
+  if (validateStep(manualFormStep.value)) {
+    manualFormStep.value++
+  }
+}
+
+function goToStep(target: number) {
+  if (canGoToStep(target)) {
+    manualFormStep.value = target
+  }
 }
 
 async function handleSubmit() {
