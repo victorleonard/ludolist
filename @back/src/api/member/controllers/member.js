@@ -75,5 +75,90 @@ module.exports = createCoreController('api::member.member', ({ strapi }) => ({
       strapi.log.error('Erreur lors de l\'authentification du membre:', error);
       return ctx.internalServerError('Erreur lors de l\'authentification');
     }
+  },
+
+  /**
+   * Récupère les paramètres d'un membre (le membre doit appartenir à la famille de l'utilisateur)
+   */
+  async getSettings(ctx) {
+    try {
+      const user = ctx.state.user;
+      if (!user) {
+        return ctx.unauthorized('Vous devez être connecté');
+      }
+
+      const { id } = ctx.params;
+      const memberId = parseInt(id, 10);
+
+      const family = await strapi.entityService.findMany('api::family.family', {
+        filters: { users_permissions_user: { id: user.id } },
+        populate: { members: true },
+        limit: 1
+      });
+
+      if (!family?.length) {
+        return ctx.notFound('Famille non trouvée');
+      }
+
+      const memberInFamily = family[0].members?.find(m => m.id === memberId);
+      if (!memberInFamily) {
+        return ctx.forbidden('Membre non trouvé dans votre famille');
+      }
+
+      const member = await strapi.entityService.findOne('api::member.member', memberId, {
+        fields: ['settings']
+      });
+      const settings = member?.settings || {};
+      return ctx.send({ data: settings });
+    } catch (error) {
+      strapi.log.error('Erreur lors de la récupération des paramètres:', error);
+      return ctx.internalServerError('Erreur serveur');
+    }
+  },
+
+  /**
+   * Met à jour les paramètres d'un membre (le membre doit appartenir à la famille de l'utilisateur)
+   */
+  async updateSettings(ctx) {
+    try {
+      const user = ctx.state.user;
+      if (!user) {
+        return ctx.unauthorized('Vous devez être connecté');
+      }
+
+      const { id } = ctx.params;
+      const memberId = parseInt(id, 10);
+      const body = ctx.request.body || {};
+
+      const family = await strapi.entityService.findMany('api::family.family', {
+        filters: { users_permissions_user: { id: user.id } },
+        populate: { members: true },
+        limit: 1
+      });
+
+      if (!family?.length) {
+        return ctx.notFound('Famille non trouvée');
+      }
+
+      const memberInFamily = family[0].members?.find(m => m.id === memberId);
+      if (!memberInFamily) {
+        return ctx.forbidden('Membre non trouvé dans votre famille');
+      }
+
+      const currentMember = await strapi.entityService.findOne('api::member.member', memberId, {
+        fields: ['settings']
+      });
+      const currentSettings = currentMember?.settings || {};
+      const mergedSettings = { ...currentSettings, ...body };
+
+      const updated = await strapi.entityService.update('api::member.member', memberId, {
+        data: { settings: mergedSettings }
+      });
+
+      return ctx.send({ data: updated.settings || {} });
+    } catch (error) {
+      strapi.log.error('Erreur lors de la mise à jour des paramètres:', error);
+      return ctx.internalServerError('Erreur serveur');
+    }
   }
 }));

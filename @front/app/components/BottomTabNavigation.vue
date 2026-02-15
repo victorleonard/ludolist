@@ -112,10 +112,18 @@ import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const bottomNavStore = useBottomNavStore()
+const memberStore = useMemberStore()
 
 onMounted(() => {
   bottomNavStore.loadFromStorage()
 })
+
+watch(
+  () => memberStore.currentMember?.id ?? 'family',
+  () => {
+    bottomNavStore.loadFromStorage()
+  }
+)
 
 const { mainItems, moreItems } = storeToRefs(bottomNavStore)
 

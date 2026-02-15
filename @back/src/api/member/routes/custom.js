@@ -15,5 +15,23 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'GET',
+      path: '/members/:id/settings',
+      handler: 'member.getSettings',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
+      path: '/members/:id/settings',
+      handler: 'member.updateSettings',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
