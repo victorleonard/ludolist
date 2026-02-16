@@ -1021,6 +1021,9 @@ const loadingCovers = ref(false)
 const coverModalError = ref<string | null>(null)
 const coverSaving = ref(false)
 
+const runtimeConfig = useRuntimeConfig()
+const googleBooksApiKey = (runtimeConfig.public.googleBooksApiKey as string) || ''
+
 const isChangeOwnerModalOpen = ref(false)
 const selectedNewOwnerId = ref<number | null>(null)
 const changingOwner = ref(false)
@@ -1222,12 +1225,13 @@ async function loadCoverSuggestions() {
     // Appel à Google Books API
     const res = await $fetch<{ items?: GoogleBooksVolume[], totalItems?: number }>(
       `https://www.googleapis.com/books/v1/volumes`,
-      { 
-        params: { 
+      {
+        params: {
           q: searchQuery,
           maxResults: 20,
-          printType: 'books'
-        } 
+          printType: 'books',
+          ...(googleBooksApiKey && { key: googleBooksApiKey })
+        }
       }
     )
     

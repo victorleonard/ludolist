@@ -921,6 +921,9 @@ const manualCoverSuggestions = ref<Array<{ url: string, displayUrl: string, labe
 const loadingManualCovers = ref(false)
 const manualCoverError = ref<string | null>(null)
 
+const runtimeConfig = useRuntimeConfig()
+const googleBooksApiKey = (runtimeConfig.public.googleBooksApiKey as string) || ''
+
 interface GoogleBooksBook {
   id: string
   volumeInfo: {
@@ -992,7 +995,8 @@ const searchBooks = async () => {
           q: searchQuery.value.trim(),
           maxResults: 20,
           printType: 'books',
-          langRestrict: 'fr'
+          langRestrict: 'fr',
+          ...(googleBooksApiKey && { key: googleBooksApiKey })
         }
       }
     )
@@ -1231,7 +1235,8 @@ async function searchCoverForBook(title: string, author?: string, isbn?: string)
           q: searchQuery,
           maxResults: 1,
           printType: 'books',
-          langRestrict: 'fr'
+          langRestrict: 'fr',
+          ...(googleBooksApiKey && { key: googleBooksApiKey })
         }
       }
     )
@@ -1290,7 +1295,14 @@ async function loadManualCoverSuggestions() {
   try {
     const res = await $fetch<{ items?: GoogleBooksBook[], totalItems?: number }>(
       'https://www.googleapis.com/books/v1/volumes',
-      { params: { q: searchQuery, maxResults: 20, printType: 'books' } }
+      {
+        params: {
+          q: searchQuery,
+          maxResults: 20,
+          printType: 'books',
+          ...(googleBooksApiKey && { key: googleBooksApiKey })
+        }
+      }
     )
     const items = res?.items ?? []
     const seen = new Set<string>()

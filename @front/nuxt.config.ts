@@ -26,7 +26,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:1337'
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:1337',
+      googleBooksApiKey: process.env.NUXT_PUBLIC_GOOGLE_BOOKS_API_KEY || ''
     }
   },
 
