@@ -53,6 +53,12 @@
       "target": "api::book.book",
       "mappedBy": "added_by",
       "description": "Livres ajoutés à la collection par ce membre"
+    },
+    "list_access": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::list.list",
+      "mappedBy": "allowed_members"
     }
   }
 }

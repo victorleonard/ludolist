@@ -42,6 +42,11 @@ const isDishPage = computed(() => {
   return route.path.startsWith('/plat/') && route.params.id && route.path !== '/plats/'
 })
 
+// Détecter si on est sur une page détail liste
+const isListDetailPage = computed(() => {
+  return route.path.startsWith('/listes/') && route.path !== '/listes'
+})
+
 // Fonction pour gérer le retour depuis une page de jeu
 const handleBackFromGame = () => {
   // Essayer de déterminer d'où on vient via le referrer
@@ -77,6 +82,11 @@ const handleBackFromGame = () => {
 const handleBackFromBook = () => {
   // Toujours rediriger vers la liste des livres
   navigateTo('/livres/')
+}
+
+// Fonction pour gérer le retour depuis une page liste
+const handleBackFromList = () => {
+  navigateTo('/listes')
 }
 
 // Fonction pour gérer le retour depuis une page de plat
@@ -137,9 +147,9 @@ const menuItems = [
     to: '/taches/'
   },
   {
-    label: 'Courses',
-    icon: 'i-ion-cart',
-    to: '/courses'
+    label: 'Listes',
+    icon: 'i-ion-list',
+    to: '/listes'
   },
   {
     label: 'Abonnements',
@@ -304,6 +314,16 @@ const handleMemberLogout = () => {
             aria-label="Retour"
             class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
             @click="handleBackFromDish"
+          />
+          <UButton
+            v-else-if="isListDetailPage"
+            variant="ghost"
+            color="neutral"
+            size="lg"
+            icon="i-ion-chevron-back"
+            aria-label="Retour"
+            class="w-11 h-11 min-w-11 [&_svg]:w-10 [&_svg]:h-10 -ml-1"
+            @click="handleBackFromList"
           />
           <UButton
             v-else

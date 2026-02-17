@@ -667,6 +667,7 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
       'oneToMany',
       'api::grocery-item.grocery-item'
     >;
+    lists: Schema.Attribute.Relation<'oneToMany', 'api::list.list'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -808,6 +809,72 @@ export interface ApiGroceryItemGroceryItem extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiListItemListItem extends Struct.CollectionTypeSchema {
+  collectionName: 'list_items';
+  info: {
+    displayName: 'List Item';
+    pluralName: 'list-items';
+    singularName: 'list-item';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    created_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'> &
+      Schema.Attribute.Required;
+    is_checked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
+    list: Schema.Attribute.Relation<'manyToOne', 'api::list.list'> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::list-item.list-item'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiListList extends Struct.CollectionTypeSchema {
+  collectionName: 'lists';
+  info: {
+    displayName: 'List';
+    pluralName: 'lists';
+    singularName: 'list';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    allowed_members: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::member.member'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'> &
+      Schema.Attribute.Required;
+    items: Schema.Attribute.Relation<'oneToMany', 'api::list-item.list-item'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::list.list'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiMemberMember extends Struct.CollectionTypeSchema {
   collectionName: 'members';
   info: {
@@ -836,6 +903,7 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    list_access: Schema.Attribute.Relation<'manyToMany', 'api::list.list'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1567,6 +1635,8 @@ declare module '@strapi/strapi' {
       'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;
       'api::grocery-item.grocery-item': ApiGroceryItemGroceryItem;
+      'api::list-item.list-item': ApiListItemListItem;
+      'api::list.list': ApiListList;
       'api::member.member': ApiMemberMember;
       'api::player-score.player-score': ApiPlayerScorePlayerScore;
       'api::rating.rating': ApiRatingRating;

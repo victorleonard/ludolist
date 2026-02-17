@@ -24,7 +24,7 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'livres', label: 'Livres', icon: 'i-ion-book', to: '/livres/' },
   { id: 'plats', label: 'Plats', icon: 'i-ion-restaurant', to: '/plats/' },
   { id: 'taches', label: 'Tâches', icon: 'i-ion-checkmark-circle', to: '/taches/' },
-  { id: 'courses', label: 'Courses', icon: 'i-ion-cart', to: '/courses' },
+  { id: 'listes', label: 'Listes', icon: 'i-ion-list', to: '/listes' },
   { id: 'abonnements', label: 'Abonnements', icon: 'i-ion-card', to: '/abonnements/' }
 ]
 

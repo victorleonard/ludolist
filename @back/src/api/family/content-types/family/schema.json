@@ -72,6 +72,12 @@
       "relation": "oneToMany",
       "target": "api::subscription.subscription",
       "mappedBy": "family"
+    },
+    "lists": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list.list",
+      "mappedBy": "family"
     }
   }
 }

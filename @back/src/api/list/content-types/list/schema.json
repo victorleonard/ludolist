@@ -1,0 +1,39 @@
+{
+  "kind": "collectionType",
+  "collectionName": "lists",
+  "info": {
+    "singularName": "list",
+    "pluralName": "lists",
+    "displayName": "List"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family",
+      "inversedBy": "lists",
+      "required": true
+    },
+    "allowed_members": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::member.member",
+      "inversedBy": "list_access",
+      "description": "Membres ayant accès à la liste. Vide = toute la famille."
+    },
+    "items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list-item.list-item",
+      "mappedBy": "list"
+    }
+  }
+}
