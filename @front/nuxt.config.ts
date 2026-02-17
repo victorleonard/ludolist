@@ -34,7 +34,10 @@ export default defineNuxtConfig({
   routeRules: {
     // Désactiver le SSR pour éviter les problèmes d'hydratation
     // La page sera rendue uniquement côté client
-    '/': { ssr: false }
+    '/': { ssr: false },
+    // Ancienne route liste de courses → listes
+    '/courses': { redirect: '/listes' },
+    '/courses/**': { redirect: '/listes' }
   },
 
   compatibilityDate: '2025-01-15',

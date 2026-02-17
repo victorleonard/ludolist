@@ -158,20 +158,6 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
                     }
                   }
                 },
-                shopping_list: {
-                  populate: {
-                    items: {
-                      populate: {
-                        created_by: true
-                      }
-                    }
-                  }
-                },
-                grocery_items: {
-                  populate: {
-                    created_by: true
-                  }
-                },
                 tasks: {
                   populate: {
                     created_by: true,

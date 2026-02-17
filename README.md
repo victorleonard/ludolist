@@ -34,7 +34,7 @@ Prochainement disponible :
 
 L'application est conçue pour accueillir d'autres modules selon les besoins de la famille :
 
-- Liste de courses partagée
+- Listes partagées (courses, vacances, etc.)
 - Calendrier familial
 - Budget et dépenses communes
 - Bibliothèque (livres, films, séries)

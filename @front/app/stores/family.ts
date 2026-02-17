@@ -221,30 +221,6 @@ export interface TransformedDish {
   createdAt: string;
 }
 
-export interface GroceryItem {
-  id: number;
-  documentId?: string;
-  name: string;
-  is_checked: boolean;
-  family?: number;
-  created_by?: {
-    id: number;
-    username: string;
-  } | null;
-  shopping_list?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface ShoppingList {
-  id: number;
-  documentId?: string;
-  family?: number;
-  items?: GroceryItem[];
-  createdAt?: string;
-  updatedAt?: string;
-}
-
 interface StrapiTask {
   id: number;
   documentId?: string;
@@ -281,8 +257,6 @@ interface Family {
   games?: StrapiGame[];
   books?: StrapiBook[];
   dishes?: StrapiDish[];
-  shopping_list?: ShoppingList;
-  grocery_items?: GroceryItem[];
   tasks?: StrapiTask[];
 }
 
@@ -301,11 +275,6 @@ export const useFamilyStore = defineStore("family", {
     familyBooksCount: (state) => state.family?.books?.length || 0,
     familyDishes: (state) => state.family?.dishes || [],
     familyDishesCount: (state) => state.family?.dishes?.length || 0,
-    familyShoppingList: (state) => state.family?.shopping_list || null,
-    familyGroceryItems: (state) => state.family?.grocery_items || [],
-    familyGroceryItemsCount: (state) => state.family?.grocery_items?.length || 0,
-    uncheckedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => !item.is_checked),
-    checkedGroceryItems: (state) => (state.family?.grocery_items || []).filter((item) => item.is_checked),
     familyTasks: (state) => state.family?.tasks || [],
     familyTasksCount: (state) => state.family?.tasks?.length || 0,
     completedTasks: (state) => (state.family?.tasks || []).filter((task) => task.is_completed),
@@ -314,7 +283,6 @@ export const useFamilyStore = defineStore("family", {
     hasFamilyGames: (state) => (state.family?.games?.length || 0) > 0,
     hasFamilyBooks: (state) => (state.family?.books?.length || 0) > 0,
     hasFamilyDishes: (state) => (state.family?.dishes?.length || 0) > 0,
-    hasGroceryItems: (state) => (state.family?.grocery_items?.length || 0) > 0,
     hasTasks: (state) => (state.family?.tasks?.length || 0) > 0,
 
     // Getter pour les jeux transformés

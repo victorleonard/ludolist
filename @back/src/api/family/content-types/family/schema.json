@@ -49,18 +49,6 @@
       "target": "api::dish.dish",
       "mappedBy": "family"
     },
-    "shopping_list": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::shopping-list.shopping-list",
-      "mappedBy": "family"
-    },
-    "grocery_items": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::grocery-item.grocery-item",
-      "mappedBy": "family"
-    },
     "tasks": {
       "type": "relation",
       "relation": "oneToMany",
