@@ -30,19 +30,41 @@
         <template v-else>
           <div :key="`list-${documentId}-member-${currentMemberId}`">
             <div class="mb-6 sm:mb-8">
-            <div class="flex items-center gap-2 flex-wrap">
-              <h1 class="text-xl sm:text-2xl font-bold">
-                {{ list.name }}
-              </h1>
-              <button
-                type="button"
-                class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors"
-                title="Modifier les accès"
-                @click="openAccessDrawer"
-              >
-                {{ listAccessLabel(list) }}
-                <UIcon name="i-ion-create" class="w-3 h-3" />
-              </button>
+            <div class="flex items-center gap-3 w-full">
+              <div class="flex items-center gap-2 flex-wrap min-w-0 flex-1">
+                <h1 class="text-xl sm:text-2xl font-bold truncate">
+                  {{ list.name }}
+                </h1>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-colors shrink-0"
+                  title="Modifier les accès"
+                  @click="openAccessDrawer"
+                >
+                  {{ listAccessLabel(list) }}
+                  <UIcon name="i-ion-create" class="w-3 h-3" />
+                </button>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  size="sm"
+                  icon="i-ion-create-outline"
+                  aria-label="Renommer la liste"
+                  class="w-9 h-9 min-w-9 min-h-9"
+                  @click="openRenameDrawer"
+                />
+                <UButton
+                  variant="ghost"
+                  color="error"
+                  size="sm"
+                  icon="i-ion-trash-outline"
+                  aria-label="Supprimer la liste"
+                  class="w-9 h-9 min-w-9 min-h-9"
+                  @click="deleteError = null; isDeleteModalOpen = true"
+                />
+              </div>
             </div>
             </div>
 
@@ -237,6 +259,114 @@
         </div>
       </template>
     </UDrawer>
+
+    <!-- Drawer Renommer la liste -->
+    <UDrawer
+      :open="isRenameDrawerOpen"
+      direction="bottom"
+      @update:open="(v) => { isRenameDrawerOpen = v }"
+    >
+      <template #content>
+        <div
+          class="relative flex flex-col max-h-[50dvh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
+          style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
+        >
+          <div class="shrink-0 px-4 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Renommer la liste
+            </h2>
+          </div>
+          <form
+            class="flex flex-col flex-1 min-h-0 p-4"
+            @submit.prevent="handleRename"
+          >
+            <label
+              for="rename-list-name"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Nom de la liste
+            </label>
+            <input
+              id="rename-list-name"
+              v-model="renameName"
+              type="text"
+              autocomplete="off"
+              placeholder="Ex. Courses, Vacances…"
+              :disabled="savingRename"
+              class="flex-1 min-h-[44px] w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            />
+            <p
+              v-if="renameError"
+              class="mt-2 text-sm text-red-500"
+            >
+              {{ renameError }}
+            </p>
+            <div class="flex gap-3 mt-4">
+              <UButton
+                type="button"
+                color="neutral"
+                variant="ghost"
+                class="flex-1"
+                :disabled="savingRename"
+                @click="isRenameDrawerOpen = false"
+              >
+                Annuler
+              </UButton>
+              <UButton
+                type="submit"
+                color="primary"
+                class="flex-1"
+                :loading="savingRename"
+                :disabled="!renameName.trim()"
+              >
+                Enregistrer
+              </UButton>
+            </div>
+          </form>
+        </div>
+      </template>
+    </UDrawer>
+
+    <!-- Modal confirmation suppression -->
+    <UModal
+      :open="isDeleteModalOpen"
+      :ui="{ width: 'max-w-sm' }"
+      @update:open="(v) => { isDeleteModalOpen = v; if (!v) deleteError = null }"
+    >
+      <template #content>
+        <div class="p-4 sm:p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Supprimer cette liste ?
+          </h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Tous les éléments seront supprimés. Cette action est irréversible.
+          </p>
+          <p
+            v-if="deleteError"
+            class="text-sm text-red-500 mb-4"
+          >
+            {{ deleteError }}
+          </p>
+          <div class="flex gap-3 justify-end">
+            <UButton
+              color="neutral"
+              variant="ghost"
+              :disabled="deleting"
+              @click="isDeleteModalOpen = false"
+            >
+              Annuler
+            </UButton>
+            <UButton
+              color="error"
+              :loading="deleting"
+              @click="handleDeleteList"
+            >
+              Supprimer
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -255,7 +385,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { fetchList, updateList } = useLists()
+const { fetchList, updateList, deleteList } = useLists()
 const memberStore = useMemberStore()
 const familyStore = useFamilyStore()
 const { currentMember } = storeToRefs(memberStore)
@@ -270,6 +400,15 @@ const isAccessDrawerOpen = ref(false)
 const selectedMemberIds = ref<number[]>([])
 const savingAccess = ref(false)
 const accessError = ref<string | null>(null)
+
+const isRenameDrawerOpen = ref(false)
+const renameName = ref('')
+const renameError = ref<string | null>(null)
+const savingRename = ref(false)
+
+const isDeleteModalOpen = ref(false)
+const deleting = ref(false)
+const deleteError = ref<string | null>(null)
 
 const documentId = computed(() => route.params.documentId as string)
 
@@ -344,6 +483,46 @@ function openAccessDrawer() {
   }
   accessError.value = null
   isAccessDrawerOpen.value = true
+}
+
+function openRenameDrawer() {
+  if (!list.value) return
+  renameName.value = list.value.name
+  renameError.value = null
+  isRenameDrawerOpen.value = true
+}
+
+async function handleRename() {
+  if (!list.value || savingRename.value || !renameName.value.trim()) return
+  savingRename.value = true
+  renameError.value = null
+  try {
+    const result = await updateList(list.value.documentId, renameName.value.trim())
+    if (result.success && result.data) {
+      list.value = result.data
+      isRenameDrawerOpen.value = false
+    } else {
+      renameError.value = result.error ?? 'Erreur lors de l\'enregistrement'
+    }
+  } finally {
+    savingRename.value = false
+  }
+}
+
+async function handleDeleteList() {
+  if (!list.value || deleting.value) return
+  deleting.value = true
+  try {
+    const result = await deleteList(list.value.documentId, currentMember.value?.id ?? null)
+    if (result.success) {
+      isDeleteModalOpen.value = false
+      await navigateTo('/listes')
+    } else {
+      deleteError.value = result.error ?? 'Erreur lors de la suppression'
+    }
+  } finally {
+    deleting.value = false
+  }
 }
 
 function getAllowedMemberIdsForUpdate(): number[] {
