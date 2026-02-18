@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "random_pick_results",
+  "info": {
+    "singularName": "random-pick-result",
+    "pluralName": "random-pick-results",
+    "displayName": "Random Pick Result"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family",
+      "required": true
+    },
+    "winner": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member",
+      "required": true
+    },
+    "drawn_at": {
+      "type": "datetime",
+      "required": true
+    },
+    "label": {
+      "type": "string"
+    },
+    "participant_document_ids": {
+      "type": "json",
+      "description": "Array of member documentIds who were in the draw"
+    }
+  }
+}

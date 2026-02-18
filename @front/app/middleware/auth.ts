@@ -10,7 +10,8 @@ const PAGE_PATH_PREFIXES: Array<{ prefix: string; pageId: string }> = [
   { prefix: '/plat', pageId: 'plats' },
   { prefix: '/taches', pageId: 'taches' },
   { prefix: '/listes', pageId: 'listes' },
-  { prefix: '/abonnements', pageId: 'abonnements' }
+  { prefix: '/abonnements', pageId: 'abonnements' },
+  { prefix: '/tirage', pageId: 'tirage' }
 ]
 
 function getPageIdFromPath(path: string): string | null {

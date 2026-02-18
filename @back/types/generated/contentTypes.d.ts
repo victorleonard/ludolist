@@ -921,6 +921,41 @@ export interface ApiPlayerScorePlayerScore extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiRandomPickResultRandomPickResult
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'random_pick_results';
+  info: {
+    displayName: 'Random Pick Result';
+    pluralName: 'random-pick-results';
+    singularName: 'random-pick-result';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    drawn_at: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'> &
+      Schema.Attribute.Required;
+    label: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::random-pick-result.random-pick-result'
+    > &
+      Schema.Attribute.Private;
+    participant_document_ids: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    winner: Schema.Attribute.Relation<'manyToOne', 'api::member.member'> &
+      Schema.Attribute.Required;
+  };
+}
+
 export interface ApiRatingRating extends Struct.CollectionTypeSchema {
   collectionName: 'ratings';
   info: {
@@ -1565,6 +1600,7 @@ declare module '@strapi/strapi' {
       'api::list.list': ApiListList;
       'api::member.member': ApiMemberMember;
       'api::player-score.player-score': ApiPlayerScorePlayerScore;
+      'api::random-pick-result.random-pick-result': ApiRandomPickResultRandomPickResult;
       'api::rating.rating': ApiRatingRating;
       'api::subscription.subscription': ApiSubscriptionSubscription;
       'api::task.task': ApiTaskTask;
