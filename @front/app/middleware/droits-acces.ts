@@ -1,6 +1,6 @@
 /**
  * Middleware pour la page Droits d'accès.
- * Réservé aux membres admin connectés. En mode famille (pas de membre connecté), redirection vers home.
+ * Réservé aux membres admin connectés. Sans membre connecté, redirection vers home.
  */
 export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path !== '/parametres/droits-acces') {

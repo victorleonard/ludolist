@@ -80,6 +80,11 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/')
   }
 
+  // Sans membre connecté, seul l'accueil est autorisé (pour choisir un membre)
+  if (authStore.isAuthenticated && !memberStore.isMemberConnected && to.path !== '/' && to.path !== '/login' && to.path !== '/member-login') {
+    return navigateTo('/')
+  }
+
   // Droits d'accès par page : si un membre est connecté, vérifier qu'il a accès à la page
   if (memberStore.isMemberConnected && memberStore.currentMember) {
     const pageId = getPageIdFromPath(to.path)

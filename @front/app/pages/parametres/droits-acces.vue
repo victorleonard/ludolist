@@ -74,31 +74,6 @@
             Enregistrer les droits d'accès
           </UButton>
         </section>
-
-        <!-- Administrateurs (visible uniquement pour le compte utilisateur) -->
-        <section v-if="isUserOwner" class="mb-8">
-          <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-            Administrateurs
-          </h2>
-          <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
-            Les administrateurs peuvent gérer les droits d'accès depuis cette page (en se connectant en tant que membre).
-          </p>
-          <div class="space-y-1 rounded-xl bg-gray-100 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 p-4">
-            <label
-              v-for="member in familyMembers"
-              :key="member.id"
-              class="flex items-center gap-4 py-3 px-2 min-h-[52px] rounded-lg cursor-pointer hover:bg-gray-200/60 dark:hover:bg-gray-700/40 touch-manipulation"
-            >
-              <input
-                v-model="localAdminByMemberId[member.id]"
-                type="checkbox"
-                class="w-6 h-6 rounded border-2 border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-2 focus:ring-primary-500 shrink-0"
-                @change="onAdminChangeFromEvent(member.id, $event)"
-              >
-              <span class="text-base font-medium text-gray-700 dark:text-gray-300">{{ member.username }}</span>
-            </label>
-          </div>
-        </section>
       </div>
     </UContainer>
   </div>
@@ -127,16 +102,13 @@ const pagesToManage = ALL_NAV_ITEMS.filter((p) => p.id !== 'home')
 
 const canManage = computed(() => {
   if (!isAuthenticated.value) return false
-  if (!isMemberConnected.value) return true
+  if (!isMemberConnected.value) return false
   const m = familyMembers.value.find((x) => x.id === currentMember.value?.id)
   return m?.is_admin === true
 })
 
-const isUserOwner = computed(() => isAuthenticated.value && !isMemberConnected.value)
-
 const accessGranted = ref(false)
 const localPageAccess = ref<Record<string, number[]>>({})
-const localAdminByMemberId = ref<Record<number, boolean>>({})
 const savingAccess = ref(false)
 
 function buildLocalPageAccess() {
@@ -173,14 +145,6 @@ function togglePageAccess(pageId: string, memberId: number, checked: boolean) {
   }
 }
 
-function buildLocalAdmin() {
-  const out: Record<number, boolean> = {}
-  for (const m of familyMembers.value) {
-    out[m.id] = m.is_admin === true
-  }
-  localAdminByMemberId.value = out
-}
-
 onMounted(async () => {
   if (!family.value?.members?.length) {
     await familyStore.fetchFamily()
@@ -191,12 +155,10 @@ onMounted(async () => {
   }
   accessGranted.value = true
   buildLocalPageAccess()
-  buildLocalAdmin()
 })
 
 watch([family, familyMembers], () => {
   buildLocalPageAccess()
-  buildLocalAdmin()
 }, { deep: true })
 
 watch(
@@ -242,29 +204,5 @@ function onPageAccessChange(pageId: string, memberId: number, e: Event) {
   if (isCurrentMember(memberId)) return
   const target = e?.target as HTMLInputElement | null
   togglePageAccess(pageId, memberId, !!target?.checked)
-}
-
-async function onAdminChange(memberId: number, is_admin: boolean) {
-  localAdminByMemberId.value[memberId] = is_admin
-  const result = await familyStore.setMemberAdmin(memberId, is_admin)
-  if (result.success) {
-    toast.add({
-      title: 'Enregistré',
-      description: is_admin ? 'Membre défini comme administrateur.' : 'Statut administrateur retiré.',
-      color: 'success'
-    })
-  } else {
-    localAdminByMemberId.value[memberId] = !is_admin
-    toast.add({
-      title: 'Erreur',
-      description: result.error || 'Impossible de modifier le statut.',
-      color: 'error'
-    })
-  }
-}
-
-function onAdminChangeFromEvent(memberId: number, e: Event) {
-  const target = e?.target as HTMLInputElement | null
-  onAdminChange(memberId, !!target?.checked)
 }
 </script>

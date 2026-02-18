@@ -157,6 +157,16 @@ const openMemberDrawer = async () => {
   isMemberDrawerOpen.value = true
 }
 
+watch(
+  () => [route.path, isMemberConnected.value, authStore.isAuthenticated],
+  ([path, connected]) => {
+    if (import.meta.client && path === '/' && !connected && authStore.isAuthenticated) {
+      openMemberDrawer()
+    }
+  },
+  { immediate: true }
+)
+
 const closeMemberDrawer = () => {
   isMemberDrawerOpen.value = false
   memberForCode.value = null
@@ -334,31 +344,6 @@ const handleMemberLogout = () => {
                 size="xs"
                 show-ring
               />
-            </UButton>
-            <!-- Mode famille : afficher tous les avatars en superposition -->
-            <UButton
-              v-else-if="!isMemberConnected && familyMembers && familyMembers.length > 0"
-              color="neutral"
-              variant="ghost"
-              class="p-0 min-w-0 hover:opacity-90 transition-opacity bg-transparent hover:bg-transparent"
-              aria-label="Mode famille — Choisir un membre"
-              @click="openMemberDrawer"
-            >
-              <div class="flex items-center">
-                <div
-                  v-for="(member, index) in familyMembers.slice(0, 4)"
-                  :key="member.id"
-                  class="relative"
-                  :class="index > 0 ? '-ml-4' : ''"
-                  :style="{ zIndex: 10 - index }"
-                >
-                  <MemberAvatar
-                    :member="member"
-                    size="xs"
-                    :class="index > 0 ? 'ring-2 ring-white dark:ring-gray-900' : ''"
-                  />
-                </div>
-              </div>
             </UButton>
             <UButton
               v-else
