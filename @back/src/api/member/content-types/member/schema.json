@@ -59,6 +59,11 @@
       "relation": "manyToMany",
       "target": "api::list.list",
       "mappedBy": "allowed_members"
+    },
+    "is_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Membre administrateur (peut gérer les droits d'accès par page)"
     }
   }
 }

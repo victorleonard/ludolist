@@ -15,5 +15,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'PUT',
+      path: '/families/me/page-access',
+      handler: 'family.updatePageAccess',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

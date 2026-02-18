@@ -30,5 +30,9 @@ export default defineNuxtPlugin(() => {
 
     // Charger le membre depuis le localStorage
     memberStore.loadMember()
+    if (memberStore.isMemberConnected) {
+      const familyStore = useFamilyStore()
+      familyStore.fetchFamily()
+    }
   }
 })

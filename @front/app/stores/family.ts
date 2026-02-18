@@ -5,6 +5,7 @@ export interface Member {
   username: string;
   birthdate?: string;
   avatar?: string;
+  is_admin?: boolean;
 }
 
 export interface Rating {
@@ -258,6 +259,7 @@ interface Family {
   books?: StrapiBook[];
   dishes?: StrapiDish[];
   tasks?: StrapiTask[];
+  page_access?: Record<string, number[]>;
 }
 
 export const useFamilyStore = defineStore("family", {
@@ -683,6 +685,74 @@ export const useFamilyStore = defineStore("family", {
           error:
             (error as { data?: { error?: { message?: string } } }).data?.error
               ?.message || "Erreur lors de la mise à jour",
+        };
+      }
+    },
+
+    async updatePageAccess(page_access: Record<string, number[]>) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        const response = await $fetch<{ data: Family }>(
+          `${config.public.apiUrl}/api/families/me/page-access`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+              "Content-Type": "application/json",
+            },
+            body: { data: { page_access } },
+          },
+        );
+
+        const updated = response.data;
+        if (this.family && updated) {
+          this.saveFamily({ ...this.family, page_access: updated.page_access ?? this.family.page_access });
+        }
+        return { success: true, data: updated };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la mise à jour des droits d'accès:", error);
+        const err = error as { data?: { error?: { message?: string } }; message?: string };
+        return {
+          success: false,
+          error: err?.data?.error?.message || err?.message || "Erreur lors de la mise à jour",
+        };
+      }
+    },
+
+    async setMemberAdmin(memberId: number, is_admin: boolean) {
+      const authStore = useAuthStore();
+
+      if (!authStore.token) {
+        return { success: false, error: "Non authentifié" };
+      }
+
+      const config = useRuntimeConfig();
+
+      try {
+        await $fetch(`${config.public.apiUrl}/api/members/${memberId}/admin`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+            "Content-Type": "application/json",
+          },
+          body: { data: { is_admin } },
+        });
+
+        await this.fetchFamily();
+        return { success: true };
+      } catch (error: unknown) {
+        console.error("Erreur lors de la mise à jour du statut admin:", error);
+        const err = error as { data?: { error?: { message?: string } }; message?: string };
+        return {
+          success: false,
+          error: err?.data?.error?.message || err?.message || "Erreur lors de la mise à jour",
         };
       }
     },

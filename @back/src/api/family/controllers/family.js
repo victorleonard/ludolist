@@ -178,5 +178,59 @@ module.exports = createCoreController('api::family.family', ({ strapi }) => ({
     } catch (err) {
       ctx.throw(500, err);
     }
-  }
+  },
+
+  /**
+   * Met à jour les droits d'accès par page (réservé au propriétaire de la famille).
+   * Body: { page_access: { "jeux": [1, 2], "livres": [1], ... } }
+   */
+  async updatePageAccess(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté');
+    }
+
+    const families = await strapi.documents('api::family.family').findMany({
+      filters: { users_permissions_user: { id: user.id } },
+      populate: { members: { fields: ['id'] } },
+    });
+    const family = Array.isArray(families) ? families[0] : null;
+
+    if (!family) {
+      return ctx.notFound('Famille non trouvée');
+    }
+
+    const memberIds = new Set((family.members || []).map((m) => m.id));
+
+    const body = ctx.request.body?.data ?? ctx.request.body;
+    const pageAccess = body?.page_access;
+
+    if (pageAccess !== undefined && pageAccess !== null) {
+      if (typeof pageAccess !== 'object' || Array.isArray(pageAccess)) {
+        return ctx.badRequest('page_access doit être un objet');
+      }
+      for (const pageId of Object.keys(pageAccess)) {
+        const ids = pageAccess[pageId];
+        if (!Array.isArray(ids)) {
+          return ctx.badRequest(`page_access.${pageId} doit être un tableau`);
+        }
+        for (const id of ids) {
+          if (!memberIds.has(Number(id))) {
+            return ctx.badRequest(
+              `L'ID membre ${id} pour la page "${pageId}" n'appartient pas à votre famille`
+            );
+          }
+        }
+      }
+    }
+
+    const docId = family.documentId || String(family.id);
+
+    const updated = await strapi.documents('api::family.family').update({
+      documentId: docId,
+      data: { page_access: pageAccess ?? family.page_access ?? null },
+    });
+
+    return ctx.send({ data: updated });
+  },
 }));

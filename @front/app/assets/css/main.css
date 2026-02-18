@@ -105,9 +105,9 @@ header [data-slot="right"] button[aria-label*="Menu"] {
   display: none !important;
 }
 
-/* Fond blanc / thèmes — conservez vos règles existantes */
+/* Même couleur de fond que .page-container / main-content pour supprimer l’écart visuel header ↔ contenu */
 body {
-  background-color: #ffffff;
+  background-color: #f9fafb;
   /* Ne pas appliquer padding-top global sur body (génère transparence derrière notch) */
   /* Empêcher le zoom tactile (double-tap) sur PWA */
   touch-action: manipulation;

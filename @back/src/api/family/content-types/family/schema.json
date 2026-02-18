@@ -66,6 +66,10 @@
       "relation": "oneToMany",
       "target": "api::list.list",
       "mappedBy": "family"
+    },
+    "page_access": {
+      "type": "json",
+      "description": "Droits d'accès par page (clé = id page, valeur = liste d'IDs membres). Vide ou absent = tous ont accès."
     }
   }
 }

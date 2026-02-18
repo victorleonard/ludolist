@@ -33,5 +33,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'PATCH',
+      path: '/members/:id/admin',
+      handler: 'member.setMemberAdmin',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

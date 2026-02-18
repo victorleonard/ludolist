@@ -672,6 +672,7 @@ export interface ApiFamilyFamily extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     members: Schema.Attribute.Relation<'oneToMany', 'api::member.member'>;
     name: Schema.Attribute.String;
+    page_access: Schema.Attribute.JSON;
     publishedAt: Schema.Attribute.DateTime;
     subscriptions: Schema.Attribute.Relation<
       'oneToMany',
@@ -861,6 +862,7 @@ export interface ApiMemberMember extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    is_admin: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     list_access: Schema.Attribute.Relation<'manyToMany', 'api::list.list'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<

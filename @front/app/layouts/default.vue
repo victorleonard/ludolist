@@ -120,43 +120,14 @@ const handleBackFromDish = () => {
   }
 }
 
-const menuItems = [
-  {
-    label: 'Accueil',
-    icon: 'i-ion-home',
-    to: '/'
-  },
-  {
-    label: 'Jeux',
-    icon: 'i-ion-dice',
-    to: '/jeux'
-  },
-  {
-    label: 'Livres',
-    icon: 'i-ion-book',
-    to: '/livres/'
-  },
-  {
-    label: 'Plats',
-    icon: 'i-ion-restaurant',
-    to: '/plats/'
-  },
-  {
-    label: 'Tâches',
-    icon: 'i-ion-checkmark-circle',
-    to: '/taches/'
-  },
-  {
-    label: 'Listes',
-    icon: 'i-ion-list',
-    to: '/listes'
-  },
-  {
-    label: 'Abonnements',
-    icon: 'i-ion-card',
-    to: '/abonnements/'
-  }
-]
+const { allowedNavItems, canManageDroits } = usePageAccess()
+const menuItems = computed(() =>
+  allowedNavItems.value.map((item) => ({
+    label: item.label,
+    icon: item.icon,
+    to: item.to
+  }))
+)
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
@@ -555,6 +526,22 @@ const handleMemberLogout = () => {
 
             <!-- Paramètres -->
             <div class="px-2 py-2">
+              <NuxtLink
+                v-if="canManageDroits"
+                to="/parametres/droits-acces"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"
+                @click="closeMenu"
+              >
+                <UIcon
+                  name="i-ion-shield-checkmark"
+                  class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
+                />
+                <span class="font-medium text-sm text-gray-700 dark:text-gray-300">Droits d'accès</span>
+                <UIcon
+                  name="i-ion-chevron-forward"
+                  class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
+                />
+              </NuxtLink>
               <NuxtLink
                 to="/parametres/menu"
                 class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 group"

@@ -90,7 +90,7 @@
                         name="i-ion-trophy"
                         class="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0"
                       />
-                      <span class="truncate">{{ getSessionWinner(session)?.member.username }}</span>
+                      <span class="truncate">{{ getSessionWinner(session)?.member?.username ?? 'Gagnant' }}</span>
                       <span
                         v-if="getSessionWinner(session)?.score !== undefined"
                         class="font-normal opacity-95 whitespace-nowrap"

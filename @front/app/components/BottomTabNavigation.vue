@@ -82,6 +82,23 @@
 
                   <div class="h-px bg-gray-200 dark:bg-gray-800 my-2" />
                   <NuxtLink
+                    v-if="canManageDroits"
+                    to="/parametres/droits-acces"
+                    class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-left group"
+                    :class="route.path === '/parametres/droits-acces' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-gray-100'"
+                    @click="closeMoreDrawer"
+                  >
+                    <UIcon
+                      name="i-ion-shield-checkmark"
+                      class="w-6 h-6 shrink-0 text-gray-500 dark:text-gray-400"
+                    />
+                    <span class="font-medium">Droits d'accès</span>
+                    <UIcon
+                      name="i-ion-chevron-forward"
+                      class="w-5 h-5 ml-auto text-gray-400 dark:text-gray-500"
+                    />
+                  </NuxtLink>
+                  <NuxtLink
                     to="/parametres/menu"
                     class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-colors text-left group"
                     :class="route.path === '/parametres/menu' ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400' : 'text-gray-900 dark:text-gray-100'"
@@ -123,6 +140,7 @@ import { storeToRefs } from 'pinia'
 const route = useRoute()
 const bottomNavStore = useBottomNavStore()
 const memberStore = useMemberStore()
+const { allowedNavIds, canManageDroits } = usePageAccess()
 
 onMounted(() => {
   bottomNavStore.loadFromStorage()
@@ -137,8 +155,12 @@ watch(
 
 const { mainItems, moreItems } = storeToRefs(bottomNavStore)
 
-const mainTabs = mainItems
-const moreTabs = moreItems
+const mainTabs = computed(() =>
+  mainItems.value.filter((item) => allowedNavIds.value.has(item.id))
+)
+const moreTabs = computed(() =>
+  moreItems.value.filter((item) => allowedNavIds.value.has(item.id))
+)
 
 const isMoreDrawerOpen = ref(false)
 

@@ -78,6 +78,8 @@ export const useMemberStore = defineStore('member', {
         )
 
         this.saveMember(response.data)
+        const familyStore = useFamilyStore()
+        await familyStore.fetchFamily()
         return { success: true, data: response.data }
       } catch (error: unknown) {
         console.error('Erreur de connexion membre:', error)

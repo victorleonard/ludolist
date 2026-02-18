@@ -1,5 +1,29 @@
 import { useAuthStore } from '~/stores/auth'
 import { useMemberStore } from '~/stores/member'
+import { useFamilyStore } from '~/stores/family'
+
+const PAGE_PATH_PREFIXES: Array<{ prefix: string; pageId: string }> = [
+  { prefix: '/jeux', pageId: 'jeux' },
+  { prefix: '/game', pageId: 'jeux' },
+  { prefix: '/livres', pageId: 'livres' },
+  { prefix: '/plats', pageId: 'plats' },
+  { prefix: '/plat', pageId: 'plats' },
+  { prefix: '/taches', pageId: 'taches' },
+  { prefix: '/listes', pageId: 'listes' },
+  { prefix: '/abonnements', pageId: 'abonnements' }
+]
+
+function getPageIdFromPath(path: string): string | null {
+  if (path === '/' || path.startsWith('/login') || path.startsWith('/member-login') || path.startsWith('/parametres')) {
+    return null
+  }
+  for (const { prefix, pageId } of PAGE_PATH_PREFIXES) {
+    if (path === prefix || path.startsWith(prefix + '/')) {
+      return pageId
+    }
+  }
+  return null
+}
 
 export default defineNuxtRouteMiddleware((to) => {
   // S'assurer qu'on est côté client
@@ -9,7 +33,8 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const authStore = useAuthStore()
   const memberStore = useMemberStore()
-  
+  const familyStore = useFamilyStore()
+
   // Charger le token depuis le localStorage de manière synchrone
   // Cette méthode doit être appelée avant toute vérification
   if (import.meta.client) {
@@ -53,5 +78,16 @@ export default defineNuxtRouteMiddleware((to) => {
   // Si l'utilisateur est déjà authentifié et essaie d'accéder à la page de login
   if (authStore.isAuthenticated && to.path === '/login') {
     return navigateTo('/')
+  }
+
+  // Droits d'accès par page : si un membre est connecté, vérifier qu'il a accès à la page
+  if (memberStore.isMemberConnected && memberStore.currentMember) {
+    const pageId = getPageIdFromPath(to.path)
+    if (pageId && familyStore.family?.page_access) {
+      const allowed = familyStore.family.page_access[pageId]
+      if (Array.isArray(allowed) && allowed.length > 0 && !allowed.includes(memberStore.currentMember.id)) {
+        return navigateTo('/')
+      }
+    }
   }
 })
