@@ -777,6 +777,7 @@ export interface ApiListItemListItem extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    checked_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     created_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

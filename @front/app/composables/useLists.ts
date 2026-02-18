@@ -11,6 +11,10 @@ export interface ListItem {
     id: number
     username: string
   } | null
+  checked_by?: {
+    id: number
+    username?: string
+  } | null
   createdAt?: string
   updatedAt?: string
 }
@@ -237,7 +241,10 @@ export function useLists() {
     }
   }
 
-  async function toggleListItem(documentId: string): Promise<ToggleListItemResult> {
+  async function toggleListItem(
+    documentId: string,
+    memberId?: number | null
+  ): Promise<ToggleListItemResult> {
     if (!authStore.token) {
       return { success: false, error: 'Non authentifié' }
     }
@@ -245,9 +252,14 @@ export function useLists() {
       return { success: false, error: 'documentId requis' }
     }
     try {
+      const body = memberId != null ? { memberId } : {}
       const response = await $fetch<{ data?: ListItem }>(
         `${config.public.apiUrl}/api/list-items/${encodeURIComponent(documentId)}/toggle-checked`,
-        { method: 'PUT', headers: { Authorization: `Bearer ${authStore.token}` } }
+        {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${authStore.token}`, 'Content-Type': 'application/json' },
+          body,
+        }
       )
       const data = response?.data ?? response
       return { success: true, data: data as ListItem }

@@ -131,6 +131,19 @@ cd @docker
 ./deploy.sh
 ```
 
+Pour voir les logs du backend (le service s’appelle `backend`, pas `ludolist-backend`) :
+
+```bash
+docker compose -f @docker/docker-compose.yml logs -f backend
+docker compose -f @docker/docker-compose.yml logs -f frontend
+```
+
+Si le backend tourne mais pas le frontend, lancer le frontend après coup :
+
+```bash
+docker compose -f @docker/docker-compose.yml up -d frontend
+```
+
 ## 📱 Plateformes supportées
 
 - **Web** : Tous navigateurs modernes (Chrome, Firefox, Safari, Edge)

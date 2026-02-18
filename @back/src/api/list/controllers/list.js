@@ -19,7 +19,7 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
 
       const family = await strapi.entityService.findMany('api::family.family', {
         filters: { users_permissions_user: { id: user.id } },
-        populate: { members: true, lists: { populate: { items: true, allowed_members: true } } },
+        populate: { members: true, lists: { populate: { items: { populate: { created_by: true, checked_by: true } }, allowed_members: true } } },
         limit: 1,
       });
 
@@ -75,7 +75,7 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
 
       const lists = await strapi.entityService.findMany('api::list.list', {
         filters: { documentId },
-        populate: { family: true, allowed_members: true, items: { populate: { created_by: true } } },
+        populate: { family: true, allowed_members: true, items: { populate: { created_by: true, checked_by: true } } },
         limit: 1,
       });
 

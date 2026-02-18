@@ -32,6 +32,12 @@
       >
         Ajouté par {{ item.created_by.username }}
       </p>
+      <p
+        v-if="item.is_checked && item.checked_by"
+        class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
+      >
+        Validé par {{ item.checked_by?.username ?? '—' }}
+      </p>
     </div>
 
     <div
@@ -99,7 +105,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useMemberStore } from '~/stores/member'
 import { useLists, type ListItem } from '~/composables/useLists'
 
 interface Props {
@@ -115,6 +123,8 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const { toggleListItem, updateListItem, deleteListItem } = useLists()
+const { currentMember } = storeToRefs(useMemberStore())
+const currentMemberId = computed(() => currentMember.value?.id ?? null)
 
 const isEditing = ref(false)
 const editName = ref('')
@@ -136,7 +146,7 @@ const handleToggle = async () => {
   if (loading.value || !props.item.documentId) return
   loading.value = true
   try {
-    const result = await toggleListItem(props.item.documentId)
+    const result = await toggleListItem(props.item.documentId, currentMemberId.value)
     if (result.success && result.data) {
       emit('updated', result.data)
     }

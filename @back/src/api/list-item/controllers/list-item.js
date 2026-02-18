@@ -86,7 +86,7 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
       const withRelations = await strapi.entityService.findOne(
         'api::list-item.list-item',
         created.id,
-        { populate: ['family', 'list', 'created_by'] }
+        { populate: ['family', 'list', 'created_by', 'checked_by'] }
       );
 
       return ctx.created({ data: withRelations });
@@ -107,6 +107,9 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
       }
 
       const { documentId } = ctx.params;
+      const body = ctx.request.body?.data ?? ctx.request.body ?? {};
+      const memberId = body.memberId != null ? Number(body.memberId) : null;
+
       if (!documentId || typeof documentId !== 'string') {
         return ctx.badRequest('documentId requis');
       }
@@ -119,6 +122,7 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
       const item = items[0];
       const family = await strapi.entityService.findMany('api::family.family', {
         filters: { users_permissions_user: { id: user.id } },
+        populate: { members: true },
         limit: 1,
       });
       if (!family || family.length === 0) {
@@ -130,12 +134,23 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         return ctx.forbidden('Cet élément n\'appartient pas à votre famille');
       }
 
+      const newChecked = !item.is_checked;
+      const updateData = { is_checked: newChecked };
+      if (newChecked && memberId != null) {
+        const memberExists = (userFamily.members || []).some((m) => m.id === memberId);
+        if (memberExists) {
+          updateData.checked_by = memberId;
+        }
+      } else if (!newChecked) {
+        updateData.checked_by = null;
+      }
+
       const updated = await strapi.entityService.update(
         'api::list-item.list-item',
         item.id,
         {
-          data: { is_checked: !item.is_checked },
-          populate: ['family', 'list', 'created_by'],
+          data: updateData,
+          populate: ['family', 'list', 'created_by', 'checked_by'],
         }
       );
 
@@ -194,7 +209,7 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         item.id,
         {
           data: { name: String(name).trim() },
-          populate: ['family', 'list', 'created_by'],
+          populate: ['family', 'list', 'created_by', 'checked_by'],
         }
       );
 

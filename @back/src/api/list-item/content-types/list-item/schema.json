@@ -36,6 +36,11 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::member.member"
+    },
+    "checked_by": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::member.member"
     }
   }
 }
