@@ -1,6 +1,6 @@
 /**
  * Middleware pour la page Droits d'accès.
- * Redirige immédiatement si l'utilisateur n'a pas le droit d'y accéder (pas propriétaire, pas membre admin).
+ * Réservé aux membres admin connectés. En mode famille (pas de membre connecté), redirection vers home.
  */
 export default defineNuxtRouteMiddleware(async (to) => {
   if (to.path !== '/parametres/droits-acces') {
@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   if (!memberStore.isMemberConnected) {
-    return
+    return navigateTo('/')
   }
 
   await familyStore.fetchFamily()
