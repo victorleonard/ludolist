@@ -1,90 +1,85 @@
 <template>
-  <UDrawer
+  <UModal
     :open="isOpen"
-    direction="bottom"
+    :ui="{ width: 'max-w-sm' }"
     @update:open="(value) => { isOpen = value }"
   >
     <template #content>
-      <div
-        class="flex flex-col max-h-[90dvh] sm:max-h-[85vh] bg-white dark:bg-gray-900 rounded-t-2xl overflow-hidden"
-        style="padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));"
-      >
-        <div class="px-4 py-4 sm:px-6 sm:py-5">
-          <form
-            @submit.prevent="handleAdd"
-            class="mb-4"
-          >
-            <div
-              class="relative flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-500"
-              :class="{ 'border-red-500 dark:border-red-500': !!errors.name }"
-            >
-              <input
-                ref="nameInputRef"
-                id="list-item-name"
-                v-model="itemName"
-                type="text"
-                autocomplete="off"
-                inputmode="text"
-                placeholder="Ajouter un élément"
-                :disabled="submitting"
-                class="list-item-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
-                @input="handleInput"
-              />
-              <UButton
-                type="submit"
-                color="primary"
-                icon="i-ion-add"
-                variant="link"
-                size="sm"
-                :loading="submitting"
-                :disabled="!itemName.trim() || submitting"
-                class="min-w-[40px] shrink-0"
-                aria-label="Ajouter"
-              />
-            </div>
-            <p
-              v-if="errors.name"
-              class="mt-1.5 text-xs text-red-600 dark:text-red-400"
-            >
-              {{ errors.name }}
-            </p>
-          </form>
-
+      <div class="p-4 sm:p-6">
+        <form
+          @submit.prevent="handleAdd"
+          class="mb-4"
+        >
           <div
-            v-if="suggestions.length > 0 && itemName.trim().length > 0"
-            class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto"
+            class="relative flex items-center gap-1 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-primary-500 dark:focus-within:border-primary-500"
+            :class="{ 'border-red-500 dark:border-red-500': !!errors.name }"
           >
-            <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2.5">
-              Similaires :
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <button
-                v-for="suggestion in suggestions"
-                :key="suggestion.documentId"
-                type="button"
-                class="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
-                @click="selectSuggestion(suggestion)"
-              >
-                {{ suggestion.name }}
-              </button>
-            </div>
+            <input
+              ref="nameInputRef"
+              id="list-item-name"
+              v-model="itemName"
+              type="text"
+              autocomplete="off"
+              inputmode="text"
+              placeholder="Ajouter un élément"
+              :disabled="submitting"
+              class="list-item-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
+              @input="handleInput"
+            />
+            <UButton
+              type="submit"
+              color="primary"
+              icon="i-ion-add"
+              variant="link"
+              size="sm"
+              :loading="submitting"
+              :disabled="!itemName.trim() || submitting"
+              class="min-w-[40px] shrink-0"
+              aria-label="Ajouter"
+            />
           </div>
-
-          <UButton
-            type="button"
-            color="neutral"
-            variant="ghost"
-            block
-            class="min-h-[48px] mt-4"
-            :disabled="submitting"
-            @click="closeModal"
+          <p
+            v-if="errors.name"
+            class="mt-1.5 text-xs text-red-600 dark:text-red-400"
           >
-            Annuler
-          </UButton>
+            {{ errors.name }}
+          </p>
+        </form>
+
+        <div
+          v-if="suggestions.length > 0 && itemName.trim().length > 0"
+          class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto"
+        >
+          <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2.5">
+            Similaires :
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="suggestion in suggestions"
+              :key="suggestion.documentId"
+              type="button"
+              class="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
+              @click="selectSuggestion(suggestion)"
+            >
+              {{ suggestion.name }}
+            </button>
+          </div>
         </div>
+
+        <UButton
+          type="button"
+          color="neutral"
+          variant="ghost"
+          block
+          class="min-h-[48px] mt-4"
+          :disabled="submitting"
+          @click="closeModal"
+        >
+          Annuler
+        </UButton>
       </div>
     </template>
-  </UDrawer>
+  </UModal>
 </template>
 
 <script setup lang="ts">
