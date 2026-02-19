@@ -115,4 +115,54 @@ module.exports = createCoreController('api::random-pick-result.random-pick-resul
       return ctx.internalServerError('Erreur lors de l’enregistrement du tirage');
     }
   },
+
+  /**
+   * Delete a random pick result (must belong to user's family).
+   * DELETE /api/random-pick-results/:documentId
+   */
+  async delete(ctx) {
+    const user = ctx.state.user;
+    if (!user) {
+      return ctx.unauthorized('Vous devez être connecté');
+    }
+
+    const documentId = ctx.params.documentId;
+    if (!documentId) {
+      return ctx.badRequest('documentId is required');
+    }
+
+    try {
+      const families = await strapi.entityService.findMany('api::family.family', {
+        filters: { users_permissions_user: { id: user.id } },
+        limit: 1,
+      });
+      const family = Array.isArray(families) ? families[0] : null;
+      if (!family) {
+        return ctx.forbidden("Vous n'appartenez à aucune famille");
+      }
+
+      const idNum = Number(documentId);
+      const isNumeric = !Number.isNaN(idNum) && String(idNum) === String(documentId);
+      const results = await strapi.entityService.findMany('api::random-pick-result.random-pick-result', {
+        filters: isNumeric ? { id: idNum } : { documentId },
+        populate: { family: true },
+        limit: 1,
+      });
+      const result = Array.isArray(results) ? results[0] : null;
+      if (!result) {
+        return ctx.notFound('Tirage non trouvé');
+      }
+
+      const resultFamilyId = result.family?.id ?? result.family;
+      if (resultFamilyId !== family.id) {
+        return ctx.forbidden('Ce tirage n’appartient pas à votre famille');
+      }
+
+      await strapi.entityService.delete('api::random-pick-result.random-pick-result', result.id);
+      return { data: { success: true } };
+    } catch (err) {
+      strapi.log.error('Error deleting random pick result:', err);
+      return ctx.internalServerError('Erreur lors de la suppression');
+    }
+  },
 }));

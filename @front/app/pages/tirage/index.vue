@@ -207,6 +207,16 @@
             >
               {{ formatDate(item.drawn_at) }}
             </time>
+            <UButton
+              variant="ghost"
+              color="neutral"
+              size="xs"
+              icon="i-ion-trash-outline"
+              :loading="deletingId === (item.documentId ?? item.id)"
+              aria-label="Supprimer ce tirage"
+              class="shrink-0 text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+              @click="deleteHistoryItem(item)"
+            />
           </li>
         </ul>
       </div>
@@ -264,6 +274,7 @@ const history = ref<Array<{
   winner: { id?: number; documentId?: string; username?: string }
 }>>([])
 const historyLoading = ref(false)
+const deletingId = ref<string | number | null>(null)
 
 const selectedCount = computed(() => selectedIds.value.length)
 const selectedMembers = computed(() =>
@@ -302,6 +313,37 @@ async function fetchHistory() {
     history.value = []
   } finally {
     historyLoading.value = false
+  }
+}
+
+async function deleteHistoryItem(item: (typeof history.value)[0]) {
+  const id = item.documentId ?? item.id
+  if (id == null) return
+  deletingId.value = id
+  try {
+    await $fetch(
+      `${config.public.apiUrl}/api/random-pick-results/${encodeURIComponent(String(id))}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${authStore.token}`
+        }
+      }
+    )
+    history.value = history.value.filter((h) => (h.documentId ?? h.id) !== id)
+    toast.add({
+      title: 'Tirage supprimé',
+      color: 'green'
+    })
+  } catch (e) {
+    console.error('Failed to delete random pick result:', e)
+    toast.add({
+      title: 'Erreur',
+      description: 'Impossible de supprimer le tirage.',
+      color: 'red'
+    })
+  } finally {
+    deletingId.value = null
   }
 }
 

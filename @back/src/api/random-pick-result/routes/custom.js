@@ -20,5 +20,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: 'DELETE',
+      path: '/random-pick-results/:documentId',
+      handler: 'random-pick-result.delete',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };
