@@ -26,7 +26,8 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'taches', label: 'Tâches', icon: 'i-ion-checkmark-circle', to: '/taches/' },
   { id: 'listes', label: 'Listes', icon: 'i-ion-list', to: '/listes' },
   { id: 'abonnements', label: 'Abonnements', icon: 'i-ion-card', to: '/abonnements/' },
-  { id: 'tirage', label: 'Tirage au sort', icon: 'i-ion-shuffle', to: '/tirage' }
+  { id: 'tirage', label: 'Tirage au sort', icon: 'i-ion-shuffle', to: '/tirage' },
+  { id: 'des', label: 'Dés', icon: 'i-ion-ellipse', to: '/des' }
 ]
 
 const DEFAULT_MAIN_IDS = ['home', 'jeux', 'plats', 'taches', 'abonnements']
