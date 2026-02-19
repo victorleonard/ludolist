@@ -17,6 +17,15 @@ module.exports = {
     },
     {
       method: 'PUT',
+      path: '/list-items/reorder',
+      handler: 'list-item.reorder',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: 'PUT',
       path: '/list-items/:documentId/toggle-checked',
       handler: 'list-item.toggleChecked',
       config: {

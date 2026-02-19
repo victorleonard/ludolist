@@ -83,7 +83,7 @@
 
           <template v-else>
             <div
-              v-if="uncheckedItems.length > 0"
+              v-if="uncheckedList.length > 0"
               class="mb-6"
             >
               <div class="flex items-center gap-2 mb-4">
@@ -92,22 +92,32 @@
                   class="w-5 h-5 text-primary-500"
                 />
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  À faire ({{ uncheckedItems.length }})
+                  À faire ({{ uncheckedList.length }})
                 </h2>
               </div>
-              <div class="space-y-2">
-                <ListItemCard
-                  v-for="item in uncheckedItems"
-                  :key="item.documentId"
-                  :item="item"
-                  @updated="handleItemUpdated"
-                  @deleted="handleItemDeleted"
-                />
-              </div>
+              <draggable
+                v-model="uncheckedList"
+                item-key="documentId"
+                handle=".drag-handle"
+                :animation="120"
+                ghost-class="list-drag-ghost"
+                chosen-class="list-drag-chosen"
+                drag-class="list-drag-dragging"
+                class="space-y-2 list-draggable"
+                @end="handleReorderEnd"
+              >
+                <template #item="{ element }">
+                  <ListItemCard
+                    :item="element"
+                    @updated="handleItemUpdated"
+                    @deleted="handleItemDeleted"
+                  />
+                </template>
+              </draggable>
             </div>
 
             <div
-              v-if="checkedItems.length > 0"
+              v-if="checkedList.length > 0"
               class="mb-6"
             >
               <div class="flex items-center gap-2 mb-4">
@@ -116,18 +126,28 @@
                   class="w-5 h-5 text-green-500"
                 />
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Fait ({{ checkedItems.length }})
+                  Fait ({{ checkedList.length }})
                 </h2>
               </div>
-              <div class="space-y-2">
-                <ListItemCard
-                  v-for="item in checkedItems"
-                  :key="item.documentId"
-                  :item="item"
-                  @updated="handleItemUpdated"
-                  @deleted="handleItemDeleted"
-                />
-              </div>
+              <draggable
+                v-model="checkedList"
+                item-key="documentId"
+                handle=".drag-handle"
+                :animation="120"
+                ghost-class="list-drag-ghost"
+                chosen-class="list-drag-chosen"
+                drag-class="list-drag-dragging"
+                class="space-y-2 list-draggable"
+                @end="handleReorderEnd"
+              >
+                <template #item="{ element }">
+                  <ListItemCard
+                    :item="element"
+                    @updated="handleItemUpdated"
+                    @deleted="handleItemDeleted"
+                  />
+                </template>
+              </draggable>
             </div>
           </template>
           </div>
@@ -372,10 +392,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import type { ListItem } from '~/composables/useLists'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useFamilyStore } from '~/stores/family'
-import { useLists, type List, type ListItem } from '~/composables/useLists'
+import { useLists, type List } from '~/composables/useLists'
 import ListItemCard from '~/components/listes/ListItemCard.vue'
 import AddListItemModal from '~/components/listes/AddListItemModal.vue'
 
@@ -385,7 +406,8 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { fetchList, updateList, deleteList } = useLists()
+const router = useRouter()
+const { fetchList, updateList, deleteList, reorderListItems } = useLists()
 const memberStore = useMemberStore()
 const familyStore = useFamilyStore()
 const { currentMember } = storeToRefs(memberStore)
@@ -416,9 +438,55 @@ const currentMemberId = computed(() => currentMember.value?.id ?? null)
 
 const allItems = computed(() => list.value?.items ?? [])
 
-const uncheckedItems = computed(() => allItems.value.filter((item) => !item.is_checked))
+const uncheckedList = ref<ListItem[]>([])
+const checkedList = ref<ListItem[]>([])
 
-const checkedItems = computed(() => allItems.value.filter((item) => item.is_checked))
+function syncListsFromList() {
+  if (!list.value?.items || !Array.isArray(list.value.items)) {
+    uncheckedList.value = []
+    checkedList.value = []
+    return
+  }
+  uncheckedList.value = list.value.items.filter((item) => !item.is_checked)
+  checkedList.value = list.value.items.filter((item) => item.is_checked)
+}
+
+// Resynchroniser les listes draggables dès que la liste source change (chargement, mise à jour, suppression)
+watch(
+  () => list.value?.items,
+  (items) => {
+    if (!items || !Array.isArray(items)) {
+      uncheckedList.value = []
+      checkedList.value = []
+      return
+    }
+    uncheckedList.value = items.filter((item) => !item.is_checked)
+    checkedList.value = items.filter((item) => item.is_checked)
+  },
+  { immediate: true, deep: true }
+)
+
+const reordering = ref(false)
+async function handleReorderEnd() {
+  if (!list.value || reordering.value) return
+  const ordered = [...uncheckedList.value, ...checkedList.value]
+  const orderedDocumentIds = ordered.map((item) => item.documentId)
+  reordering.value = true
+  try {
+    const result = await reorderListItems(
+      list.value.documentId,
+      orderedDocumentIds,
+      currentMember.value?.id ?? null
+    )
+    if (result.success) {
+      list.value.items = [...ordered]
+    } else {
+      syncListsFromList()
+    }
+  } finally {
+    reordering.value = false
+  }
+}
 
 function listAccessLabel(list: List) {
   const allowed = list.allowed_members ?? []
@@ -437,17 +505,18 @@ async function loadList() {
     const result = await fetchList(id, memberId)
     if (result.success && result.data) {
       list.value = result.data
+      syncListsFromList()
     } else {
       error.value = result.error ?? 'Liste non trouvée'
       list.value = null
       // Rediriger vers la liste des listes si pas d'accès (ex. changement de membre)
-      await navigateTo('/listes')
+      await router.push('/listes')
     }
   } catch (err) {
     console.error('Erreur loadList:', err)
     error.value = 'Une erreur est survenue'
     list.value = null
-    await navigateTo('/listes')
+    await router.push('/listes')
   } finally {
     loading.value = false
   }
@@ -459,11 +528,13 @@ function handleItemUpdated(updatedItem: ListItem) {
   if (index !== -1) {
     list.value.items[index] = updatedItem
   }
+  syncListsFromList()
 }
 
 function handleItemDeleted(itemId: string) {
   if (!list.value?.items) return
   list.value.items = list.value.items.filter((item) => item.documentId !== itemId)
+  syncListsFromList()
 }
 
 function handleAddSuccess() {
@@ -516,7 +587,7 @@ async function handleDeleteList() {
     const result = await deleteList(list.value.documentId, currentMember.value?.id ?? null)
     if (result.success) {
       isDeleteModalOpen.value = false
-      await navigateTo('/listes')
+      await router.push('/listes')
     } else {
       deleteError.value = result.error ?? 'Erreur lors de la suppression'
     }
@@ -564,3 +635,47 @@ watch(currentMemberId, (newId, oldId) => {
   }
 })
 </script>
+
+<style scoped>
+/* Animation pendant le drag : style très sobre et fluide */
+.list-draggable :deep(.list-drag-ghost) {
+  opacity: 0.5;
+  background: rgb(148 163 184 / 0.12); /* slate-400 */
+  border-radius: 0.75rem;
+  transition: opacity 0.12s ease-out, background 0.12s ease-out;
+}
+
+.list-draggable :deep(.list-drag-chosen) {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18); /* slate-900 */
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+
+.list-draggable :deep(.list-drag-dragging) {
+  opacity: 1;
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  cursor: grabbing;
+  transition: box-shadow 0.1s ease-out;
+}
+</style>
+
+<style>
+/* Styles globaux pour le clone de drag (parfois attaché au body par Sortable) */
+.list-drag-ghost {
+  opacity: 0.5;
+  border-radius: 0.75rem;
+  transition: opacity 0.12s ease-out;
+}
+.list-drag-chosen {
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out;
+}
+.list-drag-dragging {
+  opacity: 1;
+  transform: translateY(0);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  cursor: grabbing;
+  transition: box-shadow 0.1s ease-out;
+}
+</style>

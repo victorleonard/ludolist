@@ -6,6 +6,15 @@
       'hover:shadow-md': !isEditing,
     }"
   >
+    <div
+      class="drag-handle shrink-0 cursor-grab active:cursor-grabbing touch-none p-1 -m-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      aria-label="Déplacer"
+    >
+      <UIcon
+        name="i-ion-reorder-three"
+        class="w-5 h-5 block"
+      />
+    </div>
     <UCheckbox
       :model-value="item.is_checked"
       :disabled="loading || isEditing"

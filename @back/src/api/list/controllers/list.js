@@ -39,6 +39,12 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
         return memberId != null && allowedIds.includes(memberId);
       });
 
+      filtered.forEach((list) => {
+        if (list.items && list.items.length > 0) {
+          list.items.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+        }
+      });
+
       return ctx.send({ data: filtered });
     } catch (error) {
       strapi.log.error('Erreur lors de la récupération des listes:', error);
@@ -96,6 +102,10 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
         if (memberId == null || !allowedIds.includes(memberId)) {
           return ctx.forbidden('Vous n\'avez pas accès à cette liste');
         }
+      }
+
+      if (list.items && list.items.length > 0) {
+        list.items.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
       }
 
       return ctx.send({ data: list });

@@ -5,6 +5,7 @@ export interface ListItem {
   documentId: string
   name: string
   is_checked: boolean
+  position?: number
   family?: number
   list?: number | { id: number }
   created_by?: {
@@ -79,6 +80,11 @@ export interface UpdateListItemResult {
 }
 
 export interface DeleteListItemResult {
+  success: boolean
+  error?: string
+}
+
+export interface ReorderListItemsResult {
   success: boolean
   error?: string
 }
@@ -308,6 +314,35 @@ export function useLists() {
     }
   }
 
+  async function reorderListItems(
+    listDocumentId: string,
+    orderedDocumentIds: string[],
+    memberId?: number | null
+  ): Promise<ReorderListItemsResult> {
+    if (!authStore.token) {
+      return { success: false, error: 'Non authentifié' }
+    }
+    if (!listDocumentId || !Array.isArray(orderedDocumentIds)) {
+      return { success: false, error: 'listDocumentId et orderedDocumentIds requis' }
+    }
+    try {
+      const body: { listDocumentId: string; orderedDocumentIds: string[]; memberId?: number } = {
+        listDocumentId,
+        orderedDocumentIds,
+      }
+      if (memberId != null) body.memberId = memberId
+      await $fetch(`${config.public.apiUrl}/api/list-items/reorder`, {
+        method: 'PUT',
+        headers: headers(),
+        body,
+      })
+      return { success: true }
+    } catch (err) {
+      console.error('Erreur reorderListItems:', err)
+      return { success: false, error: getErrorMessage(err) }
+    }
+  }
+
   return {
     fetchLists,
     fetchList,
@@ -318,5 +353,6 @@ export function useLists() {
     toggleListItem,
     updateListItem,
     deleteListItem,
+    reorderListItems,
   }
 }

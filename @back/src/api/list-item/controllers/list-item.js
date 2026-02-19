@@ -73,10 +73,20 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         createdByMemberId = Number(memberId);
       }
 
+      const existingItems = await strapi.entityService.findMany('api::list-item.list-item', {
+        filters: { list: list.id },
+        fields: ['position'],
+      });
+      const maxPosition = existingItems.length
+        ? Math.max(...existingItems.map((i) => i.position ?? 0))
+        : -1;
+      const nextPosition = maxPosition + 1;
+
       const created = await strapi.entityService.create('api::list-item.list-item', {
         data: {
           name: String(name).trim(),
           is_checked: false,
+          position: nextPosition,
           list: list.id,
           family: userFamily.id,
           ...(createdByMemberId != null && { created_by: createdByMemberId }),
@@ -259,6 +269,80 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
     } catch (error) {
       strapi.log.error('Erreur suppression list-item:', error);
       return ctx.internalServerError('Erreur lors de la suppression');
+    }
+  },
+
+  /**
+   * Réordonner les éléments d'une liste (body: listDocumentId, orderedDocumentIds: string[])
+   */
+  async reorder(ctx) {
+    try {
+      const user = ctx.state.user;
+      if (!user) {
+        return ctx.unauthorized('Vous devez être connecté');
+      }
+
+      const family = await strapi.entityService.findMany('api::family.family', {
+        filters: { users_permissions_user: { id: user.id } },
+        populate: { members: true },
+        limit: 1,
+      });
+      if (!family || family.length === 0) {
+        return ctx.forbidden('Vous n\'appartenez à aucune famille');
+      }
+
+      const userFamily = family[0];
+      const body = ctx.request.body?.data ?? ctx.request.body ?? {};
+      const { listDocumentId, orderedDocumentIds, memberId: bodyMemberId } = body;
+
+      if (!listDocumentId || typeof listDocumentId !== 'string') {
+        return ctx.badRequest('listDocumentId requis');
+      }
+      if (!Array.isArray(orderedDocumentIds)) {
+        return ctx.badRequest('orderedDocumentIds doit être un tableau');
+      }
+
+      const lists = await strapi.entityService.findMany('api::list.list', {
+        filters: { documentId: listDocumentId },
+        populate: { family: true, allowed_members: true },
+        limit: 1,
+      });
+      if (!lists || lists.length === 0) {
+        return ctx.notFound('Liste non trouvée');
+      }
+
+      const list = lists[0];
+      const listFamilyId = typeof list.family === 'object' ? list.family.id : list.family;
+      if (listFamilyId !== userFamily.id) {
+        return ctx.forbidden('Cette liste n\'appartient pas à votre famille');
+      }
+
+      const allowed = list.allowed_members || [];
+      const allowedIds = allowed.map((m) => (typeof m === 'object' ? m.id : m));
+      if (allowedIds.length > 0) {
+        const memberId = bodyMemberId != null ? Number(bodyMemberId) : ctx.query.memberId ? Number(ctx.query.memberId) : null;
+        if (memberId == null || !allowedIds.includes(memberId)) {
+          return ctx.forbidden('Vous n\'avez pas accès à cette liste');
+        }
+      }
+
+      for (let position = 0; position < orderedDocumentIds.length; position += 1) {
+        const documentId = orderedDocumentIds[position];
+        if (!documentId || typeof documentId !== 'string') continue;
+        const items = await resolveItemByDocumentId(strapi, documentId);
+        if (!items || items.length === 0) continue;
+        const item = items[0];
+        const itemListId = typeof item.list === 'object' ? item.list.id : item.list;
+        if (itemListId !== list.id) continue;
+        await strapi.entityService.update('api::list-item.list-item', item.id, {
+          data: { position },
+        });
+      }
+
+      return ctx.send({ data: { ok: true } });
+    } catch (error) {
+      strapi.log.error('Erreur reorder list-items:', error);
+      return ctx.internalServerError('Erreur lors du réordonnancement');
     }
   },
 }));
