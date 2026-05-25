@@ -1,87 +1,73 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import 'react-native-reanimated';
 import '../global.css';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuthStore } from '@/stores/authStore';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Stack, useRouter, useSegments, type Href } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import { Center } from '@/components/ui/center';
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import { queryClient } from '@/lib/query-client';
+import { useAuthStore } from '@/stores/auth';
+
+export { ErrorBoundary } from 'expo-router';
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
-  const { isAuthenticated, loadToken } = useAuthStore();
+  const { isHydrated, loadToken, isAuthenticated, token } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Charger le token au démarrage
-    loadToken().finally(() => {
-      setIsReady(true);
-    });
-  }, []);
+    loadToken().finally(() => setIsReady(true));
+  }, [loadToken]);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !isHydrated) return;
 
-    const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'games';
-    const isLoginPage = segments[0] === 'login';
+    const inApp = segments[0] === '(drawer)';
+    const onLogin = (segments as string[]).includes('login');
 
-    if (!isAuthenticated() && inAuthGroup) {
-      // Rediriger vers login si non authentifié
-      router.replace('/login');
-    } else if (isAuthenticated() && isLoginPage) {
-      // Rediriger vers l'app si authentifié et sur la page login
-      router.replace('/(tabs)');
+    if (!isAuthenticated() && inApp) {
+      router.replace('/login' as Href);
+    } else if (isAuthenticated() && onLogin) {
+      router.replace('/' as Href);
     }
-  }, [isAuthenticated(), segments, isReady]);
+  }, [isReady, isHydrated, segments, token, isAuthenticated, router]);
 
-  if (!isReady) {
+  if (!isReady || !isHydrated) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-      </View>
+      <Center className="flex-1 bg-background-50">
+        <ActivityIndicator size="large" color="#0ea5e9" />
+      </Center>
     );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="login" 
-          options={{ 
-            headerShown: false,
-            gestureEnabled: false,
-          }} 
-        />
-        <Stack.Screen 
-          name="games/[id]" 
-          options={{ 
-            headerShown: false,
-          }} 
-        />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="login" />
+      <Stack.Screen name="(drawer)" />
+    </Stack>
   );
 }
 
-export default function RootLayout() {
-  return <RootLayoutNav />;
-}
+SplashScreen.preventAutoHideAsync();
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-  },
-});
+export default function RootLayout() {
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <GluestackUIProvider mode="system">
+        <QueryClientProvider client={queryClient}>
+          <RootLayoutNav />
+        </QueryClientProvider>
+      </GluestackUIProvider>
+    </GestureHandlerRootView>
+  );
+}
