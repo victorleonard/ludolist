@@ -1,3 +1,4 @@
+import i18n from '@/lib/i18n';
 import type { StrapiErrorBody } from '@/types/auth';
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:1337';
@@ -17,7 +18,7 @@ async function parseErrorMessage(response: Response): Promise<string> {
     const body = (await response.json()) as StrapiErrorBody;
     return body.error?.message ?? response.statusText;
   } catch {
-    return response.statusText || 'Erreur réseau';
+    return response.statusText || i18n.t('errors.network');
   }
 }
 

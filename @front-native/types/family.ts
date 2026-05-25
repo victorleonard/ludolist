@@ -8,6 +8,48 @@ export interface StrapiImage {
   };
 }
 
+export interface GameRating {
+  id: number;
+  rating: number;
+  member?: { id: number };
+  game?: { id: number };
+}
+
+export interface StrapiGame {
+  id: number;
+  documentId?: string;
+  name: string;
+  description?: string | null;
+  age_min: number;
+  age_max?: number | null;
+  playing_time?: string | null;
+  player_min: number;
+  player_max?: number | null;
+  image?: StrapiImage | null;
+  image_url?: string | null;
+  ratings?: GameRating[];
+  owner?: { id: number; username?: string } | null;
+  createdAt?: string;
+}
+
+export interface TransformedGame {
+  id: number;
+  documentId?: string;
+  titre: string;
+  description: string;
+  image: string | null;
+  tags: string[];
+  categorie: string;
+  duree: number;
+  age_min: number;
+  age_max: number | null;
+  player_min: number;
+  player_max: number;
+  ratings?: GameRating[];
+  owner?: { id: number; username?: string } | null;
+  createdAt: string;
+}
+
 export interface PlayerScore {
   id: number;
   score: number;
@@ -68,6 +110,7 @@ export interface ReadingInProgressItem {
 export interface FamilyMeResponse {
   id: number;
   name: string;
+  games?: StrapiGame[];
   books?: Array<{
     id: number;
     documentId?: string;

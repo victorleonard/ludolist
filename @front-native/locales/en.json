@@ -1,0 +1,95 @@
+{
+  "common": {
+    "appName": "Ludolist",
+    "loading": "Loading…",
+    "loadingGames": "Loading games…",
+    "retry": "Try again",
+    "back": "Back",
+    "seeAll": "See all",
+    "openMenu": "Open menu",
+    "oops": "Oops!",
+    "email": "Email",
+    "password": "Password",
+    "member": "Member",
+    "winner": "Winner",
+    "game": "Game",
+    "pointsShort": "{{count}} pts",
+    "ratingOutOf10": "{{value}} / 10",
+    "notRatedYet": "Not rated yet"
+  },
+  "language": {
+    "label": "Language",
+    "fr": "Français",
+    "en": "English"
+  },
+  "auth": {
+    "tagline": "Access your personal space",
+    "loginTitle": "Sign in",
+    "emailPlaceholder": "you@email.com",
+    "passwordPlaceholder": "••••••••",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "submit": "Sign in",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email",
+    "passwordRequired": "Password is required",
+    "invalidCredentials": "Invalid credentials",
+    "loginError": "Sign-in error"
+  },
+  "nav": {
+    "home": "Home",
+    "games": "Games",
+    "logout": "Sign out",
+    "gameDetail": "Game"
+  },
+  "notFound": {
+    "title": "This page doesn't exist.",
+    "backHome": "Back to home"
+  },
+  "home": {
+    "latestSessions": "Latest games played",
+    "readingsInProgress": "Books in progress",
+    "latestDishes": "Recently added dishes",
+    "noRecentSessionsTitle": "No recent games",
+    "noRecentSessionsDescription": "Start playing to see your sessions here",
+    "welcomeTitle": "Welcome to Ludolist",
+    "welcomeDescription": "Add games, books, or dishes from the website to find them here",
+    "noDishesTitle": "No dishes yet",
+    "noDishesDescription": "Add your first dishes to start rating them",
+    "readingSince": "Since {{date}}"
+  },
+  "games": {
+    "collectionTitle": "My collection",
+    "searchPlaceholder": "Search for a game…",
+    "count_one": "{{count}} game",
+    "count_other": "{{count}} games",
+    "emptyTitle": "No games",
+    "emptyFilteredTitle": "No games found",
+    "emptySearch": "No results for \"{{query}}\"",
+    "emptyDescription": "Add games to your collection from the website",
+    "clearSearch": "Clear search",
+    "averageRating": "Average rating: {{value}} / 10",
+    "playersRange": "{{min}}–{{max}} players",
+    "durationMinutes": "{{count}} min",
+    "ageFrom": "Ages {{age}} and up",
+    "ageBadge": "{{age}}+",
+    "comingSoon": "Sessions and full editing will be available on mobile soon.",
+    "notFound": "Game not found",
+    "noDescription": "No description available",
+    "tagPlayers": "{{min}}-{{max}} players",
+    "filters": {
+      "durationAll": "All",
+      "durationUnder15": "< 15 min",
+      "duration15to30": "15-30 min",
+      "duration30to45": "30-45 min",
+      "duration45to60": "45-60 min",
+      "duration60to90": "60-90 min",
+      "duration90to120": "90-120 min",
+      "durationOver120": "> 120 min",
+      "ageAll": "All"
+    }
+  },
+  "errors": {
+    "network": "Network error"
+  }
+}

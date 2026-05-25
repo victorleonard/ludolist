@@ -1,3 +1,4 @@
+import i18n, { getIntlLocale } from '@/lib/i18n';
 import { resolveStrapiImageUrl } from '@/lib/strapi-media';
 import type {
   GameSession,
@@ -9,7 +10,7 @@ import type {
 } from '@/types/family';
 
 export function formatDateShort(dateString: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
@@ -18,7 +19,7 @@ export function formatDateShort(dateString: string): string {
 }
 
 export function formatDateDebutShort(dateString: string): string {
-  return new Intl.DateTimeFormat('fr-FR', {
+  return new Intl.DateTimeFormat(getIntlLocale(), {
     day: 'numeric',
     month: 'short',
   }).format(new Date(dateString));
@@ -36,7 +37,8 @@ export function getSessionWinner(session: GameSession) {
   const winner = session.player_scores.find((ps) => ps.is_winner);
   if (winner) {
     return {
-      username: winner.member?.username ?? winner.guest_name ?? 'Gagnant',
+      username:
+        winner.member?.username ?? winner.guest_name ?? i18n.t('common.winner'),
       score: winner.score,
     };
   }
@@ -45,7 +47,7 @@ export function getSessionWinner(session: GameSession) {
   const top = sorted[0];
   if (!top) return null;
   return {
-    username: top.member?.username ?? top.guest_name ?? 'Gagnant',
+    username: top.member?.username ?? top.guest_name ?? i18n.t('common.winner'),
     score: top.score,
   };
 }

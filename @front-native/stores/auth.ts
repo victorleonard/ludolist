@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { apiFetch } from '@/lib/api';
+import i18n from '@/lib/i18n';
 import { clearStoredAuth, getStoredAuth, setStoredAuth } from '@/lib/storage';
 import type { AuthUser, LoginResponse } from '@/types/auth';
 
@@ -57,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { success: true };
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Erreur de connexion';
+        error instanceof Error ? error.message : i18n.t('auth.loginError');
       return { success: false, error: message };
     } finally {
       set({ isLoading: false });

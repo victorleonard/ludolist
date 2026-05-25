@@ -6,7 +6,9 @@ import {
 } from '@react-navigation/drawer';
 import { useRouter, type Href } from 'expo-router';
 import { LogOut } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
+import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher';
 import { Box } from '@/components/ui/box';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
@@ -15,6 +17,7 @@ import { useAuthStore } from '@/stores/auth';
 
 export function AppDrawerContent(props: DrawerContentComponentProps) {
   const router = useRouter();
+  const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -27,7 +30,7 @@ export function AppDrawerContent(props: DrawerContentComponentProps) {
     <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
       <Box className="border-b border-outline-200 px-4 py-6">
         <Heading size="xl" className="text-primary-700">
-          Ludolist
+          {t('common.appName')}
         </Heading>
         {user ? (
           <VStack className="mt-1 gap-0.5">
@@ -43,9 +46,10 @@ export function AppDrawerContent(props: DrawerContentComponentProps) {
         ) : null}
       </Box>
       <DrawerItemList {...props} />
+      <LanguageSwitcher />
       <Box className="mt-auto border-t border-outline-200 px-2 py-4">
         <DrawerItem
-          label="Déconnexion"
+          label={t('nav.logout')}
           onPress={handleLogout}
           icon={({ color, size }) => (
             <LogOut color={color} size={size} strokeWidth={2} />

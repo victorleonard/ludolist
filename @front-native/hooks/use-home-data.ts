@@ -1,20 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { apiFetch } from '@/lib/api';
+import { fetchFamilyMe } from '@/lib/family-api';
 import {
   buildReadingsInProgress,
   transformFamilyBooks,
   transformFamilyDishes,
 } from '@/lib/home-helpers';
 import { useAuthStore } from '@/stores/auth';
-import type { FamilyMeResponse, GameSession } from '@/types/family';
-
-async function fetchFamilyMe(token: string) {
-  const res = await apiFetch<{ data: FamilyMeResponse }>('/api/families/me', {
-    token,
-  });
-  return res.data;
-}
+import type { GameSession } from '@/types/family';
 
 async function fetchLatestSessions(token: string) {
   const res = await apiFetch<{ data: GameSession[] }>(

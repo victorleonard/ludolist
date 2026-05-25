@@ -1,0 +1,95 @@
+{
+  "common": {
+    "appName": "Ludolist",
+    "loading": "Chargement…",
+    "loadingGames": "Chargement des jeux…",
+    "retry": "Réessayer",
+    "back": "Retour",
+    "seeAll": "Voir tout",
+    "openMenu": "Ouvrir le menu",
+    "oops": "Oups !",
+    "email": "Email",
+    "password": "Mot de passe",
+    "member": "Membre",
+    "winner": "Gagnant",
+    "game": "Jeu",
+    "pointsShort": "{{count}} pts",
+    "ratingOutOf10": "{{value}} / 10",
+    "notRatedYet": "Pas encore noté"
+  },
+  "language": {
+    "label": "Langue",
+    "fr": "Français",
+    "en": "English"
+  },
+  "auth": {
+    "tagline": "Accédez à votre espace personnel",
+    "loginTitle": "Connexion",
+    "emailPlaceholder": "votre@email.com",
+    "passwordPlaceholder": "••••••••",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
+    "submit": "Se connecter",
+    "emailRequired": "Email requis",
+    "emailInvalid": "Email invalide",
+    "passwordRequired": "Le mot de passe est requis",
+    "invalidCredentials": "Identifiants incorrects",
+    "loginError": "Erreur de connexion"
+  },
+  "nav": {
+    "home": "Accueil",
+    "games": "Jeux",
+    "logout": "Déconnexion",
+    "gameDetail": "Jeu"
+  },
+  "notFound": {
+    "title": "Cette page n'existe pas.",
+    "backHome": "Retour à l'accueil"
+  },
+  "home": {
+    "latestSessions": "Dernières parties",
+    "readingsInProgress": "Lectures en cours",
+    "latestDishes": "Derniers plats ajoutés",
+    "noRecentSessionsTitle": "Aucune partie récente",
+    "noRecentSessionsDescription": "Commencez à jouer pour voir vos parties ici",
+    "welcomeTitle": "Bienvenue sur Ludolist",
+    "welcomeDescription": "Ajoutez des jeux, livres ou plats depuis le site web pour les retrouver ici",
+    "noDishesTitle": "Aucun plat pour l'instant",
+    "noDishesDescription": "Ajoutez vos premiers plats pour commencer à les noter",
+    "readingSince": "Depuis {{date}}"
+  },
+  "games": {
+    "collectionTitle": "Ma collection",
+    "searchPlaceholder": "Rechercher un jeu…",
+    "count_one": "{{count}} jeu",
+    "count_other": "{{count}} jeux",
+    "emptyTitle": "Aucun jeu",
+    "emptyFilteredTitle": "Aucun jeu trouvé",
+    "emptySearch": "Aucun résultat pour « {{query}} »",
+    "emptyDescription": "Ajoutez des jeux à votre collection depuis le site web",
+    "clearSearch": "Effacer la recherche",
+    "averageRating": "Note moyenne : {{value}} / 10",
+    "playersRange": "{{min}}–{{max}} joueurs",
+    "durationMinutes": "{{count}} min",
+    "ageFrom": "À partir de {{age}} ans",
+    "ageBadge": "{{age}}+ ans",
+    "comingSoon": "Les parties et l'édition complète seront disponibles prochainement sur mobile.",
+    "notFound": "Jeu introuvable",
+    "noDescription": "Aucune description disponible",
+    "tagPlayers": "{{min}}-{{max}} joueurs",
+    "filters": {
+      "durationAll": "Toutes",
+      "durationUnder15": "< 15 min",
+      "duration15to30": "15-30 min",
+      "duration30to45": "30-45 min",
+      "duration45to60": "45-60 min",
+      "duration60to90": "60-90 min",
+      "duration90to120": "90-120 min",
+      "durationOver120": "> 120 min",
+      "ageAll": "Tous"
+    }
+  },
+  "errors": {
+    "network": "Erreur réseau"
+  }
+}

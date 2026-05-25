@@ -1,5 +1,7 @@
+import { useRouter, type Href } from 'expo-router';
 import { BookOpen, Dices, UtensilsCrossed } from 'lucide-react-native';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,84 +32,9 @@ type CarouselMetaLine = {
   accent?: boolean;
 };
 
-function sessionToCarouselItem(session: GameSession) {
-  const winner = getSessionWinner(session);
-  const metaLines: CarouselMetaLine[] = [
-    {
-      icon: 'calendar',
-      text: formatDateShort(session.played_at),
-    },
-  ];
-
-  if (winner) {
-    const scoreLabel =
-      winner.score !== undefined ? ` (${winner.score} pts)` : '';
-    metaLines.push({
-      icon: 'trophy',
-      text: `${winner.username}${scoreLabel}`,
-      accent: true,
-    });
-  }
-
-  return {
-    key: `session-${session.id}`,
-    title: session.game.name,
-    imageUri: getSessionGameImage(session),
-    placeholderIcon: (
-      <Dices size={64} color="#0ea5e9" strokeWidth={1.5} opacity={0.6} />
-    ),
-    placeholderClassName: 'bg-primary-100',
-    metaLines,
-    variant: 'game' as const,
-  };
-}
-
-function readingToCarouselItem(item: ReadingInProgressItem) {
-  const debutLabel = getReadingDebutLabel(item.reading);
-  const memberName = item.reading.member?.username ?? 'Membre';
-
-  const metaLines: CarouselMetaLine[] = [
-    { icon: 'none', text: memberName },
-  ];
-  if (debutLabel) {
-    metaLines.push({ icon: 'calendar', text: `Depuis ${debutLabel}` });
-  }
-
-  return {
-    key: `reading-${item.reading.id}-${item.book.id}`,
-    title: item.book.titre,
-    imageUri: item.book.image,
-    placeholderIcon: (
-      <BookOpen size={64} color="#10b981" strokeWidth={1.5} opacity={0.6} />
-    ),
-    placeholderClassName: 'bg-success-100',
-    metaLines,
-  };
-}
-
-function dishToCarouselItem(dish: HomeDish) {
-  const avg = getDishAverageRating(dish);
-  const metaLines: CarouselMetaLine[] = [
-    {
-      icon: avg > 0 ? 'star' : 'none',
-      text: avg > 0 ? `${avg.toFixed(1)} / 10` : 'Pas encore noté',
-      accent: avg > 0,
-    },
-  ];
-
-  return {
-    key: `dish-${dish.id}`,
-    title: dish.name,
-    imageUri: dish.image,
-    placeholderIcon: (
-      <UtensilsCrossed size={64} color="#f59e0b" strokeWidth={1.5} opacity={0.6} />
-    ),
-    placeholderClassName: 'bg-warning-100',
-    metaLines,
-  };
-}
-
 export default function HomeScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
   const {
     latestSessions,
     latestDishes,
@@ -117,6 +44,119 @@ export default function HomeScreen() {
     refetch,
     error,
   } = useHomeData();
+
+  const sessionToCarouselItem = useCallback(
+    (session: GameSession) => {
+      const winner = getSessionWinner(session);
+      const metaLines: CarouselMetaLine[] = [
+        {
+          icon: 'calendar',
+          text: formatDateShort(session.played_at),
+        },
+      ];
+
+      if (winner) {
+        const scoreLabel =
+          winner.score !== undefined
+            ? ` (${t('common.pointsShort', { count: winner.score })})`
+            : '';
+        metaLines.push({
+          icon: 'trophy',
+          text: `${winner.username}${scoreLabel}`,
+          accent: true,
+        });
+      }
+
+      return {
+        key: `session-${session.id}`,
+        title: session.game.name,
+        imageUri: getSessionGameImage(session),
+        placeholderIcon: (
+          <Dices size={64} color="#0ea5e9" strokeWidth={1.5} opacity={0.6} />
+        ),
+        placeholderClassName: 'bg-primary-100',
+        metaLines,
+        variant: 'game' as const,
+      };
+    },
+    [t],
+  );
+
+  const readingToCarouselItem = useCallback(
+    (item: ReadingInProgressItem) => {
+      const debutLabel = getReadingDebutLabel(item.reading);
+      const memberName =
+        item.reading.member?.username ?? t('common.member');
+
+      const metaLines: CarouselMetaLine[] = [
+        { icon: 'none', text: memberName },
+      ];
+      if (debutLabel) {
+        metaLines.push({
+          icon: 'calendar',
+          text: t('home.readingSince', { date: debutLabel }),
+        });
+      }
+
+      return {
+        key: `reading-${item.reading.id}-${item.book.id}`,
+        title: item.book.titre,
+        imageUri: item.book.image,
+        placeholderIcon: (
+          <BookOpen size={64} color="#10b981" strokeWidth={1.5} opacity={0.6} />
+        ),
+        placeholderClassName: 'bg-success-100',
+        metaLines,
+      };
+    },
+    [t],
+  );
+
+  const dishToCarouselItem = useCallback(
+    (dish: HomeDish) => {
+      const avg = getDishAverageRating(dish);
+      const metaLines: CarouselMetaLine[] = [
+        {
+          icon: avg > 0 ? 'star' : 'none',
+          text:
+            avg > 0
+              ? t('common.ratingOutOf10', { value: avg.toFixed(1) })
+              : t('common.notRatedYet'),
+          accent: avg > 0,
+        },
+      ];
+
+      return {
+        key: `dish-${dish.id}`,
+        title: dish.name,
+        imageUri: dish.image,
+        placeholderIcon: (
+          <UtensilsCrossed
+            size={64}
+            color="#f59e0b"
+            strokeWidth={1.5}
+            opacity={0.6}
+          />
+        ),
+        placeholderClassName: 'bg-warning-100',
+        metaLines,
+      };
+    },
+    [t],
+  );
+
+  const sessionItems = useMemo(
+    () => latestSessions.map(sessionToCarouselItem),
+    [latestSessions, sessionToCarouselItem],
+  );
+  const readingItems = useMemo(
+    () => readingsInProgress.map(readingToCarouselItem),
+    [readingsInProgress, readingToCarouselItem],
+  );
+  const dishItems = useMemo(
+    () => latestDishes.map(dishToCarouselItem),
+    [latestDishes, dishToCarouselItem],
+  );
 
   const onRefresh = useCallback(() => {
     void refetch();
@@ -134,7 +174,7 @@ export default function HomeScreen() {
           <VStack space="md" className="items-center">
             <Spinner size="large" color={theme.colors.icon.accent} />
             <Text size="sm" className="text-typography-500">
-              Chargement…
+              {t('common.loading')}
             </Text>
           </VStack>
         </Center>
@@ -163,40 +203,43 @@ export default function HomeScreen() {
 
             {latestSessions.length > 0 ? (
               <HomeCarouselSection
-                title="Dernières parties"
-                items={latestSessions.map(sessionToCarouselItem)}
+                title={t('home.latestSessions')}
+                items={sessionItems}
+                onSeeAll={() =>
+                  router.push('/(drawer)/(tabs)/games' as Href)
+                }
               />
             ) : hasAnyContent ? (
               <HomeEmptyBlock
                 icon={Dices}
-                title="Aucune partie récente"
-                description="Commencez à jouer pour voir vos parties ici"
+                title={t('home.noRecentSessionsTitle')}
+                description={t('home.noRecentSessionsDescription')}
               />
             ) : null}
 
             <HomeCarouselSection
-              title="Lectures en cours"
-              items={readingsInProgress.map(readingToCarouselItem)}
+              title={t('home.readingsInProgress')}
+              items={readingItems}
             />
 
             <HomeCarouselSection
-              title="Derniers plats ajoutés"
-              items={latestDishes.map(dishToCarouselItem)}
+              title={t('home.latestDishes')}
+              items={dishItems}
             />
 
             {!hasAnyContent && !error ? (
               <HomeEmptyBlock
                 icon={UtensilsCrossed}
-                title="Bienvenue sur Ludolist"
-                description="Ajoutez des jeux, livres ou plats depuis le site web pour les retrouver ici"
+                title={t('home.welcomeTitle')}
+                description={t('home.welcomeDescription')}
               />
             ) : null}
 
             {latestDishes.length === 0 && hasAnyContent ? (
               <HomeEmptyBlock
                 icon={UtensilsCrossed}
-                title="Aucun plat pour l'instant"
-                description="Ajoutez vos premiers plats pour commencer à les noter"
+                title={t('home.noDishesTitle')}
+                description={t('home.noDishesDescription')}
               />
             ) : null}
           </VStack>

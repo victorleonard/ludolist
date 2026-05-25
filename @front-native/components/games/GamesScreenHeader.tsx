@@ -6,7 +6,7 @@ import { Heading } from '@/components/ui/heading';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 
-export function HomeScreenHeader() {
+export function GamesScreenHeader() {
   const { t } = useTranslation();
 
   return (
@@ -14,7 +14,7 @@ export function HomeScreenHeader() {
       <DrawerMenuButton />
       <VStack className="min-w-0 flex-1 justify-center">
         <Heading size="2xl" className="text-primary-700">
-          {t('common.appName')}
+          {t('games.collectionTitle')}
         </Heading>
       </VStack>
       <UserAvatarButton />
