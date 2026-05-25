@@ -1,7 +1,7 @@
 import { useRouter, type Href } from 'expo-router';
 import { Eye, EyeOff } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Alert, AlertText } from '@/components/ui/alert';
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form-control';
 import { Heading } from '@/components/ui/heading';
 import { Input, InputField, InputIcon, InputSlot } from '@/components/ui/input';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { Text } from '@/components/ui/text';
 import { VStack } from '@/components/ui/vstack';
 import { useAuthStore } from '@/stores/auth';

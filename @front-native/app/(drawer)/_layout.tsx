@@ -1,6 +1,7 @@
 import { Drawer } from 'expo-router/drawer';
 
 import { AppDrawerContent } from '@/components/layout/AppDrawerContent';
+import { theme } from '@/constants/theme';
 
 export default function DrawerLayout() {
   return (
@@ -10,7 +11,7 @@ export default function DrawerLayout() {
         headerShown: false,
         drawerType: 'slide',
         swipeEdgeWidth: 50,
-        drawerActiveTintColor: '#0284c7',
+        drawerActiveTintColor: theme.colors.icon.primary,
       }}
     >
       <Drawer.Screen

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "gluestack-ui": {
+      "command": "bash",
+      "args": ["tools/gluestack-mcp/run.sh"]
+    }
+  }
+}

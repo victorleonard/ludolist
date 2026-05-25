@@ -27,3 +27,4 @@ logs/
 # Dossiers de dépendances (déjà gérés par les sous-projets)
 # @back/node_modules/
 # @front/node_modules/
+tools/gluestack-mcp/node_modules/

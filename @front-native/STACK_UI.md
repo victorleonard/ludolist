@@ -116,6 +116,45 @@ npx gluestack-ui add drawer button card badge input modal actionsheet avatar
 
 > **Expo 54 :** utiliser les dernières versions de `@gluestack-ui/core`, `react-native-reanimated`, `react-native-worklets` et `nativewind@4.2.1+`.
 
+### MCP Gluestack (Cursor) — assistant UI
+
+Serveur [gluestack/mcp](https://github.com/gluestack/mcp) : expose la doc des composants à l’IA dans Cursor (génération d’écrans conformes au design system).
+
+| Outil MCP | Rôle |
+|---|---|
+| `get_all_components_metadata` | Liste des composants disponibles |
+| `select_components` | Choisir les composants pour un écran |
+| `get_selected_components_docs` | Doc complète (props, exemples) |
+
+**Emplacement monorepo :** `tools/gluestack-mcp/` (clone du dépôt officiel).
+
+**Première installation (une fois par machine) :**
+
+```bash
+# Si le dossier n’existe pas encore
+git clone --depth 1 https://github.com/gluestack/mcp.git tools/gluestack-mcp
+cd tools/gluestack-mcp && npm install && chmod +x run.sh
+```
+
+**Cursor :** le projet inclut `.cursor/mcp.json` à la racine du monorepo :
+
+```json
+{
+  "mcpServers": {
+    "gluestack-ui": {
+      "command": "bash",
+      "args": ["tools/gluestack-mcp/run.sh"]
+    }
+  }
+}
+```
+
+1. Ouvrir le dossier **`ludolist`** (racine monorepo) dans Cursor, pas seulement `@front-native`.
+2. **Settings → MCP** : vérifier que `gluestack-ui` est actif (recharger si besoin).
+3. L’assistant peut alors consulter la doc Gluestack avant de coder un écran.
+
+> Le MCP **guide** l’IA ; `npx gluestack-ui add` **installe** encore les fichiers dans `components/ui/`.
+
 ### Navigation & drawers — architecture hybride
 
 Aucun UI kit ne remplace seul la navigation native. Approche en **deux couches** :

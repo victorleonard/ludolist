@@ -1,5 +1,13 @@
+/** Couleurs pour icônes Lucide (hors className NativeWind) */
 export const theme = {
   colors: {
+    icon: {
+      muted: '#9ca3af',
+      primary: '#0284c7',
+      accent: '#0ea5e9',
+      success: '#10b981',
+      warning: '#f59e0b',
+    },
     primary: {
       50: '#f0f9ff',
       100: '#e0f2fe',
