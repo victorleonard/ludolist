@@ -150,7 +150,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await useFamilyStore.getState().clearFamily();
   },
 
-  // Récupérer l'utilisateur courant
+  // Récupérer l'utilisateur courant (invalide la session sur 401)
   fetchUser: async () => {
     const token = get().token;
     if (!token) {
@@ -158,22 +158,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/users/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération de l'utilisateur");
-      }
-
-      const user: User = await response.json();
+      const { apiFetch } = await import("../lib/api");
+      const user = await apiFetch<User>("/api/users/me", { token });
       set({ user });
       return user;
     } catch (error) {
       console.error("Erreur lors de la récupération de l'utilisateur:", error);
-      await get().clearToken();
+      // Un 401 a déjà déclenché logout via apiFetch ;
+      // pour les autres erreurs réseau on conserve le token local.
       return null;
     }
   },

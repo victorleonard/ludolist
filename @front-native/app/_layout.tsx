@@ -17,15 +17,24 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
-  const { isAuthenticated, loadToken } = useAuthStore();
+  const token = useAuthStore((s) => s.token);
+  const loadToken = useAuthStore((s) => s.loadToken);
+  const fetchUser = useAuthStore((s) => s.fetchUser);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Charger le token au démarrage
-    loadToken().finally(() => {
-      setIsReady(true);
-    });
-  }, []);
+    // Charger le token, puis valider la session auprès de l'API
+    (async () => {
+      try {
+        await loadToken();
+        if (useAuthStore.getState().token) {
+          await fetchUser();
+        }
+      } finally {
+        setIsReady(true);
+      }
+    })();
+  }, [loadToken, fetchUser]);
 
   useEffect(() => {
     if (!isReady) return;
@@ -33,14 +42,12 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(tabs)' || segments[0] === 'games';
     const isLoginPage = segments[0] === 'login';
 
-    if (!isAuthenticated() && inAuthGroup) {
-      // Rediriger vers login si non authentifié
+    if (!token && inAuthGroup) {
       router.replace('/login');
-    } else if (isAuthenticated() && isLoginPage) {
-      // Rediriger vers l'app si authentifié et sur la page login
+    } else if (token && isLoginPage) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated(), segments, isReady]);
+  }, [token, segments, isReady, router]);
 
   if (!isReady) {
     return (

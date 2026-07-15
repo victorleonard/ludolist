@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { API_URL, apiFetch } from "@/lib/api";
 import { useAuthStore } from "./authStore";
 
 interface StrapiImage {
@@ -108,8 +109,6 @@ interface FamilyState {
   getTop3Winners: (gameId: number) => Promise<{ success: boolean; data?: WinnerData[]; error?: string }>;
   fetchLatestPlayedGames: () => Promise<{ success: boolean; data?: any[]; error?: string }>;
 }
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:1337";
 
 export const useFamilyStore = create<FamilyState>((set, get) => ({
   family: null,
@@ -236,17 +235,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
         throw new Error("Non authentifié");
       }
 
-      const response = await fetch(`${API_URL}/api/families/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération de la famille");
-      }
-
-      const result = await response.json();
+      const result = await apiFetch<{ data?: Family } & Family>(
+        "/api/families/me",
+        { token },
+      );
       const family: Family = result.data || result;
 
       // Sauvegarder dans AsyncStorage
@@ -277,22 +269,15 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
         return { success: false, error: "Non authentifié" };
       }
 
-      const response = await fetch(`${API_URL}/api/ratings/set`, {
+      await apiFetch("/api/ratings/set", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        token,
         body: JSON.stringify({
           gameId,
           memberId,
           rating,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de l'enregistrement de la note");
-      }
 
       // Recharger la famille pour avoir les notes à jour
       await get().fetchFamily();
@@ -312,17 +297,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
         return { success: false, error: "Non authentifié" };
       }
 
-      const response = await fetch(`${API_URL}/api/game-sessions/game/${gameId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des parties");
-      }
-
-      const result = await response.json();
+      const result = await apiFetch<{ data?: GameSession[] }>(
+        `/api/game-sessions/game/${gameId}`,
+        { token },
+      );
       return { success: true, data: result.data || [] };
     } catch (error) {
       console.error("Erreur lors de la récupération des parties:", error);
@@ -381,17 +359,10 @@ export const useFamilyStore = create<FamilyState>((set, get) => ({
         return { success: false, error: "Non authentifié" };
       }
 
-      const response = await fetch(`${API_URL}/api/game-sessions/latest`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Erreur lors de la récupération des derniers jeux joués");
-      }
-
-      const result = await response.json();
+      const result = await apiFetch<{ data?: any[] }>(
+        "/api/game-sessions/latest",
+        { token },
+      );
       return { success: true, data: result.data || [] };
     } catch (error) {
       console.error("Erreur lors de la récupération des derniers jeux joués:", error);
