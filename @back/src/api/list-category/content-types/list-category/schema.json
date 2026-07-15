@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "list_categories",
+  "info": {
+    "singularName": "list-category",
+    "pluralName": "list-categories",
+    "displayName": "List Category"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "position": {
+      "type": "integer",
+      "default": 0
+    },
+    "list": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::list.list",
+      "inversedBy": "categories",
+      "required": true
+    },
+    "family": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::family.family",
+      "required": true
+    },
+    "items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list-item.list-item",
+      "mappedBy": "category"
+    }
+  }
+}

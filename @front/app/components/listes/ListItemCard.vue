@@ -36,6 +36,12 @@
         {{ item.name }}
       </p>
       <p
+        v-if="item.category && !isEditing"
+        class="text-xs text-primary-600 dark:text-primary-400 mt-0.5"
+      >
+        {{ item.category.name }}
+      </p>
+      <p
         v-if="item.created_by"
         class="text-xs text-gray-500 dark:text-gray-400 mt-0.5"
       >
@@ -51,7 +57,7 @@
 
     <div
       v-else
-      class="flex-1 min-w-0"
+      class="flex-1 min-w-0 space-y-2"
     >
       <UInput
         v-model="editName"
@@ -61,6 +67,23 @@
         @keyup.enter="handleSave"
         @keyup.esc="handleCancel"
       />
+      <select
+        v-if="categories.length > 0"
+        v-model="editCategoryId"
+        :disabled="saving"
+        class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm"
+      >
+        <option value="">
+          Sans catégorie
+        </option>
+        <option
+          v-for="category in categories"
+          :key="category.documentId"
+          :value="category.documentId"
+        >
+          {{ category.name }}
+        </option>
+      </select>
     </div>
 
     <div class="flex items-center gap-2 shrink-0">
@@ -117,10 +140,11 @@
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
-import { useLists, type ListItem } from '~/composables/useLists'
+import { useLists, type ListItem, type ListCategory } from '~/composables/useLists'
 
 interface Props {
   item: ListItem
+  categories?: ListCategory[]
 }
 
 interface Emits {
@@ -128,8 +152,12 @@ interface Emits {
   (e: 'deleted', itemId: string): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  categories: () => [],
+})
 const emit = defineEmits<Emits>()
+
+const categories = computed(() => props.categories ?? [])
 
 const { toggleListItem, updateListItem, deleteListItem } = useLists()
 const { currentMember } = storeToRefs(useMemberStore())
@@ -137,6 +165,7 @@ const currentMemberId = computed(() => currentMember.value?.id ?? null)
 
 const isEditing = ref(false)
 const editName = ref('')
+const editCategoryId = ref('')
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
@@ -144,11 +173,13 @@ const deleting = ref(false)
 const startEditing = () => {
   isEditing.value = true
   editName.value = props.item.name
+  editCategoryId.value = props.item.category?.documentId ?? ''
 }
 
 const handleCancel = () => {
   isEditing.value = false
   editName.value = ''
+  editCategoryId.value = ''
 }
 
 const handleToggle = async () => {
@@ -168,11 +199,17 @@ const handleSave = async () => {
   if (!editName.value.trim() || saving.value || !props.item.documentId) return
   saving.value = true
   try {
-    const result = await updateListItem(props.item.documentId, editName.value.trim())
+    const categoryDocumentId = editCategoryId.value || null
+    const result = await updateListItem(
+      props.item.documentId,
+      editName.value.trim(),
+      categoryDocumentId
+    )
     if (result.success && result.data) {
       emit('updated', result.data)
       isEditing.value = false
       editName.value = ''
+      editCategoryId.value = ''
     }
   } finally {
     saving.value = false

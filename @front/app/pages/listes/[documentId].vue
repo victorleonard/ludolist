@@ -50,6 +50,15 @@
                   variant="ghost"
                   color="neutral"
                   size="sm"
+                  icon="i-ion-folder-outline"
+                  aria-label="Gérer les catégories"
+                  class="w-9 h-9 min-w-9 min-h-9"
+                  @click="isCategoriesDrawerOpen = true"
+                />
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  size="sm"
                   icon="i-ion-create-outline"
                   aria-label="Renommer la liste"
                   class="w-9 h-9 min-w-9 min-h-9"
@@ -83,7 +92,7 @@
 
           <template v-else>
             <div
-              v-if="uncheckedList.length > 0"
+              v-if="hasCategories ? uncheckedGroups.length > 0 : uncheckedCount > 0"
               class="mb-6"
             >
               <div class="flex items-center gap-2 mb-4">
@@ -92,32 +101,55 @@
                   class="w-5 h-5 text-primary-500"
                 />
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  À faire ({{ uncheckedList.length }})
+                  À faire ({{ uncheckedCount }})
                 </h2>
               </div>
-              <draggable
-                v-model="uncheckedList"
-                item-key="documentId"
-                handle=".drag-handle"
-                :animation="120"
-                ghost-class="list-drag-ghost"
-                chosen-class="list-drag-chosen"
-                drag-class="list-drag-dragging"
-                class="space-y-2 list-draggable"
-                @end="handleReorderEnd"
+              <div
+                v-for="group in uncheckedGroups"
+                :key="`unchecked-${group.key}`"
+                class="mb-4 last:mb-0"
               >
-                <template #item="{ element }">
-                  <ListItemCard
-                    :item="element"
-                    @updated="handleItemUpdated"
-                    @deleted="handleItemDeleted"
-                  />
-                </template>
-              </draggable>
+                <h3
+                  v-if="hasCategories && group.label"
+                  class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 px-1"
+                >
+                  {{ group.label }}
+                  <span
+                    v-if="group.items.length === 0"
+                    class="font-normal text-gray-400 dark:text-gray-500"
+                  >
+                    (vide)
+                  </span>
+                </h3>
+                <draggable
+                  v-model="group.items"
+                  item-key="documentId"
+                  handle=".drag-handle"
+                  :group="hasCategories ? 'list-unchecked' : undefined"
+                  :animation="120"
+                  ghost-class="list-drag-ghost"
+                  chosen-class="list-drag-chosen"
+                  drag-class="list-drag-dragging"
+                  class="space-y-2 list-draggable min-h-[12px]"
+                  :class="{
+                    'list-draggable--empty': hasCategories && group.items.length === 0,
+                  }"
+                  @end="handleReorderEnd"
+                >
+                  <template #item="{ element }">
+                    <ListItemCard
+                      :item="element"
+                      :categories="listCategories"
+                      @updated="handleItemUpdated"
+                      @deleted="handleItemDeleted"
+                    />
+                  </template>
+                </draggable>
+              </div>
             </div>
 
             <div
-              v-if="checkedList.length > 0"
+              v-if="hasCategories ? checkedGroups.length > 0 : checkedCount > 0"
               class="mb-6"
             >
               <div class="flex items-center gap-2 mb-4">
@@ -126,28 +158,51 @@
                   class="w-5 h-5 text-green-500"
                 />
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Fait ({{ checkedList.length }})
+                  Fait ({{ checkedCount }})
                 </h2>
               </div>
-              <draggable
-                v-model="checkedList"
-                item-key="documentId"
-                handle=".drag-handle"
-                :animation="120"
-                ghost-class="list-drag-ghost"
-                chosen-class="list-drag-chosen"
-                drag-class="list-drag-dragging"
-                class="space-y-2 list-draggable"
-                @end="handleReorderEnd"
+              <div
+                v-for="group in checkedGroups"
+                :key="`checked-${group.key}`"
+                class="mb-4 last:mb-0"
               >
-                <template #item="{ element }">
-                  <ListItemCard
-                    :item="element"
-                    @updated="handleItemUpdated"
-                    @deleted="handleItemDeleted"
-                  />
-                </template>
-              </draggable>
+                <h3
+                  v-if="hasCategories && group.label"
+                  class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2 px-1"
+                >
+                  {{ group.label }}
+                  <span
+                    v-if="group.items.length === 0"
+                    class="font-normal text-gray-400 dark:text-gray-500"
+                  >
+                    (vide)
+                  </span>
+                </h3>
+                <draggable
+                  v-model="group.items"
+                  item-key="documentId"
+                  handle=".drag-handle"
+                  :group="hasCategories ? 'list-checked' : undefined"
+                  :animation="120"
+                  ghost-class="list-drag-ghost"
+                  chosen-class="list-drag-chosen"
+                  drag-class="list-drag-dragging"
+                  class="space-y-2 list-draggable min-h-[12px]"
+                  :class="{
+                    'list-draggable--empty': hasCategories && group.items.length === 0,
+                  }"
+                  @end="handleReorderEnd"
+                >
+                  <template #item="{ element }">
+                    <ListItemCard
+                      :item="element"
+                      :categories="listCategories"
+                      @updated="handleItemUpdated"
+                      @deleted="handleItemDeleted"
+                    />
+                  </template>
+                </draggable>
+              </div>
             </div>
           </template>
           </div>
@@ -173,8 +228,17 @@
       :model-value="isAddModalOpen"
       :list-document-id="String(route.params.documentId || '')"
       :existing-items="allItems"
+      :categories="listCategories"
       @update:model-value="(v) => { if (!v) isAddModalOpen = false }"
       @success="handleAddSuccess"
+    />
+
+    <ManageListCategoriesDrawer
+      :model-value="isCategoriesDrawerOpen"
+      :list-document-id="String(route.params.documentId || '')"
+      :categories="listCategories"
+      @update:model-value="(v) => { isCategoriesDrawerOpen = v }"
+      @changed="handleCategoriesChanged"
     />
 
     <!-- Drawer Modifier les accès -->
@@ -392,13 +456,21 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { ListItem } from '~/composables/useLists'
+import type { ListItem, ListCategory } from '~/composables/useLists'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
 import { useFamilyStore } from '~/stores/family'
 import { useLists, type List } from '~/composables/useLists'
 import ListItemCard from '~/components/listes/ListItemCard.vue'
 import AddListItemModal from '~/components/listes/AddListItemModal.vue'
+import ManageListCategoriesDrawer from '~/components/listes/ManageListCategoriesDrawer.vue'
+
+interface ItemGroup {
+  key: string
+  label: string
+  categoryDocumentId: string | null
+  items: ListItem[]
+}
 
 definePageMeta({
   layout: 'default',
@@ -407,7 +479,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { fetchList, updateList, deleteList, reorderListItems } = useLists()
+const { fetchList, updateList, deleteList, reorderListItems, updateListItem } = useLists()
 const memberStore = useMemberStore()
 const familyStore = useFamilyStore()
 const { currentMember } = storeToRefs(memberStore)
@@ -418,6 +490,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const list = ref<List | null>(null)
 const isAddModalOpen = ref(false)
+const isCategoriesDrawerOpen = ref(false)
 const isAccessDrawerOpen = ref(false)
 const selectedMemberIds = ref<number[]>([])
 const savingAccess = ref(false)
@@ -438,51 +511,122 @@ const currentMemberId = computed(() => currentMember.value?.id ?? null)
 
 const allItems = computed(() => list.value?.items ?? [])
 
-const uncheckedList = ref<ListItem[]>([])
-const checkedList = ref<ListItem[]>([])
+const listCategories = computed(() => {
+  const categories = list.value?.categories ?? []
+  return [...categories].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+})
 
-function syncListsFromList() {
-  if (!list.value?.items || !Array.isArray(list.value.items)) {
-    uncheckedList.value = []
-    checkedList.value = []
-    return
-  }
-  uncheckedList.value = list.value.items.filter((item) => !item.is_checked)
-  checkedList.value = list.value.items.filter((item) => item.is_checked)
+const hasCategories = computed(() => listCategories.value.length > 0)
+
+const uncheckedGroups = ref<ItemGroup[]>([])
+const checkedGroups = ref<ItemGroup[]>([])
+
+const uncheckedCount = computed(() =>
+  uncheckedGroups.value.reduce((sum, group) => sum + group.items.length, 0)
+)
+const checkedCount = computed(() =>
+  checkedGroups.value.reduce((sum, group) => sum + group.items.length, 0)
+)
+
+function getCategoryDocumentId(item: ListItem): string | null {
+  return item.category?.documentId ?? null
 }
 
-// Resynchroniser les listes draggables dès que la liste source change (chargement, mise à jour, suppression)
+function buildItemGroups(items: ListItem[], categories: ListCategory[]): ItemGroup[] {
+  if (categories.length === 0) {
+    return items.length > 0
+      ? [{ key: '__flat__', label: '', categoryDocumentId: null, items: [...items] }]
+      : []
+  }
+
+  const groups: ItemGroup[] = categories.map((category) => ({
+    key: category.documentId,
+    label: category.name,
+    categoryDocumentId: category.documentId,
+    items: items.filter((item) => getCategoryDocumentId(item) === category.documentId),
+  }))
+
+  groups.push({
+    key: '__none__',
+    label: 'Sans catégorie',
+    categoryDocumentId: null,
+    items: items.filter((item) => !getCategoryDocumentId(item)),
+  })
+
+  return groups
+}
+
+function syncListsFromList() {
+  const categories = listCategories.value
+  const items = list.value?.items ?? []
+  const unchecked = items.filter((item) => !item.is_checked)
+  const checked = items.filter((item) => item.is_checked)
+  uncheckedGroups.value = buildItemGroups(unchecked, categories)
+  checkedGroups.value = buildItemGroups(checked, categories)
+}
+
 watch(
-  () => list.value?.items,
-  (items) => {
-    if (!items || !Array.isArray(items)) {
-      uncheckedList.value = []
-      checkedList.value = []
-      return
-    }
-    uncheckedList.value = items.filter((item) => !item.is_checked)
-    checkedList.value = items.filter((item) => item.is_checked)
+  () => [list.value?.items, list.value?.categories],
+  () => {
+    syncListsFromList()
   },
   { immediate: true, deep: true }
 )
 
 const reordering = ref(false)
+
+async function persistCategoryChanges() {
+  const updates: Promise<void>[] = []
+
+  for (const group of [...uncheckedGroups.value, ...checkedGroups.value]) {
+    for (const item of group.items) {
+      const currentCatId = getCategoryDocumentId(item)
+      const targetCatId = group.categoryDocumentId
+      if (currentCatId === targetCatId) continue
+
+      updates.push(
+        (async () => {
+          const result = await updateListItem(item.documentId, undefined, targetCatId)
+          if (result.success && result.data) {
+            item.category = result.data.category ?? null
+          } else {
+            throw new Error(result.error ?? 'Erreur lors du changement de catégorie')
+          }
+        })()
+      )
+    }
+  }
+
+  await Promise.all(updates)
+}
+
 async function handleReorderEnd() {
   if (!list.value || reordering.value) return
-  const ordered = [...uncheckedList.value, ...checkedList.value]
-  const orderedDocumentIds = ordered.map((item) => item.documentId)
+
   reordering.value = true
   try {
+    if (hasCategories.value) {
+      await persistCategoryChanges()
+    }
+
+    const ordered = [
+      ...uncheckedGroups.value.flatMap((group) => group.items),
+      ...checkedGroups.value.flatMap((group) => group.items),
+    ]
+    const orderedDocumentIds = ordered.map((item) => item.documentId)
     const result = await reorderListItems(
       list.value.documentId,
       orderedDocumentIds,
       currentMember.value?.id ?? null
     )
     if (result.success) {
-      list.value.items = [...ordered]
+      list.value.items = ordered.map((item) => ({ ...item }))
     } else {
       syncListsFromList()
     }
+  } catch (err) {
+    console.error('Erreur handleReorderEnd:', err)
+    syncListsFromList()
   } finally {
     reordering.value = false
   }
@@ -538,6 +682,10 @@ function handleItemDeleted(itemId: string) {
 }
 
 function handleAddSuccess() {
+  loadList()
+}
+
+function handleCategoriesChanged() {
   loadList()
 }
 
@@ -658,6 +806,17 @@ watch(currentMemberId, (newId, oldId) => {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
   cursor: grabbing;
   transition: box-shadow 0.1s ease-out;
+}
+
+.list-draggable--empty {
+  min-height: 44px;
+  border: 2px dashed rgb(229 231 235);
+  border-radius: 0.75rem;
+  padding: 0.25rem;
+}
+
+.dark .list-draggable--empty {
+  border-color: rgb(55 65 81);
 }
 </style>
 

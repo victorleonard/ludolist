@@ -37,7 +37,7 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
 
       const userFamily = family[0];
       const body = ctx.request.body?.data ?? ctx.request.body ?? {};
-      const { listDocumentId, name, memberId } = body;
+      const { listDocumentId, name, memberId, categoryDocumentId } = body;
 
       if (!listDocumentId || typeof listDocumentId !== 'string') {
         return ctx.badRequest('listDocumentId requis');
@@ -82,6 +82,24 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         : -1;
       const nextPosition = maxPosition + 1;
 
+      let categoryId = null;
+      if (categoryDocumentId != null && categoryDocumentId !== '') {
+        const categories = await strapi.entityService.findMany('api::list-category.list-category', {
+          filters: { documentId: categoryDocumentId },
+          populate: { list: true },
+          limit: 1,
+        });
+        if (!categories || categories.length === 0) {
+          return ctx.badRequest('Catégorie non trouvée');
+        }
+        const category = categories[0];
+        const categoryListId = typeof category.list === 'object' ? category.list.id : category.list;
+        if (categoryListId !== list.id) {
+          return ctx.badRequest('Cette catégorie n\'appartient pas à cette liste');
+        }
+        categoryId = category.id;
+      }
+
       const created = await strapi.entityService.create('api::list-item.list-item', {
         data: {
           name: String(name).trim(),
@@ -90,13 +108,14 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
           list: list.id,
           family: userFamily.id,
           ...(createdByMemberId != null && { created_by: createdByMemberId }),
+          ...(categoryId != null && { category: categoryId }),
         },
       });
 
       const withRelations = await strapi.entityService.findOne(
         'api::list-item.list-item',
         created.id,
-        { populate: ['family', 'list', 'created_by', 'checked_by'] }
+        { populate: ['family', 'list', 'created_by', 'checked_by', 'category'] }
       );
 
       return ctx.created({ data: withRelations });
@@ -160,7 +179,7 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         item.id,
         {
           data: updateData,
-          populate: ['family', 'list', 'created_by', 'checked_by'],
+          populate: ['family', 'list', 'created_by', 'checked_by', 'category'],
         }
       );
 
@@ -186,12 +205,12 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
 
       const { documentId } = ctx.params;
       const body = ctx.request.body?.data ?? ctx.request.body ?? {};
-      const { name } = body;
+      const { name, categoryDocumentId } = body;
 
       if (!documentId || typeof documentId !== 'string') {
         return ctx.badRequest('documentId requis');
       }
-      if (!name || !String(name).trim()) {
+      if (name !== undefined && (!name || !String(name).trim())) {
         return ctx.badRequest('Le nom est requis');
       }
 
@@ -214,12 +233,41 @@ module.exports = createCoreController('api::list-item.list-item', ({ strapi }) =
         return ctx.forbidden('Cet élément n\'appartient pas à votre famille');
       }
 
+      const updateData = {};
+      if (name !== undefined) updateData.name = String(name).trim();
+
+      if (body.categoryDocumentId !== undefined) {
+        if (categoryDocumentId == null || categoryDocumentId === '') {
+          updateData.category = null;
+        } else {
+          const categories = await strapi.entityService.findMany('api::list-category.list-category', {
+            filters: { documentId: categoryDocumentId },
+            populate: { list: true },
+            limit: 1,
+          });
+          if (!categories || categories.length === 0) {
+            return ctx.badRequest('Catégorie non trouvée');
+          }
+          const category = categories[0];
+          const itemListId = typeof item.list === 'object' ? item.list.id : item.list;
+          const categoryListId = typeof category.list === 'object' ? category.list.id : category.list;
+          if (categoryListId !== itemListId) {
+            return ctx.badRequest('Cette catégorie n\'appartient pas à cette liste');
+          }
+          updateData.category = category.id;
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return ctx.badRequest('Aucune donnée à mettre à jour');
+      }
+
       const updated = await strapi.entityService.update(
         'api::list-item.list-item',
         item.id,
         {
-          data: { name: String(name).trim() },
-          populate: ['family', 'list', 'created_by', 'checked_by'],
+          data: updateData,
+          populate: ['family', 'list', 'created_by', 'checked_by', 'category'],
         }
       );
 

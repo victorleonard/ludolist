@@ -47,6 +47,35 @@
         </form>
 
         <div
+          v-if="categories.length > 0"
+          class="mb-4"
+        >
+          <label
+            for="list-item-category"
+            class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5"
+          >
+            Catégorie (optionnel)
+          </label>
+          <select
+            id="list-item-category"
+            v-model="selectedCategoryId"
+            :disabled="submitting"
+            class="w-full min-h-[44px] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-base text-gray-900 dark:text-gray-100"
+          >
+            <option value="">
+              Sans catégorie
+            </option>
+            <option
+              v-for="category in categories"
+              :key="category.documentId"
+              :value="category.documentId"
+            >
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+
+        <div
           v-if="suggestions.length > 0 && itemName.trim().length > 0"
           class="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto"
         >
@@ -86,12 +115,13 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
-import { useLists, type ListItem } from '~/composables/useLists'
+import { useLists, type ListItem, type ListCategory } from '~/composables/useLists'
 
 interface Props {
   modelValue: boolean
   listDocumentId: string
   existingItems?: ListItem[]
+  categories?: ListCategory[]
 }
 
 interface Emits {
@@ -101,6 +131,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   existingItems: () => [],
+  categories: () => [],
 })
 
 const emit = defineEmits<Emits>()
@@ -114,7 +145,10 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value),
 })
 
+const categories = computed(() => props.categories ?? [])
+
 const itemName = ref('')
+const selectedCategoryId = ref<string>('')
 const submitting = ref(false)
 const errors = ref<{ name?: string }>({})
 const nameInputRef = ref<HTMLInputElement | null>(null)
@@ -142,6 +176,7 @@ const suggestions = computed(() => {
 watch(isOpen, async (newValue) => {
   if (newValue) {
     itemName.value = ''
+    selectedCategoryId.value = ''
     errors.value = {}
     await nextTick()
     focusInput()
@@ -176,7 +211,13 @@ const handleAdd = async () => {
 
   try {
     const memberId = currentMember.value?.id ?? null
-    const result = await addItem(props.listDocumentId, itemName.value.trim(), memberId)
+    const categoryDocumentId = selectedCategoryId.value || null
+    const result = await addItem(
+      props.listDocumentId,
+      itemName.value.trim(),
+      memberId,
+      categoryDocumentId
+    )
 
     if (result.success && result.data) {
       emit('success', result.data)

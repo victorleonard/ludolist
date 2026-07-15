@@ -1,5 +1,12 @@
 import { useAuthStore } from '~/stores/auth'
 
+export interface ListCategory {
+  id: number
+  documentId: string
+  name: string
+  position?: number
+}
+
 export interface ListItem {
   id: number
   documentId: string
@@ -8,6 +15,7 @@ export interface ListItem {
   position?: number
   family?: number
   list?: number | { id: number }
+  category?: ListCategory | null
   created_by?: {
     id: number
     username: string
@@ -26,6 +34,7 @@ export interface List {
   name: string
   family?: number
   allowed_members?: Array<{ id: number; username?: string } | number>
+  categories?: ListCategory[]
   items?: ListItem[]
   createdAt?: string
   updatedAt?: string
@@ -85,6 +94,17 @@ export interface DeleteListItemResult {
 }
 
 export interface ReorderListItemsResult {
+  success: boolean
+  error?: string
+}
+
+export interface CategoryResult {
+  success: boolean
+  data?: ListCategory
+  error?: string
+}
+
+export interface DeleteCategoryResult {
   success: boolean
   error?: string
 }
@@ -220,7 +240,8 @@ export function useLists() {
   async function addItem(
     listDocumentId: string,
     name: string,
-    memberId?: number | null
+    memberId?: number | null,
+    categoryDocumentId?: string | null
   ): Promise<AddListItemResult> {
     if (!authStore.token) {
       return { success: false, error: 'Non authentifié' }
@@ -229,11 +250,17 @@ export function useLists() {
       return { success: false, error: 'listDocumentId et nom requis' }
     }
     try {
-      const body: { listDocumentId: string; name: string; memberId?: number } = {
+      const body: {
+        listDocumentId: string
+        name: string
+        memberId?: number
+        categoryDocumentId?: string
+      } = {
         listDocumentId,
         name: name.trim(),
       }
       if (memberId != null) body.memberId = memberId
+      if (categoryDocumentId) body.categoryDocumentId = categoryDocumentId
       const response = await $fetch<{ data?: ListItem }>(`${config.public.apiUrl}/api/list-items/add-to-list`, {
         method: 'POST',
         headers: headers(),
@@ -275,17 +302,27 @@ export function useLists() {
     }
   }
 
-  async function updateListItem(documentId: string, name: string): Promise<UpdateListItemResult> {
+  async function updateListItem(
+    documentId: string,
+    name?: string,
+    categoryDocumentId?: string | null
+  ): Promise<UpdateListItemResult> {
     if (!authStore.token) {
       return { success: false, error: 'Non authentifié' }
     }
-    if (!documentId || !name?.trim()) {
-      return { success: false, error: 'documentId et nom requis' }
+    if (!documentId) {
+      return { success: false, error: 'documentId requis' }
+    }
+    if (name !== undefined && !name?.trim()) {
+      return { success: false, error: 'Le nom ne peut pas être vide' }
     }
     try {
+      const body: { name?: string; categoryDocumentId?: string | null } = {}
+      if (name !== undefined) body.name = name.trim()
+      if (categoryDocumentId !== undefined) body.categoryDocumentId = categoryDocumentId
       const response = await $fetch<{ data?: ListItem }>(
         `${config.public.apiUrl}/api/list-items/${encodeURIComponent(documentId)}`,
-        { method: 'PUT', headers: headers(), body: { name: name.trim() } }
+        { method: 'PUT', headers: headers(), body }
       )
       const data = response?.data ?? response
       return { success: true, data: data as ListItem }
@@ -343,6 +380,74 @@ export function useLists() {
     }
   }
 
+  async function createCategory(
+    listDocumentId: string,
+    name: string,
+    memberId?: number | null
+  ): Promise<CategoryResult> {
+    if (!authStore.token) {
+      return { success: false, error: 'Non authentifié' }
+    }
+    if (!listDocumentId || !name?.trim()) {
+      return { success: false, error: 'listDocumentId et nom requis' }
+    }
+    try {
+      const body: { listDocumentId: string; name: string; memberId?: number } = {
+        listDocumentId,
+        name: name.trim(),
+      }
+      if (memberId != null) body.memberId = memberId
+      const response = await $fetch<{ data?: ListCategory }>(
+        `${config.public.apiUrl}/api/list-categories`,
+        { method: 'POST', headers: headers(), body }
+      )
+      const data = response?.data ?? response
+      return { success: true, data: data as ListCategory }
+    } catch (err) {
+      console.error('Erreur createCategory:', err)
+      return { success: false, error: getErrorMessage(err) }
+    }
+  }
+
+  async function updateCategory(documentId: string, name: string): Promise<CategoryResult> {
+    if (!authStore.token) {
+      return { success: false, error: 'Non authentifié' }
+    }
+    if (!documentId || !name?.trim()) {
+      return { success: false, error: 'documentId et nom requis' }
+    }
+    try {
+      const response = await $fetch<{ data?: ListCategory }>(
+        `${config.public.apiUrl}/api/list-categories/${encodeURIComponent(documentId)}`,
+        { method: 'PUT', headers: headers(), body: { name: name.trim() } }
+      )
+      const data = response?.data ?? response
+      return { success: true, data: data as ListCategory }
+    } catch (err) {
+      console.error('Erreur updateCategory:', err)
+      return { success: false, error: getErrorMessage(err) }
+    }
+  }
+
+  async function deleteCategory(documentId: string): Promise<DeleteCategoryResult> {
+    if (!authStore.token) {
+      return { success: false, error: 'Non authentifié' }
+    }
+    if (!documentId) {
+      return { success: false, error: 'documentId requis' }
+    }
+    try {
+      await $fetch(
+        `${config.public.apiUrl}/api/list-categories/${encodeURIComponent(documentId)}`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${authStore.token}` } }
+      )
+      return { success: true }
+    } catch (err) {
+      console.error('Erreur deleteCategory:', err)
+      return { success: false, error: getErrorMessage(err) }
+    }
+  }
+
   return {
     fetchLists,
     fetchList,
@@ -354,5 +459,8 @@ export function useLists() {
     updateListItem,
     deleteListItem,
     reorderListItems,
+    createCategory,
+    updateCategory,
+    deleteCategory,
   }
 }

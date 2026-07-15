@@ -767,6 +767,41 @@ export interface ApiGameGame extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiListCategoryListCategory
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'list_categories';
+  info: {
+    displayName: 'List Category';
+    pluralName: 'list-categories';
+    singularName: 'list-category';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    family: Schema.Attribute.Relation<'manyToOne', 'api::family.family'> &
+      Schema.Attribute.Required;
+    items: Schema.Attribute.Relation<'oneToMany', 'api::list-item.list-item'>;
+    list: Schema.Attribute.Relation<'manyToOne', 'api::list.list'> &
+      Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::list-category.list-category'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    position: Schema.Attribute.Integer & Schema.Attribute.DefaultTo<0>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiListItemListItem extends Struct.CollectionTypeSchema {
   collectionName: 'list_items';
   info: {
@@ -778,6 +813,10 @@ export interface ApiListItemListItem extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    category: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::list-category.list-category'
+    >;
     checked_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     created_by: Schema.Attribute.Relation<'manyToOne', 'api::member.member'>;
     createdAt: Schema.Attribute.DateTime;
@@ -817,6 +856,10 @@ export interface ApiListList extends Struct.CollectionTypeSchema {
     allowed_members: Schema.Attribute.Relation<
       'manyToMany',
       'api::member.member'
+    >;
+    categories: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::list-category.list-category'
     >;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
@@ -1597,6 +1640,7 @@ declare module '@strapi/strapi' {
       'api::family.family': ApiFamilyFamily;
       'api::game-session.game-session': ApiGameSessionGameSession;
       'api::game.game': ApiGameGame;
+      'api::list-category.list-category': ApiListCategoryListCategory;
       'api::list-item.list-item': ApiListItemListItem;
       'api::list.list': ApiListList;
       'api::member.member': ApiMemberMember;

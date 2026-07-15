@@ -19,7 +19,7 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
 
       const family = await strapi.entityService.findMany('api::family.family', {
         filters: { users_permissions_user: { id: user.id } },
-        populate: { members: true, lists: { populate: { items: { populate: { created_by: true, checked_by: true } }, allowed_members: true } } },
+        populate: { members: true, lists: { populate: { items: { populate: { created_by: true, checked_by: true, category: true } }, categories: true, allowed_members: true } } },
         limit: 1,
       });
 
@@ -40,6 +40,9 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
       });
 
       filtered.forEach((list) => {
+        if (list.categories && list.categories.length > 0) {
+          list.categories.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+        }
         if (list.items && list.items.length > 0) {
           list.items.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
         }
@@ -81,7 +84,7 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
 
       const lists = await strapi.entityService.findMany('api::list.list', {
         filters: { documentId },
-        populate: { family: true, allowed_members: true, items: { populate: { created_by: true, checked_by: true } } },
+        populate: { family: true, allowed_members: true, categories: true, items: { populate: { created_by: true, checked_by: true, category: true } } },
         limit: 1,
       });
 
@@ -104,6 +107,9 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
         }
       }
 
+      if (list.categories && list.categories.length > 0) {
+        list.categories.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
+      }
       if (list.items && list.items.length > 0) {
         list.items.sort((a, b) => (a.position ?? 0) - (b.position ?? 0) || a.id - b.id);
       }
@@ -277,7 +283,7 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
 
       const lists = await strapi.entityService.findMany('api::list.list', {
         filters: { documentId },
-        populate: { family: true, allowed_members: true, items: true },
+        populate: { family: true, allowed_members: true, items: true, categories: true },
         limit: 1,
       });
 
@@ -300,6 +306,10 @@ module.exports = createCoreController('api::list.list', ({ strapi }) => ({
       const itemIds = (list.items || []).map((i) => (typeof i === 'object' ? i.id : i));
       for (const itemId of itemIds) {
         await strapi.entityService.delete('api::list-item.list-item', itemId);
+      }
+      const categoryIds = (list.categories || []).map((c) => (typeof c === 'object' ? c.id : c));
+      for (const categoryId of categoryIds) {
+        await strapi.entityService.delete('api::list-category.list-category', categoryId);
       }
       await strapi.entityService.delete('api::list.list', list.id);
 
