@@ -26,6 +26,12 @@ const memberCodeError = ref(null)
 const memberCodeLoading = ref(false)
 const { isOpen: isAddGameModalOpen, selectedGame, closeModal: closeAddGameModal } = useAddGameModal()
 const { isOpen: isAddBookModalOpen, selectedBook, closeModal: closeAddBookModal } = useAddBookModal()
+const { updating: updatingPwa, updatePwa } = usePwaUpdate()
+
+async function handleUpdatePwa() {
+  closeMenu()
+  await updatePwa()
+}
 
 // Détecter si on est sur une page de jeu
 const isGamePage = computed(() => {
@@ -542,6 +548,21 @@ const handleMemberLogout = () => {
                   class="w-4 h-4 ml-auto text-gray-400 dark:text-gray-500"
                 />
               </NuxtLink>
+              <button
+                type="button"
+                class="flex items-center gap-3 px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 transition-all duration-150 w-full text-left group"
+                :disabled="updatingPwa"
+                @click="handleUpdatePwa"
+              >
+                <UIcon
+                  :name="updatingPwa ? 'i-ion-refresh-circle' : 'i-ion-cloud-download-outline'"
+                  class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400 group-hover:scale-110 transition-transform"
+                  :class="{ 'animate-spin': updatingPwa }"
+                />
+                <span class="font-medium text-sm text-gray-700 dark:text-gray-300">
+                  {{ updatingPwa ? 'Mise à jour…' : 'Mettre à jour l\'app' }}
+                </span>
+              </button>
               <!-- Dark mode -->
               <div class="flex items-center justify-between px-3 py-2.5 mx-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-150">
                 <div class="flex items-center gap-3">

@@ -61,7 +61,8 @@ export default defineNuxtConfig({
   },
 
   pwa: {
-    disable: process.env.NODE_ENV === 'production',
+    // Activer la PWA en production (désactiver uniquement si besoin de debug build)
+    disable: false,
     registerType: 'autoUpdate',
     manifest: {
       name: 'TribuList - Listes pour la tribu',
