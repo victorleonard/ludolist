@@ -115,26 +115,6 @@
                 {{ errors.category }}
               </p>
             </div>
-
-            <div
-              v-if="suggestions.length > 0 && itemName.trim().length > 0"
-              class="pb-2 border-b border-gray-200 dark:border-gray-700 max-h-32 overflow-y-auto"
-            >
-              <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2.5">
-                Similaires :
-              </p>
-              <div class="flex flex-wrap gap-2">
-                <button
-                  v-for="suggestion in suggestions"
-                  :key="suggestion.documentId"
-                  type="button"
-                  class="px-3 py-1.5 text-xs rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors"
-                  @click="selectSuggestion(suggestion)"
-                >
-                  {{ suggestion.name }}
-                </button>
-              </div>
-            </div>
           </div>
 
           <div
@@ -180,7 +160,6 @@ import { useLists, type ListItem, type ListCategory } from '~/composables/useLis
 interface Props {
   modelValue: boolean
   listDocumentId: string
-  existingItems?: ListItem[]
   categories?: ListCategory[]
 }
 
@@ -191,7 +170,6 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  existingItems: () => [],
   categories: () => [],
 })
 
@@ -242,17 +220,6 @@ const scheduleFocusNameInput = () => {
 }
 
 defineExpose({ focusNameInput: scheduleFocusNameInput })
-
-const suggestions = computed(() => {
-  if (!itemName.value.trim()) return []
-  const searchTerm = itemName.value.trim().toLowerCase()
-  return props.existingItems
-    .filter((item) => {
-      const n = item.name.toLowerCase()
-      return n.includes(searchTerm) && n !== searchTerm
-    })
-    .slice(0, 5)
-})
 
 watch(isOpen, async (newValue) => {
   if (newValue) {
@@ -308,11 +275,6 @@ async function resolveCategoryDocumentId(): Promise<string | null> {
 
 const handleInput = () => {
   errors.value = {}
-}
-
-const selectSuggestion = (suggestion: ListItem) => {
-  itemName.value = suggestion.name
-  handleAdd()
 }
 
 const closeModal = () => {

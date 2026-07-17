@@ -229,7 +229,6 @@
       ref="addListItemModalRef"
       :model-value="isAddModalOpen"
       :list-document-id="String(route.params.documentId || '')"
-      :existing-items="allItems"
       :categories="listCategories"
       @update:model-value="(v) => { if (!v) isAddModalOpen = false }"
       @success="handleAddSuccess"
