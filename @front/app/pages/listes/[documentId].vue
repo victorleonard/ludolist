@@ -216,7 +216,8 @@
       class="fixed right-4 z-40 rounded-full w-14 h-14 min-w-[56px] min-h-[56px] bg-primary-500 hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center p-0 border-0 cursor-pointer"
       style="bottom: calc(80px + max(0.5rem, env(safe-area-inset-bottom, 0.5rem)));"
       aria-label="Ajouter un élément"
-      @click="isAddModalOpen = true"
+      @click="openAddModal"
+      @pointerdown="onAddPointerDown"
     >
       <UIcon
         name="i-ion-add"
@@ -225,6 +226,7 @@
     </button>
 
     <AddListItemModal
+      ref="addListItemModalRef"
       :model-value="isAddModalOpen"
       :list-document-id="String(route.params.documentId || '')"
       :existing-items="allItems"
@@ -466,7 +468,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { ListItem, ListCategory } from '~/composables/useLists'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
@@ -502,6 +504,7 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const list = ref<List | null>(null)
 const isAddModalOpen = ref(false)
+const addListItemModalRef = ref<{ focusNameInput?: () => void } | null>(null)
 const isEditDrawerOpen = ref(false)
 const editingItem = ref<ListItem | null>(null)
 const isCategoriesDrawerOpen = ref(false)
@@ -687,6 +690,23 @@ function handleItemUpdated(updatedItem: ListItem) {
     list.value.items[index] = updatedItem
   }
   syncListsFromList()
+}
+
+function scheduleAddModalFocus() {
+  nextTick(() => {
+    addListItemModalRef.value?.focusNameInput?.()
+  })
+}
+
+function openAddModal() {
+  isAddModalOpen.value = true
+  scheduleAddModalFocus()
+}
+
+function onAddPointerDown(event: PointerEvent) {
+  if (event.pointerType !== 'touch') return
+  isAddModalOpen.value = true
+  scheduleAddModalFocus()
 }
 
 function openEditDrawer(item: ListItem) {

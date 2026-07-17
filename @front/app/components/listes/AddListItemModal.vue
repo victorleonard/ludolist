@@ -47,6 +47,8 @@
                   type="text"
                   autocomplete="off"
                   inputmode="text"
+                  enterkeyhint="done"
+                  data-drawer-autofocus
                   placeholder="Nom de l'élément"
                   :disabled="submitting"
                   class="list-item-native-input flex-1 min-h-[44px] w-full rounded-xl border-0 bg-transparent px-4 py-3 text-base text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-0 focus:outline-none disabled:opacity-50"
@@ -223,14 +225,23 @@ const submitting = ref(false)
 const errors = ref<{ name?: string; category?: string }>({})
 const nameInputRef = ref<HTMLInputElement | null>(null)
 
-const focusInput = () => {
-  ;[100, 350, 600].forEach((delay) => {
-    setTimeout(() => {
-      const el = nameInputRef.value
-      if (el && !el.disabled) el.focus({ preventScroll: false })
-    }, delay)
+const focusNameInput = () => {
+  const el = nameInputRef.value
+  if (!el || el.disabled) return
+  el.click()
+  el.focus({ preventScroll: false })
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+}
+
+const scheduleFocusNameInput = () => {
+  focusNameInput()
+  requestAnimationFrame(focusNameInput)
+  ;[100, 250, 450, 700].forEach((delay) => {
+    setTimeout(focusNameInput, delay)
   })
 }
+
+defineExpose({ focusNameInput: scheduleFocusNameInput })
 
 const suggestions = computed(() => {
   if (!itemName.value.trim()) return []
@@ -250,7 +261,7 @@ watch(isOpen, async (newValue) => {
     newCategoryName.value = ''
     errors.value = {}
     await nextTick()
-    focusInput()
+    scheduleFocusNameInput()
   }
 })
 

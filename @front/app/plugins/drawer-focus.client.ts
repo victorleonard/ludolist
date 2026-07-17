@@ -10,6 +10,16 @@ export default defineNuxtPlugin(() => {
     const drawers = document.querySelectorAll('[role="dialog"], [data-headlessui-state="open"]')
     
     drawers.forEach((drawer) => {
+      const autofocusInput = drawer.querySelector(
+        '[data-drawer-autofocus]:not([disabled])'
+      ) as HTMLInputElement | HTMLTextAreaElement | null
+
+      if (autofocusInput) {
+        autofocusInput.click()
+        autofocusInput.focus({ preventScroll: false })
+        return
+      }
+
       // Trouver le premier élément focusable dans le drawer
       const focusableSelector = 'button:not([disabled]), [href]:not([tabindex="-1"]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       const focusableElements = drawer.querySelectorAll(focusableSelector)
