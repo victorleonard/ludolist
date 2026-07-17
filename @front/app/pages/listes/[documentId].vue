@@ -139,9 +139,9 @@
                   <template #item="{ element }">
                     <ListItemCard
                       :item="element"
-                      :categories="listCategories"
                       @updated="handleItemUpdated"
                       @deleted="handleItemDeleted"
+                      @edit="openEditDrawer"
                     />
                   </template>
                 </draggable>
@@ -196,9 +196,9 @@
                   <template #item="{ element }">
                     <ListItemCard
                       :item="element"
-                      :categories="listCategories"
                       @updated="handleItemUpdated"
                       @deleted="handleItemDeleted"
+                      @edit="openEditDrawer"
                     />
                   </template>
                 </draggable>
@@ -231,6 +231,17 @@
       :categories="listCategories"
       @update:model-value="(v) => { if (!v) isAddModalOpen = false }"
       @success="handleAddSuccess"
+      @categories-changed="handleCategoriesChanged"
+    />
+
+    <EditListItemDrawer
+      :model-value="isEditDrawerOpen"
+      :list-document-id="String(route.params.documentId || '')"
+      :item="editingItem"
+      :categories="listCategories"
+      @update:model-value="(v) => { isEditDrawerOpen = v; if (!v) editingItem = null }"
+      @success="handleItemUpdated"
+      @categories-changed="handleCategoriesChanged"
     />
 
     <ManageListCategoriesDrawer
@@ -463,6 +474,7 @@ import { useFamilyStore } from '~/stores/family'
 import { useLists, type List } from '~/composables/useLists'
 import ListItemCard from '~/components/listes/ListItemCard.vue'
 import AddListItemModal from '~/components/listes/AddListItemModal.vue'
+import EditListItemDrawer from '~/components/listes/EditListItemDrawer.vue'
 import ManageListCategoriesDrawer from '~/components/listes/ManageListCategoriesDrawer.vue'
 
 interface ItemGroup {
@@ -490,6 +502,8 @@ const loading = ref(false)
 const error = ref<string | null>(null)
 const list = ref<List | null>(null)
 const isAddModalOpen = ref(false)
+const isEditDrawerOpen = ref(false)
+const editingItem = ref<ListItem | null>(null)
 const isCategoriesDrawerOpen = ref(false)
 const isAccessDrawerOpen = ref(false)
 const selectedMemberIds = ref<number[]>([])
@@ -673,6 +687,11 @@ function handleItemUpdated(updatedItem: ListItem) {
     list.value.items[index] = updatedItem
   }
   syncListsFromList()
+}
+
+function openEditDrawer(item: ListItem) {
+  editingItem.value = item
+  isEditDrawerOpen.value = true
 }
 
 function handleItemDeleted(itemId: string) {

@@ -3,7 +3,7 @@
     class="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-200"
     :class="{
       'opacity-60': item.is_checked,
-      'hover:shadow-md': !isEditing,
+      'hover:shadow-md': true,
     }"
   >
     <div
@@ -17,13 +17,12 @@
     </div>
     <UCheckbox
       :model-value="item.is_checked"
-      :disabled="loading || isEditing"
+      :disabled="loading"
       class="shrink-0"
       @update:model-value="handleToggle"
     />
 
     <div
-      v-if="!isEditing"
       class="flex-1 min-w-0"
       @click="handleToggle"
     >
@@ -34,12 +33,6 @@
         }"
       >
         {{ item.name }}
-      </p>
-      <p
-        v-if="item.category && !isEditing"
-        class="text-xs text-primary-600 dark:text-primary-400 mt-0.5"
-      >
-        {{ item.category.name }}
       </p>
       <p
         v-if="item.created_by"
@@ -55,50 +48,17 @@
       </p>
     </div>
 
-    <div
-      v-else
-      class="flex-1 min-w-0 space-y-2"
-    >
-      <UInput
-        v-model="editName"
-        :disabled="saving"
-        class="w-full"
-        size="sm"
-        @keyup.enter="handleSave"
-        @keyup.esc="handleCancel"
-      />
-      <select
-        v-if="categories.length > 0"
-        v-model="editCategoryId"
-        :disabled="saving"
-        class="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm"
-      >
-        <option value="">
-          Sans catégorie
-        </option>
-        <option
-          v-for="category in categories"
-          :key="category.documentId"
-          :value="category.documentId"
-        >
-          {{ category.name }}
-        </option>
-      </select>
-    </div>
-
     <div class="flex items-center gap-2 shrink-0">
       <UButton
-        v-if="!isEditing"
         variant="ghost"
         color="neutral"
         icon="i-ion-create"
         size="sm"
         :disabled="loading"
         aria-label="Modifier"
-        @click="startEditing"
+        @click="emit('edit', item)"
       />
       <UButton
-        v-if="!isEditing"
         variant="ghost"
         color="red"
         icon="i-ion-trash"
@@ -108,30 +68,6 @@
         aria-label="Supprimer"
         @click="handleDelete"
       />
-      <div
-        v-else
-        class="flex items-center gap-1"
-      >
-        <UButton
-          variant="ghost"
-          color="green"
-          icon="i-ion-checkmark"
-          size="sm"
-          :disabled="saving || !editName.trim()"
-          :loading="saving"
-          aria-label="Enregistrer"
-          @click="handleSave"
-        />
-        <UButton
-          variant="ghost"
-          color="neutral"
-          icon="i-ion-close"
-          size="sm"
-          :disabled="saving"
-          aria-label="Annuler"
-          @click="handleCancel"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -140,47 +76,27 @@
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMemberStore } from '~/stores/member'
-import { useLists, type ListItem, type ListCategory } from '~/composables/useLists'
+import { useLists, type ListItem } from '~/composables/useLists'
 
 interface Props {
   item: ListItem
-  categories?: ListCategory[]
 }
 
 interface Emits {
   (e: 'updated', item: ListItem): void
   (e: 'deleted', itemId: string): void
+  (e: 'edit', item: ListItem): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  categories: () => [],
-})
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const categories = computed(() => props.categories ?? [])
-
-const { toggleListItem, updateListItem, deleteListItem } = useLists()
+const { toggleListItem, deleteListItem } = useLists()
 const { currentMember } = storeToRefs(useMemberStore())
 const currentMemberId = computed(() => currentMember.value?.id ?? null)
 
-const isEditing = ref(false)
-const editName = ref('')
-const editCategoryId = ref('')
 const loading = ref(false)
-const saving = ref(false)
 const deleting = ref(false)
-
-const startEditing = () => {
-  isEditing.value = true
-  editName.value = props.item.name
-  editCategoryId.value = props.item.category?.documentId ?? ''
-}
-
-const handleCancel = () => {
-  isEditing.value = false
-  editName.value = ''
-  editCategoryId.value = ''
-}
 
 const handleToggle = async () => {
   if (loading.value || !props.item.documentId) return
@@ -192,27 +108,6 @@ const handleToggle = async () => {
     }
   } finally {
     loading.value = false
-  }
-}
-
-const handleSave = async () => {
-  if (!editName.value.trim() || saving.value || !props.item.documentId) return
-  saving.value = true
-  try {
-    const categoryDocumentId = editCategoryId.value || null
-    const result = await updateListItem(
-      props.item.documentId,
-      editName.value.trim(),
-      categoryDocumentId
-    )
-    if (result.success && result.data) {
-      emit('updated', result.data)
-      isEditing.value = false
-      editName.value = ''
-      editCategoryId.value = ''
-    }
-  } finally {
-    saving.value = false
   }
 }
 
